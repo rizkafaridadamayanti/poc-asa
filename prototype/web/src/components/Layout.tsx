@@ -1,5 +1,6 @@
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { NavLink, Outlet, useNavigate } from "react-router-dom"
+import { Offcanvas } from "bootstrap"
 import { clearToken } from "../api.js"
 import { useEvents } from "../hooks/useEvents.js"
 import { ToastContainer, useToasts } from "./Toasts.js"
@@ -22,12 +23,26 @@ const NAV_ITEMS: Array<{ to: string; end?: boolean; icon: string; label: string 
 
 export function Layout() {
   const navigate = useNavigate()
+  const offcanvasRef = useRef<HTMLDivElement>(null)
   const { connected, qr, disconnectReason, lastInbound, error } = useEvents()
   const { toasts, add, remove } = useToasts()
 
   const handleLogout = () => {
     clearToken()
     navigate("/login")
+  }
+
+  // The offcanvas is driven entirely through this JS API, not data-bs-* attributes:
+  // 1) data-bs-dismiss calls preventDefault(), which makes react-router's Link skip
+  //    its own navigation when the click also targets a NavLink.
+  // 2) Mixing data-api (which needs the full bootstrap.bundle.min.js side-effect
+  //    import) with this ESM import loads two independent copies of Bootstrap, each
+  //    registering its own document click listener — one physical click then opens
+  //    the offcanvas twice, leaving an orphaned backdrop behind.
+  const closeMobileSidebar = () => {
+    if (offcanvasRef.current) {
+      Offcanvas.getOrCreateInstance(offcanvasRef.current).hide()
+    }
   }
 
   useEffect(() => {
@@ -59,31 +74,71 @@ export function Layout() {
     )
 
   return (
-    <div className="d-flex">
-      <nav className="sidebar bg-dark d-flex flex-column p-3 flex-shrink-0">
-        <span className="fs-4 fw-bold text-white mb-1">ASA Dashboard</span>
-        <div className="mb-3">{statusBadge}</div>
-        <ul className="nav nav-pills flex-column mb-auto overflow-auto gap-1">
-          {NAV_ITEMS.map((item) => (
-            <li className="nav-item" key={item.to}>
-              <NavLink
-                to={item.to}
-                end={item.end}
-                className={({ isActive }) =>
-                  `nav-link d-flex align-items-center gap-2${isActive ? " active" : ""}`
-                }
-              >
-                <i className={`bi ${item.icon}`} />
-                {item.label}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
-        <button className="btn btn-outline-light mt-3" onClick={handleLogout}>
-          <i className="bi bi-box-arrow-right me-2" />
-          Logout
+    <div className="d-flex flex-column flex-lg-row min-vh-100">
+      <nav className="navbar navbar-dark bg-dark d-lg-none px-3">
+        <button
+          className="btn btn-outline-light"
+          type="button"
+          onClick={() => {
+            if (offcanvasRef.current) {
+              Offcanvas.getOrCreateInstance(offcanvasRef.current).toggle()
+            }
+          }}
+          aria-controls="sidebarOffcanvas"
+        >
+          <i className="bi bi-list fs-4" />
         </button>
+        <span className="navbar-brand ms-2 mb-0 text-white fw-bold">ASA Dashboard</span>
       </nav>
+
+      <div
+        className="offcanvas-lg offcanvas-start bg-dark text-white sidebar"
+        tabIndex={-1}
+        id="sidebarOffcanvas"
+        ref={offcanvasRef}
+      >
+        <div className="offcanvas-header d-lg-none">
+          <span className="fs-5 fw-bold">ASA Dashboard</span>
+          <button
+            type="button"
+            className="btn-close btn-close-white"
+            onClick={closeMobileSidebar}
+            aria-label="Close"
+          />
+        </div>
+        <div className="offcanvas-body d-flex flex-column p-3">
+          <span className="fs-4 fw-bold text-white mb-1 d-none d-lg-block">ASA Dashboard</span>
+          <div className="mb-3">{statusBadge}</div>
+          <ul className="nav nav-pills flex-column mb-auto overflow-auto gap-1">
+            {NAV_ITEMS.map((item) => (
+              <li className="nav-item" key={item.to}>
+                <NavLink
+                  to={item.to}
+                  end={item.end}
+                  onClick={closeMobileSidebar}
+                  className={({ isActive }) =>
+                    `nav-link d-flex align-items-center gap-2${isActive ? " active" : ""}`
+                  }
+                >
+                  <i className={`bi ${item.icon}`} />
+                  {item.label}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+          <button
+            className="btn btn-outline-light mt-3"
+            onClick={() => {
+              closeMobileSidebar()
+              handleLogout()
+            }}
+          >
+            <i className="bi bi-box-arrow-right me-2" />
+            Logout
+          </button>
+        </div>
+      </div>
+
       <main className="main-content flex-grow-1 p-4">
         <Outlet context={{ connected, qr, disconnectReason, lastInbound }} />
       </main>

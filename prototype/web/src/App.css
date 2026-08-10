@@ -7,8 +7,14 @@ body {
 }
 
 .sidebar {
-  width: var(--sidebar-width);
-  min-height: 100vh;
+  --bs-offcanvas-width: var(--sidebar-width);
+}
+
+@media (min-width: 992px) {
+  .sidebar {
+    width: var(--sidebar-width);
+    min-height: 100vh;
+  }
 }
 
 .sidebar .nav-link {
