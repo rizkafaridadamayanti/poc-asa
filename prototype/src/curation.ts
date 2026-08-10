@@ -36,7 +36,7 @@ export async function fanOutCuratedInfo(
   let sent = 0
   for (const target of doc.targets) {
     try {
-      await sendOutbound(bridge, target, text)
+      await sendOutbound(bridge, target, text, "curated-info")
       sent++
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)

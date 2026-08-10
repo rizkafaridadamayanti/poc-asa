@@ -53,62 +53,67 @@ export function LoginToBot() {
 
   return (
     <div>
-      <h2 className="page-title">Login to Bot</h2>
+      <h2 className="mb-4">Login to Bot</h2>
 
-      <div className="card" style={{ marginBottom: "1.5rem", maxWidth: "420px" }}>
-        <h3>Connection status</h3>
-        <span className={`status-badge ${connected ? "connected" : "disconnected"}`}>
-          {statusLabel}
-        </span>
-        {connected === false && disconnectReason && (
-          <p style={{ color: "var(--danger)", marginTop: "0.75rem", fontSize: "0.9rem" }}>
-            {REASON_LABEL[disconnectReason] ?? disconnectReason}
-          </p>
-        )}
-        {checkedAt && (
-          <p style={{ color: "var(--muted)", fontSize: "0.8rem", marginTop: "0.75rem" }}>
-            Last checked {checkedAt.toLocaleTimeString()}
-          </p>
-        )}
+      <div className="card mb-4" style={{ maxWidth: "420px" }}>
+        <div className="card-body">
+          <h5 className="card-title">Connection status</h5>
+          <span className={`badge ${connected ? "text-bg-success" : "text-bg-danger"}`}>
+            {statusLabel}
+          </span>
+          {connected === false && disconnectReason && (
+            <p className="text-danger small mt-3 mb-0">
+              {REASON_LABEL[disconnectReason] ?? disconnectReason}
+            </p>
+          )}
+          {checkedAt && (
+            <p className="text-muted small mt-3 mb-0">
+              Last checked {checkedAt.toLocaleTimeString()}
+            </p>
+          )}
+        </div>
       </div>
 
       {connected ? (
         <div className="card" style={{ maxWidth: "420px" }}>
-          <h3>Bot is paired</h3>
-          <p style={{ color: "var(--muted)" }}>
-            The WhatsApp bridge is connected. No QR needed — this session stays active until it's
-            logged out from the phone or the local session is cleared.
-          </p>
+          <div className="card-body">
+            <h5 className="card-title">
+              <i className="bi bi-check-circle text-success me-2" />
+              Bot is paired
+            </h5>
+            <p className="text-muted mb-0">
+              The WhatsApp bridge is connected. No QR needed — this session stays active until
+              it's logged out from the phone or the local session is cleared.
+            </p>
+          </div>
         </div>
       ) : (
         <div className="card" style={{ maxWidth: "420px" }}>
-          <h3>Scan to pair</h3>
-          <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
-            Open WhatsApp on the test phone → Settings → Linked Devices → Link a Device → scan
-            this QR code.
-          </p>
-          {error && <div className="alert error">{error}</div>}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              minHeight: "260px",
-              margin: "1.25rem 0",
-            }}
-          >
-            {qr ? (
-              <QRCodeSVG value={qr} size={260} />
-            ) : (
-              <p className="loading">{loading ? "Loading QR…" : "Waiting for QR…"}</p>
-            )}
+          <div className="card-body">
+            <h5 className="card-title">Scan to pair</h5>
+            <p className="text-muted small">
+              Open WhatsApp on the test phone → Settings → Linked Devices → Link a Device → scan
+              this QR code.
+            </p>
+            {error && <div className="alert alert-danger">{error}</div>}
+            <div
+              className="d-flex justify-content-center align-items-center my-4"
+              style={{ minHeight: "260px" }}
+            >
+              {qr ? (
+                <QRCodeSVG value={qr} size={260} />
+              ) : (
+                <p className="text-muted">{loading ? "Loading QR…" : "Waiting for QR…"}</p>
+              )}
+            </div>
+            <button className="btn btn-primary" onClick={fetchQr} disabled={loading}>
+              <i className="bi bi-arrow-clockwise me-1" />
+              {loading ? "Refreshing…" : "Refresh QR"}
+            </button>
+            <p className="text-muted small mt-3 mb-0">
+              QR codes rotate automatically roughly every 20 seconds while waiting to pair.
+            </p>
           </div>
-          <button className="btn" onClick={fetchQr} disabled={loading}>
-            {loading ? "Refreshing…" : "Refresh QR"}
-          </button>
-          <p style={{ color: "var(--muted)", fontSize: "0.8rem", marginTop: "0.75rem" }}>
-            QR codes rotate automatically roughly every 20 seconds while waiting to pair.
-          </p>
         </div>
       )}
     </div>

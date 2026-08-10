@@ -12,6 +12,12 @@ const TYPE_LABEL: Record<CuratedInfoType, string> = {
   inovasi: "Inovasi",
 }
 
+const STATUS_BADGE: Record<CuratedInfoStatus, string> = {
+  draft: "text-bg-warning",
+  approved: "text-bg-primary",
+  sent: "text-bg-success",
+}
+
 const STATUS_FILTERS: Array<{ value: CuratedInfoStatus | "all"; label: string }> = [
   { value: "all", label: "All" },
   { value: "draft", label: "Draft" },
@@ -173,21 +179,21 @@ export function InformasiBaru() {
 
   return (
     <div>
-      <h2 className="page-title">Informasi Baru</h2>
-      <p style={{ color: "var(--muted)", marginTop: "-0.75rem", marginBottom: "1.25rem" }}>
+      <h2 className="mb-1">Informasi Baru</h2>
+      <p className="text-muted mb-4">
         Curate beasiswa / magang / inovasi info. Draft it, get Pusat approval, then fan out to
         target groups.
       </p>
 
-      {error && <div className="alert error">{error}</div>}
-      {info && <div className="alert success">{info}</div>}
+      {error && <div className="alert alert-danger">{error}</div>}
+      {info && <div className="alert alert-success">{info}</div>}
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "0.75rem" }}>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
+      <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div className="btn-group">
           {STATUS_FILTERS.map((f) => (
             <button
               key={f.value}
-              className={f.value === filter ? "btn" : "btn btn-secondary"}
+              className={`btn btn-sm ${f.value === filter ? "btn-primary" : "btn-outline-primary"}`}
               onClick={() => setFilter(f.value)}
             >
               {f.label}
@@ -195,126 +201,155 @@ export function InformasiBaru() {
           ))}
         </div>
         {!showForm && (
-          <button className="btn" onClick={startCreate}>
-            + New draft
+          <button className="btn btn-primary" onClick={startCreate}>
+            <i className="bi bi-plus-lg me-1" />
+            New draft
           </button>
         )}
       </div>
 
       {showForm && (
-        <form onSubmit={submitForm} className="card" style={{ marginBottom: "1.5rem", maxWidth: "560px" }}>
-          <h3 style={{ marginTop: 0 }}>{editingId ? "Edit draft" : "New draft"}</h3>
-          <div className="form-group">
-            <label htmlFor="type">Type</label>
-            <select
-              id="type"
-              value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value as CuratedInfoType })}
-              style={{ width: "100%", maxWidth: "480px", padding: "0.55rem 0.75rem", border: "1px solid var(--border)", borderRadius: "0.4rem", font: "inherit" }}
-            >
-              {Object.entries(TYPE_LABEL).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="title">Title</label>
-            <input
-              id="title"
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              placeholder="Beasiswa Unggulan 2026"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="body">Body</label>
-            <textarea
-              id="body"
-              value={form.body}
-              onChange={(e) => setForm({ ...form, body: e.target.value })}
-              placeholder="Detail info, syarat, link pendaftaran…"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="targets">Target groups (one JID per line)</label>
-            <textarea
-              id="targets"
-              value={form.targetsText}
-              onChange={(e) => setForm({ ...form, targetsText: e.target.value })}
-              placeholder="120363xxxxxxxxxxxx@g.us"
-            />
-          </div>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            <button className="btn" disabled={saving}>
-              {saving ? "Saving…" : editingId ? "Save changes" : "Create draft"}
-            </button>
-            <button type="button" className="btn btn-secondary" onClick={cancelForm} disabled={saving}>
-              Cancel
-            </button>
+        <form onSubmit={submitForm} className="card mb-4" style={{ maxWidth: "560px" }}>
+          <div className="card-body">
+            <h5 className="card-title">{editingId ? "Edit draft" : "New draft"}</h5>
+            <div className="mb-3">
+              <label htmlFor="type" className="form-label">
+                Type
+              </label>
+              <select
+                id="type"
+                className="form-select"
+                value={form.type}
+                onChange={(e) => setForm({ ...form, type: e.target.value as CuratedInfoType })}
+              >
+                {Object.entries(TYPE_LABEL).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-3">
+              <label htmlFor="title" className="form-label">
+                Title
+              </label>
+              <input
+                id="title"
+                className="form-control"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                placeholder="Beasiswa Unggulan 2026"
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="body" className="form-label">
+                Body
+              </label>
+              <textarea
+                id="body"
+                className="form-control"
+                rows={3}
+                value={form.body}
+                onChange={(e) => setForm({ ...form, body: e.target.value })}
+                placeholder="Detail info, syarat, link pendaftaran…"
+                required
+              />
+            </div>
+            <div className="mb-3">
+              <label htmlFor="targets" className="form-label">
+                Target groups (one JID per line)
+              </label>
+              <textarea
+                id="targets"
+                className="form-control"
+                rows={3}
+                value={form.targetsText}
+                onChange={(e) => setForm({ ...form, targetsText: e.target.value })}
+                placeholder="120363xxxxxxxxxxxx@g.us"
+              />
+            </div>
+            <div className="d-flex gap-2">
+              <button className="btn btn-primary" disabled={saving}>
+                {saving ? "Saving…" : editingId ? "Save changes" : "Create draft"}
+              </button>
+              <button type="button" className="btn btn-outline-secondary" onClick={cancelForm} disabled={saving}>
+                Cancel
+              </button>
+            </div>
           </div>
         </form>
       )}
 
-      {loading && <p className="loading">Loading…</p>}
-      {!loading && items.length === 0 && <p className="empty">No curated info yet.</p>}
+      {loading && <p className="text-muted">Loading…</p>}
+      {!loading && items.length === 0 && <p className="text-muted fst-italic">No curated info yet.</p>}
 
       {items.map((item) => (
-        <div key={item._id} className="card" style={{ marginBottom: "1rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem" }}>
-                <span className={`status-badge ${item.status}`}>{item.status}</span>
-                <span style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
-                  {TYPE_LABEL[item.type]}
-                </span>
+        <div key={item._id} className="card mb-3">
+          <div className="card-body">
+            <div className="d-flex justify-content-between align-items-start gap-3">
+              <div>
+                <div className="d-flex align-items-center gap-2 mb-1">
+                  <span className={`badge ${STATUS_BADGE[item.status]}`}>{item.status}</span>
+                  <span className="text-muted small">{TYPE_LABEL[item.type]}</span>
+                </div>
+                <strong className="fs-6">{item.title}</strong>
               </div>
-              <strong style={{ fontSize: "1.05rem" }}>{item.title}</strong>
-            </div>
-            <span style={{ color: "var(--muted)", fontSize: "0.8rem", whiteSpace: "nowrap" }}>
-              {new Date(item.createdAt).toLocaleString()}
-            </span>
-          </div>
-          <p style={{ whiteSpace: "pre-wrap", margin: "0.75rem 0" }}>{item.body}</p>
-          <p style={{ color: "var(--muted)", fontSize: "0.85rem", marginBottom: "0.75rem" }}>
-            Targets ({item.targets.length}): {item.targets.length > 0 ? item.targets.join(", ") : "—"}
-          </p>
-          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-            {item.status === "draft" && (
-              <>
-                <button className="btn btn-secondary" onClick={() => startEdit(item)} disabled={busyId === item._id}>
-                  Edit
-                </button>
-                <button
-                  className="btn"
-                  onClick={() => handleApprove(item._id)}
-                  disabled={busyId === item._id}
-                >
-                  {busyId === item._id ? "Approving…" : "Approve"}
-                </button>
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => handleDelete(item._id)}
-                  disabled={busyId === item._id}
-                  style={{ color: "var(--danger)" }}
-                >
-                  Delete
-                </button>
-              </>
-            )}
-            {item.status === "approved" && (
-              <button className="btn" onClick={() => handleFanOut(item._id)} disabled={busyId === item._id}>
-                {busyId === item._id ? "Sending…" : "Fan out now"}
-              </button>
-            )}
-            {item.status === "sent" && (
-              <span style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
-                Sent {item.sentAt ? new Date(item.sentAt).toLocaleString() : ""}
+              <span className="text-muted small text-nowrap">
+                {new Date(item.createdAt).toLocaleString()}
               </span>
-            )}
+            </div>
+            <p className="my-3" style={{ whiteSpace: "pre-wrap" }}>
+              {item.body}
+            </p>
+            <p className="text-muted small mb-3">
+              Targets ({item.targets.length}): {item.targets.length > 0 ? item.targets.join(", ") : "—"}
+            </p>
+            <div className="d-flex gap-2 flex-wrap">
+              {item.status === "draft" && (
+                <>
+                  <button
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={() => startEdit(item)}
+                    disabled={busyId === item._id}
+                  >
+                    <i className="bi bi-pencil me-1" />
+                    Edit
+                  </button>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={() => handleApprove(item._id)}
+                    disabled={busyId === item._id}
+                  >
+                    <i className="bi bi-check-lg me-1" />
+                    {busyId === item._id ? "Approving…" : "Approve"}
+                  </button>
+                  <button
+                    className="btn btn-outline-danger btn-sm"
+                    onClick={() => handleDelete(item._id)}
+                    disabled={busyId === item._id}
+                  >
+                    <i className="bi bi-trash me-1" />
+                    Delete
+                  </button>
+                </>
+              )}
+              {item.status === "approved" && (
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={() => handleFanOut(item._id)}
+                  disabled={busyId === item._id}
+                >
+                  <i className="bi bi-broadcast me-1" />
+                  {busyId === item._id ? "Sending…" : "Fan out now"}
+                </button>
+              )}
+              {item.status === "sent" && (
+                <span className="text-muted small">
+                  Sent {item.sentAt ? new Date(item.sentAt).toLocaleString() : ""}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       ))}

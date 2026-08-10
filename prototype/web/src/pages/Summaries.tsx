@@ -37,7 +37,10 @@ export function Summaries() {
 
   useEffect(() => {
     load(0)
-    api.groups().then((res) => setGroups(res.groups)).catch(() => {})
+    api
+      .groups()
+      .then((res) => setGroups(res.groups))
+      .catch(() => {})
   }, [])
 
   const applyFilters = (e: React.FormEvent) => {
@@ -70,91 +73,137 @@ export function Summaries() {
 
   return (
     <div>
-      <h2 className="page-title">Summaries</h2>
-      <p className="muted" style={{ marginTop: "-0.5rem", marginBottom: "1rem" }}>
-        Catatan dominasi bicara (meeting-bias) di bawah ini adalah <strong>signal</strong>, bukan vonis — pakai sebagai bahan diskusi, bukan penilaian final.
+      <h2 className="mb-1">Summaries</h2>
+      <p className="text-muted mb-4">
+        Catatan dominasi bicara (meeting-bias) di bawah ini adalah <strong>signal</strong>, bukan
+        vonis — pakai sebagai bahan diskusi, bukan penilaian final.
       </p>
-      {error && <div className="alert error">{error}</div>}
+      {error && <div className="alert alert-danger">{error}</div>}
 
-      <form onSubmit={applyFilters} className="card" style={{ marginBottom: "1rem", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "flex-end" }}>
-        <div className="form-group">
-          <label htmlFor="groupFilter">Group</label>
-          <select id="groupFilter" value={groupFilter} onChange={(e) => setGroupFilter(e.target.value)}>
-            <option value="">All groups</option>
-            {groups.map((g) => (
-              <option key={g._id} value={g.waJid}>
-                {g.name || g.waJid}
-              </option>
-            ))}
-          </select>
+      <form onSubmit={applyFilters} className="card mb-4">
+        <div className="card-body row g-3 align-items-end">
+          <div className="col-sm-3">
+            <label htmlFor="groupFilter" className="form-label">
+              Group
+            </label>
+            <select
+              id="groupFilter"
+              className="form-select"
+              value={groupFilter}
+              onChange={(e) => setGroupFilter(e.target.value)}
+            >
+              <option value="">All groups</option>
+              {groups.map((g) => (
+                <option key={g._id} value={g.waJid}>
+                  {g.name || g.waJid}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="col-sm-2">
+            <label htmlFor="fromFilter" className="form-label">
+              From
+            </label>
+            <input
+              id="fromFilter"
+              type="date"
+              className="form-control"
+              value={fromFilter}
+              onChange={(e) => setFromFilter(e.target.value)}
+            />
+          </div>
+          <div className="col-sm-2">
+            <label htmlFor="toFilter" className="form-label">
+              To
+            </label>
+            <input
+              id="toFilter"
+              type="date"
+              className="form-control"
+              value={toFilter}
+              onChange={(e) => setToFilter(e.target.value)}
+            />
+          </div>
+          <div className="col-sm-3">
+            <label htmlFor="keywordFilter" className="form-label">
+              Keyword
+            </label>
+            <input
+              id="keywordFilter"
+              className="form-control"
+              placeholder="search body…"
+              value={keywordFilter}
+              onChange={(e) => setKeywordFilter(e.target.value)}
+            />
+          </div>
+          <div className="col-sm-2">
+            <button className="btn btn-primary w-100" disabled={loading}>
+              Apply filters
+            </button>
+          </div>
         </div>
-        <div className="form-group">
-          <label htmlFor="fromFilter">From</label>
-          <input id="fromFilter" type="date" value={fromFilter} onChange={(e) => setFromFilter(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label htmlFor="toFilter">To</label>
-          <input id="toFilter" type="date" value={toFilter} onChange={(e) => setToFilter(e.target.value)} />
-        </div>
-        <div className="form-group">
-          <label htmlFor="keywordFilter">Keyword</label>
-          <input
-            id="keywordFilter"
-            placeholder="search body…"
-            value={keywordFilter}
-            onChange={(e) => setKeywordFilter(e.target.value)}
-          />
-        </div>
-        <button className="btn" disabled={loading}>
-          Apply filters
-        </button>
       </form>
 
-      {loading && <p className="loading">Loading summaries…</p>}
-      {!loading && summaries.length === 0 && <p className="empty">No summaries yet.</p>}
+      {loading && <p className="text-muted">Loading summaries…</p>}
+      {!loading && summaries.length === 0 && <p className="text-muted fst-italic">No summaries yet.</p>}
       {summaries.map((s) => (
-        <div key={s._id} className="card" style={{ marginBottom: "1rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-            <strong>{new Date(s.periodStart).toLocaleDateString()} — {new Date(s.periodEnd).toLocaleDateString()}</strong>
-            <span className="muted">{s.sourceMessageIds.length} messages</span>
-          </div>
-          <div className="markdown-body">
-            <pre>{s.bodyMd}</pre>
-          </div>
-          <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
-            <button className="btn btn-secondary" onClick={() => toggle(s, "read")}>
-              {s.read ? "Mark unread" : "Mark read"}
-            </button>
-            <button className="btn btn-secondary" onClick={() => toggle(s, "important")}>
-              {s.important ? "Unmark important" : "Mark important"}
-            </button>
-            <button className="btn btn-secondary" onClick={() => toggle(s, "trash")}>
-              {s.trash ? "Restore" : "Trash"}
-            </button>
-            <button className="btn btn-secondary" onClick={() => exportDocx(s)}>
-              Export .docx
-            </button>
+        <div key={s._id} className="card mb-3">
+          <div className="card-body">
+            <div className="d-flex justify-content-between mb-2">
+              <strong>
+                {new Date(s.periodStart).toLocaleDateString()} —{" "}
+                {new Date(s.periodEnd).toLocaleDateString()}
+              </strong>
+              <span className="text-muted small">{s.sourceMessageIds.length} messages</span>
+            </div>
+            <div className="markdown-body mb-3">
+              <pre className="bg-body-tertiary p-3 rounded">{s.bodyMd}</pre>
+            </div>
+            <div className="d-flex gap-2 flex-wrap">
+              <button className="btn btn-outline-secondary btn-sm" onClick={() => toggle(s, "read")}>
+                <i className={`bi ${s.read ? "bi-envelope" : "bi-envelope-open"} me-1`} />
+                {s.read ? "Mark unread" : "Mark read"}
+              </button>
+              <button
+                className={`btn btn-sm ${s.important ? "btn-warning" : "btn-outline-secondary"}`}
+                onClick={() => toggle(s, "important")}
+              >
+                <i className="bi bi-star me-1" />
+                {s.important ? "Unmark important" : "Mark important"}
+              </button>
+              <button
+                className={`btn btn-sm ${s.trash ? "btn-outline-success" : "btn-outline-danger"}`}
+                onClick={() => toggle(s, "trash")}
+              >
+                <i className={`bi ${s.trash ? "bi-arrow-counterclockwise" : "bi-trash"} me-1`} />
+                {s.trash ? "Restore" : "Trash"}
+              </button>
+              <button className="btn btn-outline-secondary btn-sm" onClick={() => exportDocx(s)}>
+                <i className="bi bi-file-earmark-word me-1" />
+                Export .docx
+              </button>
+            </div>
           </div>
         </div>
       ))}
       {summaries.length > 0 && (
-        <div className="pagination">
+        <div className="d-flex align-items-center gap-3 mt-3">
           <button
-            className="btn btn-secondary"
+            className="btn btn-outline-secondary btn-sm"
             disabled={offset === 0 || loading}
             onClick={() => load(Math.max(offset - limit, 0))}
           >
-            Previous
+            <i className="bi bi-chevron-left" /> Previous
           </button>
-          <span>
+          <span className="text-muted small">
             {offset + 1}–{Math.min(offset + summaries.length, total)} of {total}
           </span>
           <button
-            className="btn btn-secondary"
+            className="btn btn-outline-secondary btn-sm"
             disabled={offset + summaries.length >= total || loading}
             onClick={() => load(offset + limit)}
           >
-            Next
+            Next <i className="bi bi-chevron-right" />
           </button>
         </div>
       )}

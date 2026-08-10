@@ -19,7 +19,10 @@ export function isLoggedIn(): boolean {
 
 async function fetchJson<T>(input: string, init?: RequestInit): Promise<T> {
   const token = getToken()
-  const headers: Record<string, string> = { "content-type": "application/json" }
+  const headers: Record<string, string> = {}
+  if (init?.body !== undefined) {
+    headers["content-type"] = "application/json"
+  }
   if (token) {
     headers["authorization"] = `Bearer ${token}`
   }
@@ -156,6 +159,57 @@ export type Sentiment = {
   createdAt: string
 }
 
+export type Reminder = { at: string; sent: boolean; sentAt: string | null }
+
+export type Agenda = {
+  _id: string
+  title: string
+  description: string
+  dueAt: string
+  remindAt: Reminder[]
+  audience: string[]
+  createdAt: string
+  updatedAt: string
+}
+
+export type AgendaInput = {
+  title: string
+  description?: string
+  dueAt: string
+  remindAt: string[]
+  audience: string[]
+}
+
+export type SpamAlert = {
+  _id: string
+  messageId: string
+  chatJid: string
+  fromJid: string
+  text: string
+  spamScore: number
+  reasons: string[]
+  notified: boolean
+  createdAt: string
+}
+
+export type OutboundLog = {
+  _id: string
+  toJid: string
+  kind: string
+  text: string
+  ok: boolean
+  waMessageId: string | null
+  error: string | null
+  createdAt: string
+}
+
+export type AnonymousIdea = {
+  _id: string
+  text: string
+  status: "new" | "reviewed"
+  createdAt: string
+}
+
 export const api = {
   status: () => fetchJson<Status>("/api/dashboard/status"),
 
@@ -261,4 +315,37 @@ export const api = {
   dusunStats: () => fetchJson<{ rows: DusunRow[] }>("/api/stats/dusun"),
 
   sentiments: () => fetchJson<{ count: number; sentiments: Sentiment[] }>("/api/sentiments"),
+
+  agendas: (upcoming = false) =>
+    fetchJson<{ count: number; agendas: Agenda[] }>(
+      `/api/agendas${upcoming ? "?upcoming=true" : ""}`,
+    ),
+
+  createAgenda: (data: AgendaInput) =>
+    fetchJson<Agenda>("/api/agendas", { method: "POST", body: JSON.stringify(data) }),
+
+  updateAgenda: (id: string, data: Partial<AgendaInput>) =>
+    fetchJson<Agenda>(`/api/agendas/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+
+  deleteAgenda: (id: string) =>
+    fetchJson<{ ok: boolean }>(`/api/agendas/${id}`, { method: "DELETE" }),
+
+  spamAlerts: () => fetchJson<{ count: number; alerts: SpamAlert[] }>("/api/spam-alerts"),
+
+  outboundLogs: (limit = 50) =>
+    fetchJson<{ count: number; logs: OutboundLog[] }>(`/api/outbound-logs?limit=${limit}`),
+
+  askQuestion: (question: string, scopeGroupJid?: string) =>
+    fetchJson<{ answer: string; sourceMessageIds: string[] }>("/api/qa/ask", {
+      method: "POST",
+      body: JSON.stringify({ question, scopeGroupJid }),
+    }),
+
+  anonymousIdeas: (status?: "new" | "reviewed") =>
+    fetchJson<{ count: number; ideas: AnonymousIdea[] }>(
+      `/api/anonymous-ideas${status ? `?status=${status}` : ""}`,
+    ),
+
+  markIdeaReviewed: (id: string) =>
+    fetchJson<AnonymousIdea>(`/api/anonymous-ideas/${id}/review`, { method: "POST" }),
 }

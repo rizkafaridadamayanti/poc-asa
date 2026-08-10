@@ -1,17 +1,103 @@
 import { MessageModel } from "./models/message.js"
 import { ParticipantModel } from "./models/participant.js"
-import type { InboundMessage } from "./types.js"
+import { SpamAlertModel } from "./models/spamAlert.js"
+import { AnonymousIdeaModel } from "./models/anonymousIdea.js"
+import { checkSpam, SPAM_ALERT_THRESHOLD, type SpamCheckResult } from "./spam.js"
+import { answerQuestion } from "./qa.js"
+import { sendOutbound } from "./sender.js"
+import { getSettings } from "./settings.js"
+import type { InboundMessage, WaBridge } from "./types.js"
+import type { LlmClient } from "./llm.js"
 import type { Logger } from "./logger.js"
 
 const IDEA_KEYWORDS = /\b(usul|usulan|saran|ide|gimana kalau|bagaimana kalau|proposal|inisiatif)\b/i
+const IDEA_CMD_RE = /^\/ide\s+([\s\S]+)/i
+const ASK_CMD_RE = /^\/tanya\s+([\s\S]+)/i
 
 function looksLikeIdea(text: string): boolean {
   return IDEA_KEYWORDS.test(text)
 }
 
-export function createInboundHandler(log: Logger) {
+async function handleSpamAlert(
+  bridge: WaBridge,
+  msg: InboundMessage,
+  spam: SpamCheckResult,
+  log: Logger,
+): Promise<void> {
+  try {
+    const existing = await SpamAlertModel.findOne({ messageId: msg.messageId }).lean()
+    if (existing) return
+
+    await SpamAlertModel.create({
+      messageId: msg.messageId,
+      chatJid: msg.chatJid,
+      fromJid: msg.fromJid,
+      text: msg.text,
+      spamScore: spam.score,
+      reasons: spam.reasons,
+      notified: false,
+    })
+
+    const { reportToJid } = getSettings()
+    const preview = msg.text.length > 200 ? `${msg.text.slice(0, 200)}…` : msg.text
+    const alertText = `*Spam/Fraud Alert*\nScore: ${spam.score}/100\nDari: ${msg.fromJid}\nDi: ${msg.chatJid}\nAlasan: ${spam.reasons.join(", ")}\n\nPesan:\n${preview}`
+    await sendOutbound(bridge, reportToJid, alertText, "spam-alert")
+    await SpamAlertModel.updateOne({ messageId: msg.messageId }, { $set: { notified: true } })
+  } catch (err) {
+    log.error({ err, messageId: msg.messageId }, "spam alert failed")
+  }
+}
+
+async function handleAnonymousIdea(
+  bridge: WaBridge,
+  replyToJid: string,
+  rawText: string,
+  log: Logger,
+): Promise<void> {
+  try {
+    await AnonymousIdeaModel.create({ text: rawText.trim() })
+    await sendOutbound(
+      bridge,
+      replyToJid,
+      "Ide kamu sudah tercatat secara anonim buat Pengurus Pusat. Makasih!",
+      "idea-ack",
+    )
+  } catch (err) {
+    log.error({ err }, "anonymous idea intake failed")
+  }
+}
+
+async function handleAskCommand(
+  bridge: WaBridge,
+  replyToJid: string,
+  question: string,
+  llm: LlmClient,
+  log: Logger,
+): Promise<void> {
+  try {
+    // DM Q&A defaults to the lowest ACL scope — japri can come from any member, not just Pusat.
+    const { answer } = await answerQuestion({ question, llm, requesterScope: "anggota" })
+    await sendOutbound(bridge, replyToJid, answer, "qa-reply")
+  } catch (err) {
+    log.error({ err }, "qa command failed")
+    try {
+      await sendOutbound(
+        bridge,
+        replyToJid,
+        "Maaf, lagi ada gangguan jawab pertanyaan. Coba lagi nanti ya.",
+        "qa-reply",
+      )
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+export function createInboundHandler(log: Logger, bridge: WaBridge, llm: LlmClient) {
   return async function handleInbound(msg: InboundMessage): Promise<void> {
     try {
+      const spam = checkSpam(msg.text)
+
       await MessageModel.updateOne(
         { messageId: msg.messageId },
         {
@@ -23,7 +109,7 @@ export function createInboundHandler(log: Logger) {
             type: msg.type,
             text: msg.text,
             isGroup: msg.isGroup,
-            flags: { spamScore: 0, sentiment: "", isIdea: looksLikeIdea(msg.text) },
+            flags: { spamScore: spam.score, sentiment: "", isIdea: looksLikeIdea(msg.text) },
           },
         },
         { upsert: true },
@@ -41,10 +127,25 @@ export function createInboundHandler(log: Logger) {
           chatJid: msg.chatJid,
           fromJid: msg.fromJid,
           isGroup: msg.isGroup,
+          spamScore: spam.score,
           text: msg.text.slice(0, 120),
         },
         "inbound stored",
       )
+
+      if (spam.score >= SPAM_ALERT_THRESHOLD) {
+        void handleSpamAlert(bridge, msg, spam, log)
+      }
+
+      if (!msg.isGroup) {
+        const ideaMatch = IDEA_CMD_RE.exec(msg.text)
+        const askMatch = ASK_CMD_RE.exec(msg.text)
+        if (ideaMatch) {
+          void handleAnonymousIdea(bridge, msg.fromJid, ideaMatch[1], log)
+        } else if (askMatch) {
+          void handleAskCommand(bridge, msg.fromJid, askMatch[1], llm, log)
+        }
+      }
     } catch (err) {
       log.error({ err, messageId: msg.messageId }, "inbound store failed")
     }

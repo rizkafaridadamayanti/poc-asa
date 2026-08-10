@@ -23,80 +23,93 @@ export function Infografis() {
 
   return (
     <div>
-      <h2 className="page-title">Infografis</h2>
-      {error && <div className="alert error">{error}</div>}
-      {loading && <p className="loading">Loading stats…</p>}
+      <h2 className="mb-4">Infografis</h2>
+      {error && <div className="alert alert-danger">{error}</div>}
+      {loading && <p className="text-muted">Loading stats…</p>}
 
       {!loading && (
         <>
-          <div className="card" style={{ marginBottom: "1.5rem" }}>
-            <h3>Peak chat hours</h3>
-            <div style={{ display: "flex", alignItems: "flex-end", gap: "2px", height: "120px" }}>
-              {Array.from({ length: 24 }, (_, hour) => {
-                const row = peakHours.find((r) => r.hour === hour)
-                const count = row?.count ?? 0
-                return (
-                  <div key={hour} style={{ flex: 1, textAlign: "center" }} title={`${hour}:00 — ${count} pesan`}>
+          <div className="card mb-4">
+            <div className="card-body">
+              <h5 className="card-title">Peak chat hours</h5>
+              <div className="d-flex align-items-end gap-1" style={{ height: "120px" }}>
+                {Array.from({ length: 24 }, (_, hour) => {
+                  const row = peakHours.find((r) => r.hour === hour)
+                  const count = row?.count ?? 0
+                  return (
                     <div
-                      style={{
-                        height: `${(count / maxHourCount) * 100}px`,
-                        background: "var(--accent, #4f46e5)",
-                        borderRadius: "2px",
-                      }}
-                    />
-                    <span style={{ fontSize: "0.65rem" }}>{hour}</span>
-                  </div>
-                )
-              })}
+                      key={hour}
+                      className="flex-fill text-center"
+                      title={`${hour}:00 — ${count} pesan`}
+                    >
+                      <div
+                        className="bg-primary rounded-top mx-auto"
+                        style={{ height: `${(count / maxHourCount) * 100}px`, width: "70%" }}
+                      />
+                      <span className="text-muted" style={{ fontSize: "0.65rem" }}>
+                        {hour}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </div>
 
-          <div className="card" style={{ marginBottom: "1.5rem" }}>
-            <h3>Active vs contributive</h3>
-            {contributive.length === 0 && <p className="empty">No messages yet.</p>}
-            {contributive.length > 0 && (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Participant</th>
-                    <th>Messages (active)</th>
-                    <th>Ideas tagged (contributive)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {contributive.map((r) => (
-                    <tr key={r.waJid}>
-                      <td>{r.waJid.split("@")[0]}</td>
-                      <td>{r.messageCount}</td>
-                      <td>{r.ideaCount}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+          <div className="card mb-4">
+            <div className="card-body">
+              <h5 className="card-title">Active vs contributive</h5>
+              {contributive.length === 0 && <p className="text-muted fst-italic mb-0">No messages yet.</p>}
+              {contributive.length > 0 && (
+                <div className="table-responsive">
+                  <table className="table table-hover align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th>Participant</th>
+                        <th>Messages (active)</th>
+                        <th>Ideas tagged (contributive)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {contributive.map((r) => (
+                        <tr key={r.waJid}>
+                          <td>{r.waJid.split("@")[0]}</td>
+                          <td>{r.messageCount}</td>
+                          <td>{r.ideaCount}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="card">
-            <h3>Groups by dusun</h3>
-            {dusun.length === 0 && <p className="empty">No dusun assigned to any group yet.</p>}
-            {dusun.length > 0 && (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Dusun</th>
-                    <th>Groups</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dusun.map((r) => (
-                    <tr key={r.dusunId}>
-                      <td>{r.dusunId}</td>
-                      <td>{r.groupCount}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            <div className="card-body">
+              <h5 className="card-title">Groups by dusun</h5>
+              {dusun.length === 0 && <p className="text-muted fst-italic mb-0">No dusun assigned to any group yet.</p>}
+              {dusun.length > 0 && (
+                <div className="table-responsive">
+                  <table className="table table-hover align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th>Dusun</th>
+                        <th>Groups</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dusun.map((r) => (
+                        <tr key={r.dusunId}>
+                          <td>{r.dusunId}</td>
+                          <td>{r.groupCount}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
         </>
       )}

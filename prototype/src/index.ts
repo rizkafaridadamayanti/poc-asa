@@ -26,12 +26,13 @@ async function main() {
     sendMaxDelayMs: cfg.sendMaxDelayMs,
   })
 
-  const onInbound = createInboundHandler(log)
+  const llm = createLlmClient(cfg)
+
+  const onInbound = createInboundHandler(log, bridge, llm)
   bridge.onMessage((msg) => {
     void onInbound(msg)
   })
 
-  const llm = createLlmClient(cfg)
   await bridge.start()
   startDigestCron({ schedule: cfg.digestCron, bridge, llm, log })
   startSentimentCron({ schedule: cfg.digestCron, bridge, llm, log })

@@ -28,7 +28,7 @@ async function fireDueReminders(bridge: WaBridge, log: Logger): Promise<void> {
       fired = true
       for (const jid of agenda.audience) {
         try {
-          await sendOutbound(bridge, jid, text)
+          await sendOutbound(bridge, jid, text, "agenda-reminder")
         } catch (err) {
           log.error({ err, agendaId: String(agenda._id), jid }, "agenda reminder send failed")
         }

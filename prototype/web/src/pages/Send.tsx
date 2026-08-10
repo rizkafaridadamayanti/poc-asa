@@ -26,35 +26,47 @@ export function Send() {
 
   return (
     <div>
-      <h2 className="page-title">Send WhatsApp Message</h2>
-      {error && <div className="alert error">{error}</div>}
+      <h2 className="mb-4">Send WhatsApp Message</h2>
+      {error && <div className="alert alert-danger">{error}</div>}
       {result && (
-        <div className="alert success">Sent. Message ID: {result.id}</div>
+        <div className="alert alert-success">
+          Sent. Message ID: <code>{result.id}</code>
+        </div>
       )}
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="to">To (phone number or JID)</label>
-          <input
-            id="to"
-            value={to}
-            onChange={(e) => setTo(e.target.value)}
-            placeholder="628xxxxxxxxxx"
-            required
-          />
+      <form onSubmit={handleSubmit} className="card" style={{ maxWidth: "480px" }}>
+        <div className="card-body">
+          <div className="mb-3">
+            <label htmlFor="to" className="form-label">
+              To (phone number or JID)
+            </label>
+            <input
+              id="to"
+              className="form-control"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              placeholder="628xxxxxxxxxx"
+              required
+            />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="text" className="form-label">
+              Message
+            </label>
+            <textarea
+              id="text"
+              className="form-control"
+              rows={4}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Type your message…"
+              required
+            />
+          </div>
+          <button className="btn btn-primary" disabled={loading}>
+            <i className="bi bi-send me-1" />
+            {loading ? "Sending…" : "Send"}
+          </button>
         </div>
-        <div className="form-group">
-          <label htmlFor="text">Message</label>
-          <textarea
-            id="text"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Type your message…"
-            required
-          />
-        </div>
-        <button className="btn" disabled={loading}>
-          {loading ? "Sending…" : "Send"}
-        </button>
       </form>
     </div>
   )

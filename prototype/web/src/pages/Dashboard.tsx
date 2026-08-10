@@ -2,6 +2,24 @@ import { useEffect, useState } from "react"
 import { useOutletContext } from "react-router-dom"
 import { api, type Status, type Sentiment } from "../api.js"
 
+function StatCard({ icon, label, value }: { icon: string; label: string; value: React.ReactNode }) {
+  return (
+    <div className="col-sm-6 col-lg-3">
+      <div className="card h-100">
+        <div className="card-body d-flex align-items-center gap-3">
+          <div className="fs-3 text-primary">
+            <i className={`bi ${icon}`} />
+          </div>
+          <div>
+            <div className="text-muted text-uppercase small">{label}</div>
+            <div className="fs-4 fw-semibold">{value}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function Dashboard() {
   const { connected } = useOutletContext<{ connected: boolean | null }>()
   const [status, setStatus] = useState<Status | null>(null)
@@ -33,49 +51,53 @@ export function Dashboard() {
 
   return (
     <div>
-      <h2 className="page-title">Dashboard</h2>
-      {error && <div className="alert error">{error}</div>}
-      {!status && !error && <p className="loading">Loading status…</p>}
+      <h2 className="mb-4">Dashboard</h2>
+      {error && <div className="alert alert-danger">{error}</div>}
+      {!status && !error && <p className="text-muted">Loading status…</p>}
       {status && (
         <>
-          <div className="grid">
-            <div className="card">
-              <h3>WA Connection</h3>
-              <span className={`status-badge ${isConnected ? "connected" : "disconnected"}`}>
-                {isConnected ? "Connected" : "Disconnected"}
-              </span>
-            </div>
-            <div className="card">
-              <h3>Messages</h3>
-              <div className="value">{status.messageCount}</div>
-            </div>
-            <div className="card">
-              <h3>Summaries</h3>
-              <div className="value">{status.summaryCount}</div>
-            </div>
-            <div className="card">
-              <h3>Participants</h3>
-              <div className="value">{status.participantCount}</div>
-            </div>
+          <div className="row g-3 mb-4">
+            <StatCard
+              icon="bi-whatsapp"
+              label="WA Connection"
+              value={
+                <span className={`badge ${isConnected ? "text-bg-success" : "text-bg-danger"}`}>
+                  {isConnected ? "Connected" : "Disconnected"}
+                </span>
+              }
+            />
+            <StatCard icon="bi-chat-dots" label="Messages" value={status.messageCount} />
+            <StatCard icon="bi-journal-text" label="Summaries" value={status.summaryCount} />
+            <StatCard icon="bi-people" label="Participants" value={status.participantCount} />
           </div>
+
           {latestSentiment && (
-            <div className="card" style={{ marginBottom: "1.5rem" }}>
-              <h3>Sentiment Harian Pusat</h3>
-              <p className="muted">
-                {new Date(latestSentiment.periodStart).toLocaleDateString()} · {latestSentiment.messageCount} pesan
-              </p>
-              <div className="markdown-body">
-                <pre>{latestSentiment.bodyMd}</pre>
+            <div className="card mb-4">
+              <div className="card-body">
+                <h5 className="card-title">Sentiment Harian Pusat</h5>
+                <p className="text-muted small">
+                  {new Date(latestSentiment.periodStart).toLocaleDateString()} ·{" "}
+                  {latestSentiment.messageCount} pesan
+                </p>
+                <div className="markdown-body">
+                  <pre className="bg-body-tertiary p-3 rounded">{latestSentiment.bodyMd}</pre>
+                </div>
               </div>
             </div>
           )}
+
           <div className="card">
-            <h3>Getting started</h3>
-            <p>
-              Pair this server with a disposable WhatsApp test number. Use the{" "}
-              <strong>Send</strong> page to send messages, <strong>Messages</strong> to review
-              inbound chat, and <strong>Digest</strong> to generate daily summaries.
-            </p>
+            <div className="card-body">
+              <h5 className="card-title">
+                <i className="bi bi-info-circle me-2" />
+                Getting started
+              </h5>
+              <p className="card-text mb-0">
+                Pair this server with a disposable WhatsApp test number. Use the{" "}
+                <strong>Send</strong> page to send messages, <strong>Messages</strong> to review
+                inbound chat, and <strong>Digest</strong> to generate daily summaries.
+              </p>
+            </div>
           </div>
         </>
       )}

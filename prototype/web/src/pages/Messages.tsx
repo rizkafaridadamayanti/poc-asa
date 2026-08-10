@@ -44,49 +44,55 @@ export function Messages() {
 
   return (
     <div>
-      <h2 className="page-title">Messages</h2>
-      {error && <div className="alert error">{error}</div>}
-      {loading && <p className="loading">Loading messages…</p>}
-      {!loading && messages.length === 0 && <p className="empty">No messages yet.</p>}
+      <h2 className="mb-4">Messages</h2>
+      {error && <div className="alert alert-danger">{error}</div>}
+      {loading && <p className="text-muted">Loading messages…</p>}
+      {!loading && messages.length === 0 && <p className="text-muted fst-italic">No messages yet.</p>}
       {messages.length > 0 && (
         <>
-          <table>
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>From</th>
-                <th>Chat</th>
-                <th>Text</th>
-              </tr>
-            </thead>
-            <tbody>
-              {messages.map((m) => (
-                <tr key={m._id}>
-                  <td>{formatDate(m.timestamp)}</td>
-                  <td>{m.fromJid}</td>
-                  <td>{m.isGroup ? "Group" : "DM"}</td>
-                  <td>{m.text}</td>
+          <div className="table-responsive">
+            <table className="table table-hover align-middle bg-white">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>From</th>
+                  <th>Chat</th>
+                  <th>Text</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="pagination">
+              </thead>
+              <tbody>
+                {messages.map((m) => (
+                  <tr key={m._id}>
+                    <td className="text-nowrap">{formatDate(m.timestamp)}</td>
+                    <td>{m.fromJid}</td>
+                    <td>
+                      <span className={`badge ${m.isGroup ? "text-bg-primary" : "text-bg-secondary"}`}>
+                        {m.isGroup ? "Group" : "DM"}
+                      </span>
+                    </td>
+                    <td>{m.text}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="d-flex align-items-center gap-3 mt-3">
             <button
-              className="btn btn-secondary"
+              className="btn btn-outline-secondary btn-sm"
               disabled={offset === 0 || loading}
               onClick={() => load(Math.max(offset - limit, 0))}
             >
-              Previous
+              <i className="bi bi-chevron-left" /> Previous
             </button>
-            <span>
+            <span className="text-muted small">
               {offset + 1}–{Math.min(offset + messages.length, total)} of {total}
             </span>
             <button
-              className="btn btn-secondary"
+              className="btn btn-outline-secondary btn-sm"
               disabled={offset + messages.length >= total || loading}
               onClick={() => load(offset + limit)}
             >
-              Next
+              Next <i className="bi bi-chevron-right" />
             </button>
           </div>
         </>
