@@ -4,6 +4,8 @@ import { ParticipantModel } from "../models/participant.js"
 import { GroupModel, GROUP_SCOPES, type GroupScope } from "../models/group.js"
 import { runDigest } from "../digest.js"
 import { buildSummaryDocx } from "../docExport.js"
+import { getContributiveStats, getPeakHours, getGroupsByDusun } from "../stats.js"
+import { SentimentModel } from "../models/sentiment.js"
 import { sendOutbound } from "../sender.js"
 import { getSettings, updateSettings } from "../settings.js"
 import type { LlmClient } from "../llm.js"
@@ -211,6 +213,17 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
       )
       .header("content-disposition", `attachment; filename="summary-${req.params.id}.docx"`)
     return reply.send(buffer)
+  })
+
+  app.get("/api/stats/contributive", async () => ({ rows: await getContributiveStats() }))
+
+  app.get("/api/stats/peak-hours", async () => ({ rows: await getPeakHours() }))
+
+  app.get("/api/stats/dusun", async () => ({ rows: await getGroupsByDusun() }))
+
+  app.get("/api/sentiments", async () => {
+    const rows = await SentimentModel.find().sort({ periodStart: -1 }).limit(10).lean()
+    return { count: rows.length, sentiments: rows }
   })
 
   app.get("/api/settings", async () => {

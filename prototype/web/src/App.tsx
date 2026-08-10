@@ -4,6 +4,7 @@ import { Dashboard } from "./pages/Dashboard.js"
 import { Messages } from "./pages/Messages.js"
 import { Summaries } from "./pages/Summaries.js"
 import { Groups } from "./pages/Groups.js"
+import { Infografis } from "./pages/Infografis.js"
 import { Send } from "./pages/Send.js"
 import { Digest } from "./pages/Digest.js"
 import { LoginPage } from "./pages/Login.js"
@@ -36,6 +37,7 @@ function App() {
           <Route path="messages" element={<Messages />} />
           <Route path="summaries" element={<Summaries />} />
           <Route path="groups" element={<Groups />} />
+          <Route path="infografis" element={<Infografis />} />
           <Route path="send" element={<Send />} />
           <Route path="digest" element={<Digest />} />
         </Route>

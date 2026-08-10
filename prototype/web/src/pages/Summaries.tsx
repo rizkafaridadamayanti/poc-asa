@@ -71,6 +71,9 @@ export function Summaries() {
   return (
     <div>
       <h2 className="page-title">Summaries</h2>
+      <p className="muted" style={{ marginTop: "-0.5rem", marginBottom: "1rem" }}>
+        Catatan dominasi bicara (meeting-bias) di bawah ini adalah <strong>signal</strong>, bukan vonis — pakai sebagai bahan diskusi, bukan penilaian final.
+      </p>
       {error && <div className="alert error">{error}</div>}
 
       <form onSubmit={applyFilters} className="card" style={{ marginBottom: "1rem", display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "flex-end" }}>

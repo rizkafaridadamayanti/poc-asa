@@ -82,6 +82,7 @@ export function Layout() {
         <NavLink to="/messages">Messages</NavLink>
         <NavLink to="/summaries">Summaries</NavLink>
         <NavLink to="/groups">Groups</NavLink>
+        <NavLink to="/infografis">Infografis</NavLink>
         <NavLink to="/send">Send</NavLink>
         <NavLink to="/digest">Digest</NavLink>
         <div style={{ flex: 1 }} />

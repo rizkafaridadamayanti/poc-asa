@@ -113,6 +113,19 @@ export type Participant = {
   updatedAt: string
 }
 
+export type ContributiveRow = { waJid: string; messageCount: number; ideaCount: number }
+export type PeakHourRow = { hour: number; count: number }
+export type DusunRow = { dusunId: string; groupCount: number }
+
+export type Sentiment = {
+  _id: string
+  periodStart: string
+  periodEnd: string
+  bodyMd: string
+  messageCount: number
+  createdAt: string
+}
+
 export const api = {
   status: () => fetchJson<Status>("/api/dashboard/status"),
 
@@ -184,4 +197,12 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(patch),
     }),
+
+  contributiveStats: () => fetchJson<{ rows: ContributiveRow[] }>("/api/stats/contributive"),
+
+  peakHours: () => fetchJson<{ rows: PeakHourRow[] }>("/api/stats/peak-hours"),
+
+  dusunStats: () => fetchJson<{ rows: DusunRow[] }>("/api/stats/dusun"),
+
+  sentiments: () => fetchJson<{ count: number; sentiments: Sentiment[] }>("/api/sentiments"),
 }

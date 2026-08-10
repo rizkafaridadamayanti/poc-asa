@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react"
 import { useOutletContext } from "react-router-dom"
-import { api, type Status } from "../api.js"
+import { api, type Status, type Sentiment } from "../api.js"
 
 export function Dashboard() {
   const { connected } = useOutletContext<{ connected: boolean | null }>()
   const [status, setStatus] = useState<Status | null>(null)
+  const [latestSentiment, setLatestSentiment] = useState<Sentiment | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -17,6 +18,12 @@ export function Dashboard() {
       .catch((err) => {
         if (mounted) setError(err instanceof Error ? err.message : String(err))
       })
+    api
+      .sentiments()
+      .then((res) => {
+        if (mounted) setLatestSentiment(res.sentiments[0] ?? null)
+      })
+      .catch(() => {})
     return () => {
       mounted = false
     }
@@ -51,6 +58,17 @@ export function Dashboard() {
               <div className="value">{status.participantCount}</div>
             </div>
           </div>
+          {latestSentiment && (
+            <div className="card" style={{ marginBottom: "1.5rem" }}>
+              <h3>Sentiment Harian Pusat</h3>
+              <p className="muted">
+                {new Date(latestSentiment.periodStart).toLocaleDateString()} · {latestSentiment.messageCount} pesan
+              </p>
+              <div className="markdown-body">
+                <pre>{latestSentiment.bodyMd}</pre>
+              </div>
+            </div>
+          )}
           <div className="card">
             <h3>Getting started</h3>
             <p>
