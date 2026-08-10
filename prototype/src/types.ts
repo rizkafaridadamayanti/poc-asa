@@ -31,4 +31,5 @@ export type AppConfig = {
   sendMinDelayMs: number
   sendMaxDelayMs: number
   dashboardPassword: string
+  digestCron: string
 }
