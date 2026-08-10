@@ -6,6 +6,7 @@ import { createInboundHandler } from "./handlers.js"
 import { createLlmClient } from "./llm.js"
 import { startHttp } from "./http.js"
 import { initSettings } from "./settings.js"
+import { startAgendaScheduler } from "./scheduler.js"
 
 async function main() {
   const cfg = loadConfig()
@@ -29,9 +30,11 @@ async function main() {
   const llm = createLlmClient(cfg)
   await bridge.start()
   const app = await startHttp({ cfg, bridge, llm, log })
+  const scheduler = startAgendaScheduler(bridge, log)
 
   const shutdown = async (signal: string) => {
     log.info({ signal }, "shutting down")
+    scheduler.stop()
     try {
       await app.close()
     } catch {

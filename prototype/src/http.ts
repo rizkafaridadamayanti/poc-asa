@@ -6,6 +6,8 @@ import { MessageModel } from "./models/message.js"
 import { runDigest } from "./digest.js"
 import { sendOutbound } from "./sender.js"
 import { registerDashboardApi } from "./api/dashboard.js"
+import { registerCuratedInfoApi } from "./api/curatedInfo.js"
+import { registerAgendaApi } from "./api/agenda.js"
 import { registerEventsApi } from "./api/events.js"
 import { registerAuthRoutes, createAuthMiddleware } from "./auth.js"
 import { getSettings } from "./settings.js"
@@ -96,6 +98,8 @@ export async function startHttp(deps: HttpDeps) {
     })
 
     await registerDashboardApi(api, { bridge, llm, log })
+    await registerCuratedInfoApi(api, { bridge, log })
+    await registerAgendaApi(api, { log })
   })
 
   await app.register(staticPlugin, {

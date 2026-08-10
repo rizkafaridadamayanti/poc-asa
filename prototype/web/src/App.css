@@ -113,6 +113,21 @@ body {
   color: var(--danger);
 }
 
+.status-badge.draft {
+  background: #fef3c7;
+  color: var(--warning);
+}
+
+.status-badge.approved {
+  background: #dbeafe;
+  color: var(--primary);
+}
+
+.status-badge.sent {
+  background: #dcfce7;
+  color: var(--success);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

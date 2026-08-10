@@ -1,10 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { Layout } from "./components/Layout.js"
 import { Dashboard } from "./pages/Dashboard.js"
+import { LoginToBot } from "./pages/LoginToBot.js"
 import { Messages } from "./pages/Messages.js"
 import { Summaries } from "./pages/Summaries.js"
 import { Send } from "./pages/Send.js"
 import { Digest } from "./pages/Digest.js"
+import { InformasiBaru } from "./pages/InformasiBaru.js"
 import { LoginPage } from "./pages/Login.js"
 import { RegisterPage } from "./pages/Register.js"
 import { isLoggedIn } from "./api.js"
@@ -32,10 +34,12 @@ function App() {
           }
         >
           <Route index element={<Dashboard />} />
+          <Route path="login-to-bot" element={<LoginToBot />} />
           <Route path="messages" element={<Messages />} />
           <Route path="summaries" element={<Summaries />} />
           <Route path="send" element={<Send />} />
           <Route path="digest" element={<Digest />} />
+          <Route path="informasi-baru" element={<InformasiBaru />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

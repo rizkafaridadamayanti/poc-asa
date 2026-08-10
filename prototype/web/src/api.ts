@@ -91,6 +91,36 @@ export type Summary = {
   updatedAt: string
 }
 
+export type CuratedInfoType = "beasiswa" | "loker" | "inovasi"
+export type CuratedInfoStatus = "draft" | "approved" | "sent"
+
+export type CuratedInfo = {
+  _id: string
+  type: CuratedInfoType
+  title: string
+  body: string
+  status: CuratedInfoStatus
+  targets: string[]
+  approvedAt: string | null
+  sentAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type CuratedInfoInput = {
+  type: CuratedInfoType
+  title: string
+  body: string
+  targets: string[]
+}
+
+export type FanOutResult = {
+  ok: boolean
+  targets: number
+  sent: number
+  failed: Array<{ jid: string; error: string }>
+}
+
 export type Participant = {
   _id: string
   waJid: string
@@ -133,4 +163,30 @@ export const api = {
         body: JSON.stringify({ last24h }),
       },
     ),
+
+  curatedInfos: (status?: CuratedInfoStatus) =>
+    fetchJson<{ count: number; curatedInfos: CuratedInfo[] }>(
+      `/api/curated-infos${status ? `?status=${status}` : ""}`,
+    ),
+
+  createCuratedInfo: (data: CuratedInfoInput) =>
+    fetchJson<CuratedInfo>("/api/curated-infos", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updateCuratedInfo: (id: string, data: Partial<CuratedInfoInput>) =>
+    fetchJson<CuratedInfo>(`/api/curated-infos/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+
+  deleteCuratedInfo: (id: string) =>
+    fetchJson<{ ok: boolean }>(`/api/curated-infos/${id}`, { method: "DELETE" }),
+
+  approveCuratedInfo: (id: string) =>
+    fetchJson<CuratedInfo>(`/api/curated-infos/${id}/approve`, { method: "POST" }),
+
+  fanOutCuratedInfo: (id: string) =>
+    fetchJson<FanOutResult>(`/api/curated-infos/${id}/fan-out`, { method: "POST" }),
 }

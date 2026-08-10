@@ -8,6 +8,7 @@ export type SseEvent =
 export function useEvents() {
   const [connected, setConnected] = useState<boolean | null>(null)
   const [qr, setQr] = useState<string | null>(null)
+  const [disconnectReason, setDisconnectReason] = useState<string | null>(null)
   const [lastInbound, setLastInbound] = useState<Record<string, unknown> | null>(null)
   const [error, setError] = useState<string | null>(null)
   const esRef = useRef<EventSource | null>(null)
@@ -21,7 +22,12 @@ export function useEvents() {
         const data = JSON.parse(event.data) as SseEvent
         if (data.type === "connection") {
           setConnected(data.connected)
-          if (data.connected) setQr(null)
+          if (data.connected) {
+            setQr(null)
+            setDisconnectReason(null)
+          } else {
+            setDisconnectReason(data.reason ?? null)
+          }
         } else if (data.type === "qr") {
           setQr(data.qr)
         } else if (data.type === "inbound") {
@@ -44,5 +50,5 @@ export function useEvents() {
 
   const dismissQr = () => setQr(null)
 
-  return { connected, qr, lastInbound, error, dismissQr }
+  return { connected, qr, disconnectReason, lastInbound, error, dismissQr }
 }
