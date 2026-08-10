@@ -6,6 +6,8 @@ import { createInboundHandler } from "./handlers.js"
 import { createLlmClient } from "./llm.js"
 import { startHttp } from "./http.js"
 import { initSettings } from "./settings.js"
+import { startPurgeJob } from "./purge.js"
+import { startDigestCron } from "./digestCron.js"
 
 async function main() {
   const cfg = loadConfig()
@@ -13,6 +15,7 @@ async function main() {
   const log = createLogger(cfg.logLevel)
 
   await connectDb(cfg.mongodbUri, cfg.dbName, log)
+  startPurgeJob(log)
 
   const bridge = createBaileysBridge({
     authDir: cfg.authDir,
@@ -28,6 +31,7 @@ async function main() {
 
   const llm = createLlmClient(cfg)
   await bridge.start()
+  startDigestCron({ schedule: cfg.digestCron, bridge, llm, log })
   const app = await startHttp({ cfg, bridge, llm, log })
 
   const shutdown = async (signal: string) => {

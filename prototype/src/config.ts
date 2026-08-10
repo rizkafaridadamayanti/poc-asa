@@ -31,5 +31,6 @@ export function loadConfig(): AppConfig {
     sendMinDelayMs: intEnv("SEND_MIN_DELAY_MS", 1000),
     sendMaxDelayMs: intEnv("SEND_MAX_DELAY_MS", 3000),
     dashboardPassword: process.env.DASHBOARD_PASSWORD?.trim() || "",
+    digestCron: process.env.DIGEST_CRON?.trim() || "0 7 * * *",
   }
 }

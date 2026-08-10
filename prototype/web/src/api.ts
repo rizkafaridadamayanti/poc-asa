@@ -91,6 +91,18 @@ export type Summary = {
   updatedAt: string
 }
 
+export type GroupScope = "pusat" | "dusun" | "anggota"
+
+export type Group = {
+  _id: string
+  waJid: string
+  name: string
+  scope: GroupScope
+  dusunId: string
+  createdAt: string
+  updatedAt: string
+}
+
 export type Participant = {
   _id: string
   waJid: string
@@ -111,10 +123,29 @@ export const api = {
       `/api/messages?limit=${limit}&offset=${offset}`,
     ),
 
-  summaries: (limit = 20, offset = 0) =>
-    fetchJson<{ total: number; offset: number; limit: number; count: number; summaries: Summary[] }>(
-      `/api/summaries?limit=${limit}&offset=${offset}`,
-    ),
+  summaries: (
+    limit = 20,
+    offset = 0,
+    filters: { groupJid?: string; from?: string; to?: string; keyword?: string } = {},
+  ) => {
+    const params = new URLSearchParams({ limit: String(limit), offset: String(offset) })
+    if (filters.groupJid) params.set("groupJid", filters.groupJid)
+    if (filters.from) params.set("from", filters.from)
+    if (filters.to) params.set("to", filters.to)
+    if (filters.keyword) params.set("keyword", filters.keyword)
+    return fetchJson<{ total: number; offset: number; limit: number; count: number; summaries: Summary[] }>(
+      `/api/summaries?${params.toString()}`,
+    )
+  },
+
+  exportSummary: async (id: string): Promise<Blob> => {
+    const token = getToken()
+    const res = await fetch(`${API_BASE}/api/summaries/${id}/export`, {
+      headers: token ? { authorization: `Bearer ${token}` } : {},
+    })
+    if (!res.ok) throw new Error(`Export failed: ${res.status} ${res.statusText}`)
+    return res.blob()
+  },
 
   participants: () =>
     fetchJson<{ count: number; participants: Participant[] }>("/api/participants"),
@@ -133,4 +164,24 @@ export const api = {
         body: JSON.stringify({ last24h }),
       },
     ),
+
+  groups: () => fetchJson<{ count: number; groups: Group[] }>("/api/groups"),
+
+  createGroup: (input: { waJid: string; name: string; scope: GroupScope; dusunId: string }) =>
+    fetchJson<{ ok: boolean; group: Group }>("/api/groups", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+
+  updateGroup: (id: string, patch: Partial<{ name: string; scope: GroupScope; dusunId: string }>) =>
+    fetchJson<{ ok: boolean; group: Group }>(`/api/groups/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    }),
+
+  updateSummary: (id: string, patch: Partial<{ read: boolean; important: boolean; trash: boolean }>) =>
+    fetchJson<{ ok: boolean; summary: Summary }>(`/api/summaries/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    }),
 }

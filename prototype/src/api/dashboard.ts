@@ -1,7 +1,9 @@
 import { MessageModel } from "../models/message.js"
-import { SummaryModel } from "../models/summary.js"
+import { SummaryModel, type SummaryDoc } from "../models/summary.js"
 import { ParticipantModel } from "../models/participant.js"
+import { GroupModel, GROUP_SCOPES, type GroupScope } from "../models/group.js"
 import { runDigest } from "../digest.js"
+import { buildSummaryDocx } from "../docExport.js"
 import { sendOutbound } from "../sender.js"
 import { getSettings, updateSettings } from "../settings.js"
 import type { LlmClient } from "../llm.js"
@@ -52,19 +54,37 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
     },
   )
 
-  app.get<{ Querystring: { limit?: string; offset?: string } }>(
-    "/api/summaries",
-    async (req) => {
-      const { limit, offset } = parsePagination(req.query)
-      const rows = await SummaryModel.find()
-        .sort({ periodStart: -1 })
-        .skip(offset)
-        .limit(limit)
-        .lean()
-      const total = await SummaryModel.countDocuments()
-      return { total, offset, limit, count: rows.length, summaries: rows }
-    },
-  )
+  app.get<{
+    Querystring: {
+      limit?: string
+      offset?: string
+      groupJid?: string
+      from?: string
+      to?: string
+      keyword?: string
+    }
+  }>("/api/summaries", async (req) => {
+    const { limit, offset } = parsePagination(req.query)
+    const { groupJid, from, to, keyword } = req.query
+
+    const filter: Record<string, unknown> = {}
+    if (groupJid) filter.sourceGroupJid = groupJid
+    if (from || to) {
+      const periodStart: Record<string, Date> = {}
+      if (from) periodStart.$gte = new Date(from)
+      if (to) periodStart.$lte = new Date(to)
+      filter.periodStart = periodStart
+    }
+    if (keyword) filter.bodyMd = { $regex: keyword, $options: "i" }
+
+    const rows = await SummaryModel.find(filter)
+      .sort({ periodStart: -1 })
+      .skip(offset)
+      .limit(limit)
+      .lean()
+    const total = await SummaryModel.countDocuments(filter)
+    return { total, offset, limit, count: rows.length, summaries: rows }
+  })
 
   app.get("/api/participants", async () => {
     const rows = await ParticipantModel.find().sort({ updatedAt: -1 }).lean()
@@ -114,6 +134,83 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
         error: err instanceof Error ? err.message : "digest failed",
       })
     }
+  })
+
+  app.get("/api/groups", async () => {
+    const rows = await GroupModel.find().sort({ name: 1 }).lean()
+    return { count: rows.length, groups: rows }
+  })
+
+  app.post<{
+    Body: { waJid?: string; name?: string; scope?: string; dusunId?: string }
+  }>("/api/groups", async (req, reply) => {
+    const { waJid, name, scope, dusunId } = req.body || {}
+    if (!waJid || !scope) {
+      return reply.code(400).send({ error: "body requires { waJid, scope }" })
+    }
+    if (!GROUP_SCOPES.includes(scope as GroupScope)) {
+      return reply.code(400).send({ error: `scope must be one of ${GROUP_SCOPES.join(", ")}` })
+    }
+    try {
+      const doc = await GroupModel.create({
+        waJid,
+        name: name || "",
+        scope,
+        dusunId: dusunId || "",
+      })
+      return reply.code(201).send({ ok: true, group: doc })
+    } catch {
+      return reply.code(409).send({ error: "group with this waJid already exists" })
+    }
+  })
+
+  app.patch<{
+    Params: { id: string }
+    Body?: { name?: string; scope?: string; dusunId?: string }
+  }>("/api/groups/:id", async (req, reply) => {
+    const patch = req.body
+    if (!patch || (patch.name === undefined && patch.scope === undefined && patch.dusunId === undefined)) {
+      return reply.code(400).send({ error: "body requires at least one of { name, scope, dusunId }" })
+    }
+    if (patch.scope !== undefined && !GROUP_SCOPES.includes(patch.scope as GroupScope)) {
+      return reply.code(400).send({ error: `scope must be one of ${GROUP_SCOPES.join(", ")}` })
+    }
+    const doc = await GroupModel.findByIdAndUpdate(req.params.id, { $set: patch }, { new: true }).lean()
+    if (!doc) return reply.code(404).send({ error: "group not found" })
+    return { ok: true, group: doc }
+  })
+
+  app.patch<{
+    Params: { id: string }
+    Body?: { read?: boolean; important?: boolean; trash?: boolean }
+  }>("/api/summaries/:id", async (req, reply) => {
+    const patch = req.body
+    if (!patch || (patch.read === undefined && patch.important === undefined && patch.trash === undefined)) {
+      return reply.code(400).send({ error: "body requires at least one of { read, important, trash }" })
+    }
+    const update: Record<string, unknown> = {}
+    if (patch.read !== undefined) update.read = patch.read
+    if (patch.important !== undefined) update.important = patch.important
+    if (patch.trash !== undefined) {
+      update.trash = patch.trash
+      update.trashedAt = patch.trash ? new Date() : null
+    }
+    const doc = await SummaryModel.findByIdAndUpdate(req.params.id, { $set: update }, { new: true }).lean()
+    if (!doc) return reply.code(404).send({ error: "summary not found" })
+    return { ok: true, summary: doc }
+  })
+
+  app.get<{ Params: { id: string } }>("/api/summaries/:id/export", async (req, reply) => {
+    const doc = await SummaryModel.findById(req.params.id).lean<SummaryDoc | null>()
+    if (!doc) return reply.code(404).send({ error: "summary not found" })
+    const buffer = await buildSummaryDocx(doc)
+    reply
+      .header(
+        "content-type",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      )
+      .header("content-disposition", `attachment; filename="summary-${req.params.id}.docx"`)
+    return reply.send(buffer)
   })
 
   app.get("/api/settings", async () => {
