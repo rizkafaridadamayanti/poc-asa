@@ -2,6 +2,7 @@ import { MessageModel } from "../models/message.js"
 import { SummaryModel, type SummaryDoc } from "../models/summary.js"
 import { ParticipantModel } from "../models/participant.js"
 import { GroupModel, GROUP_SCOPES, type GroupScope } from "../models/group.js"
+import { toJid } from "../jid.js"
 import { runDigest } from "../digest.js"
 import { buildSummaryDocx } from "../docExport.js"
 import { getContributiveStats, getPeakHours, getGroupsByDusun } from "../stats.js"
@@ -153,9 +154,15 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
     if (!GROUP_SCOPES.includes(scope as GroupScope)) {
       return reply.code(400).send({ error: `scope must be one of ${GROUP_SCOPES.join(", ")}` })
     }
+    let normalizedJid: string
+    try {
+      normalizedJid = toJid(waJid)
+    } catch {
+      return reply.code(400).send({ error: "waJid is not a valid group JID or phone number" })
+    }
     try {
       const doc = await GroupModel.create({
-        waJid,
+        waJid: normalizedJid,
         name: name || "",
         scope,
         dusunId: dusunId || "",
@@ -180,6 +187,12 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
     const doc = await GroupModel.findByIdAndUpdate(req.params.id, { $set: patch }, { new: true }).lean()
     if (!doc) return reply.code(404).send({ error: "group not found" })
     return { ok: true, group: doc }
+  })
+
+  app.delete<{ Params: { id: string } }>("/api/groups/:id", async (req, reply) => {
+    const doc = await GroupModel.findByIdAndDelete(req.params.id).lean()
+    if (!doc) return reply.code(404).send({ error: "group not found" })
+    return { ok: true }
   })
 
   app.patch<{

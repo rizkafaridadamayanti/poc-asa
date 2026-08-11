@@ -302,6 +302,9 @@ export const api = {
       body: JSON.stringify(patch),
     }),
 
+  deleteGroup: (id: string) =>
+    fetchJson<{ ok: boolean }>(`/api/groups/${id}`, { method: "DELETE" }),
+
   updateSummary: (id: string, patch: Partial<{ read: boolean; important: boolean; trash: boolean }>) =>
     fetchJson<{ ok: boolean; summary: Summary }>(`/api/summaries/${id}`, {
       method: "PATCH",

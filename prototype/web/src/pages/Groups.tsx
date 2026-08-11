@@ -19,6 +19,7 @@ export function Groups() {
   const [scope, setScope] = useState<GroupScope>("anggota")
   const [dusunId, setDusunId] = useState("")
   const [saving, setSaving] = useState(false)
+  const [busyId, setBusyId] = useState<string | null>(null)
 
   const load = async () => {
     setLoading(true)
@@ -64,6 +65,20 @@ export function Groups() {
     }
   }
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("Hapus registrasi grup ini?")) return
+    setBusyId(id)
+    setError(null)
+    try {
+      await api.deleteGroup(id)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   return (
     <div>
       <h2 className="mb-4">Groups</h2>
@@ -78,11 +93,12 @@ export function Groups() {
             <input
               id="waJid"
               className="form-control"
-              placeholder="120363...@g.us"
+              placeholder="120363...@g.us atau 0812..."
               value={waJid}
               onChange={(e) => setWaJid(e.target.value)}
               required
             />
+            <div className="form-text">Grup: JID lengkap. Kontak: nomor HP, otomatis dinormalisasi.</div>
           </div>
           <div className="col-sm-3">
             <label htmlFor="name" className="form-label">
@@ -152,6 +168,13 @@ export function Groups() {
                   </option>
                 ))}
               </select>
+              <button
+                className="btn btn-outline-danger btn-sm"
+                onClick={() => handleDelete(g._id)}
+                disabled={busyId === g._id}
+              >
+                <i className="bi bi-trash" />
+              </button>
             </div>
           </div>
         </div>
