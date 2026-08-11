@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import { api, type Group, type GroupScope } from "../api.js"
+import { PageHeader } from "../components/PageHeader.js"
+import { NAV_COLORS } from "../navColors.js"
 
 const SCOPES: GroupScope[] = ["pusat", "dusun", "anggota"]
 
@@ -123,7 +125,7 @@ export function Groups() {
 
   return (
     <div>
-      <h2 className="mb-4">Groups</h2>
+      <PageHeader icon="bi-people" color={NAV_COLORS.groups} title="Groups" />
       {error && <div className="alert alert-danger">{error}</div>}
       {info && <div className="alert alert-success">{info}</div>}
 

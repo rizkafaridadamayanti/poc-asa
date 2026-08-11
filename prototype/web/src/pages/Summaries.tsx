@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import { api, type Group, type Summary } from "../api.js"
+import { PageHeader } from "../components/PageHeader.js"
+import { NAV_COLORS } from "../navColors.js"
 
 export function Summaries() {
   const [summaries, setSummaries] = useState<Summary[]>([])
@@ -73,11 +75,17 @@ export function Summaries() {
 
   return (
     <div>
-      <h2 className="mb-1">Summaries</h2>
-      <p className="text-muted mb-4">
-        Catatan dominasi bicara (meeting-bias) di bawah ini adalah <strong>signal</strong>, bukan
-        vonis — pakai sebagai bahan diskusi, bukan penilaian final.
-      </p>
+      <PageHeader
+        icon="bi-journal-text"
+        color={NAV_COLORS.summaries}
+        title="Summaries"
+        subtitle={
+          <>
+            Catatan dominasi bicara (meeting-bias) di bawah ini adalah <strong>signal</strong>,
+            bukan vonis — pakai sebagai bahan diskusi, bukan penilaian final.
+          </>
+        }
+      />
       {error && <div className="alert alert-danger">{error}</div>}
 
       <form onSubmit={applyFilters} className="card mb-4">

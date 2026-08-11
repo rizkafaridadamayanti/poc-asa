@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import { api, type SpamAlert } from "../api.js"
+import { PageHeader } from "../components/PageHeader.js"
+import { NAV_COLORS } from "../navColors.js"
 
 export function SpamAlerts() {
   const [alerts, setAlerts] = useState<SpamAlert[]>([])
@@ -25,11 +27,12 @@ export function SpamAlerts() {
 
   return (
     <div>
-      <h2 className="mb-1">Spam / Fraud Alerts</h2>
-      <p className="text-muted mb-4">
-        Pesan realtime yang lolos heuristik spam/fraud/hoax (skor ≥ 50) otomatis masuk di sini dan
-        dikirim ke Pusat.
-      </p>
+      <PageHeader
+        icon="bi-shield-exclamation"
+        color={NAV_COLORS.spamAlerts}
+        title="Spam / Fraud Alerts"
+        subtitle="Pesan realtime yang lolos heuristik spam/fraud/hoax (skor ≥ 50) otomatis masuk di sini dan dikirim ke Pusat."
+      />
 
       {error && <div className="alert alert-danger">{error}</div>}
       <button className="btn btn-outline-secondary mb-3" onClick={load} disabled={loading}>

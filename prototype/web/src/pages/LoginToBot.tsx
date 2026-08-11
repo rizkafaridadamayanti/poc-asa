@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react"
 import { useOutletContext } from "react-router-dom"
 import { QRCodeSVG } from "qrcode.react"
 import { api } from "../api.js"
+import { PageHeader } from "../components/PageHeader.js"
+import { NAV_COLORS } from "../navColors.js"
 
 type OutletCtx = {
   connected: boolean | null
@@ -53,7 +55,7 @@ export function LoginToBot() {
 
   return (
     <div>
-      <h2 className="mb-4">Login to Bot</h2>
+      <PageHeader icon="bi-qr-code" color={NAV_COLORS.loginToBot} title="Login to Bot" />
 
       <div className="card mb-4" style={{ maxWidth: "420px" }}>
         <div className="card-body">

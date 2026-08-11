@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import { api, type AnonymousIdea } from "../api.js"
+import { PageHeader } from "../components/PageHeader.js"
+import { NAV_COLORS } from "../navColors.js"
 
 export function AntrianIde() {
   const [ideas, setIdeas] = useState<AnonymousIdea[]>([])
@@ -41,11 +43,17 @@ export function AntrianIde() {
 
   return (
     <div>
-      <h2 className="mb-1">Antrian Ide Anonim</h2>
-      <p className="text-muted mb-4">
-        Ide yang dikirim anggota lewat DM bot (<code>/ide &lt;teks&gt;</code>) — pengirimnya tidak
-        disimpan, benar-benar anonim.
-      </p>
+      <PageHeader
+        icon="bi-lightbulb"
+        color={NAV_COLORS.antrianIde}
+        title="Antrian Ide Anonim"
+        subtitle={
+          <>
+            Ide yang dikirim anggota lewat DM bot (<code>/ide &lt;teks&gt;</code>) — pengirimnya
+            tidak disimpan, benar-benar anonim.
+          </>
+        }
+      />
 
       {error && <div className="alert alert-danger">{error}</div>}
 

@@ -5,6 +5,8 @@ import {
   type CuratedInfoStatus,
   type CuratedInfoType,
 } from "../api.js"
+import { PageHeader } from "../components/PageHeader.js"
+import { NAV_COLORS } from "../navColors.js"
 
 const TYPE_LABEL: Record<CuratedInfoType, string> = {
   beasiswa: "Beasiswa",
@@ -179,11 +181,12 @@ export function InformasiBaru() {
 
   return (
     <div>
-      <h2 className="mb-1">Informasi Baru</h2>
-      <p className="text-muted mb-4">
-        Curate beasiswa / magang / inovasi info. Draft it, get Pusat approval, then fan out to
-        target groups.
-      </p>
+      <PageHeader
+        icon="bi-megaphone"
+        color={NAV_COLORS.informasiBaru}
+        title="Informasi Baru"
+        subtitle="Curate beasiswa / magang / inovasi info. Draft it, get Pusat approval, then fan out to target groups."
+      />
 
       {error && <div className="alert alert-danger">{error}</div>}
       {info && <div className="alert alert-success">{info}</div>}

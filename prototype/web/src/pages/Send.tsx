@@ -1,5 +1,7 @@
 import { useState } from "react"
 import { api } from "../api.js"
+import { PageHeader } from "../components/PageHeader.js"
+import { NAV_COLORS } from "../navColors.js"
 
 export function Send() {
   const [to, setTo] = useState("")
@@ -26,7 +28,7 @@ export function Send() {
 
   return (
     <div>
-      <h2 className="mb-4">Send WhatsApp Message</h2>
+      <PageHeader icon="bi-send" color={NAV_COLORS.send} title="Send WhatsApp Message" />
       {error && <div className="alert alert-danger">{error}</div>}
       {result && (
         <div className="alert alert-success">

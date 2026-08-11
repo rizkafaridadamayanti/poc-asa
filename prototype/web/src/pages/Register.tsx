@@ -36,10 +36,12 @@ export function RegisterPage() {
     <div className="min-vh-100 d-flex align-items-center justify-content-center bg-body-tertiary">
       <div className="card shadow-sm" style={{ width: "100%", maxWidth: "400px" }}>
         <div className="card-body p-4">
-          <h2 className="card-title mb-4 text-primary">
-            <i className="bi bi-person-plus me-2" />
-            Register
-          </h2>
+          <div className="d-flex align-items-center gap-3 mb-4">
+            <span className="sidebar-brand-mark">
+              <i className="bi bi-person-plus" />
+            </span>
+            <h2 className="card-title mb-0">Register</h2>
+          </div>
           {error && <div className="alert alert-danger">{error}</div>}
           <form onSubmit={handleSubmit}>
             <div className="mb-3">

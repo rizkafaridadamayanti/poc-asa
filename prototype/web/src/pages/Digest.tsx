@@ -1,5 +1,7 @@
 import { useState } from "react"
 import { api } from "../api.js"
+import { PageHeader } from "../components/PageHeader.js"
+import { NAV_COLORS } from "../navColors.js"
 
 export function Digest() {
   const [loading, setLoading] = useState(false)
@@ -22,11 +24,17 @@ export function Digest() {
 
   return (
     <div>
-      <h2 className="mb-3">Run Digest</h2>
-      <p className="text-muted">
-        Summarize yesterday's messages from <code>TEST_GROUP_JID</code> and send the result to{" "}
-        <code>REPORT_TO_JID</code>.
-      </p>
+      <PageHeader
+        icon="bi-envelope-paper"
+        color={NAV_COLORS.digest}
+        title="Run Digest"
+        subtitle={
+          <>
+            Summarize yesterday's messages from <code>TEST_GROUP_JID</code> and send the result to{" "}
+            <code>REPORT_TO_JID</code>.
+          </>
+        }
+      />
       {error && <div className="alert alert-danger">{error}</div>}
       {result && (
         <div className="alert alert-success">

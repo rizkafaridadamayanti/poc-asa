@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { useOutletContext } from "react-router-dom"
 import { api, type Group, type Message } from "../api.js"
+import { PageHeader } from "../components/PageHeader.js"
+import { NAV_COLORS } from "../navColors.js"
 
 function shortJid(jid: string): string {
   const local = jid.split("@")[0] ?? jid
@@ -62,7 +64,7 @@ export function Messages() {
 
   return (
     <div>
-      <h2 className="mb-4">Messages</h2>
+      <PageHeader icon="bi-chat-dots" color={NAV_COLORS.messages} title="Messages" />
       {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="card mb-3">
@@ -92,36 +94,38 @@ export function Messages() {
       {!loading && messages.length === 0 && <p className="text-muted fst-italic">No messages yet.</p>}
       {messages.length > 0 && (
         <>
-          <div className="table-responsive">
-            <table className="table table-hover align-middle bg-white">
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>From</th>
-                  <th>Chat</th>
-                  <th>Text</th>
-                </tr>
-              </thead>
-              <tbody>
-                {messages.map((m) => (
-                  <tr key={m._id}>
-                    <td className="text-nowrap">{formatDate(m.timestamp)}</td>
-                    <td>{m.fromJid}</td>
-                    <td>
-                      {m.isGroup ? (
-                        <span title={m.chatJid}>{m.chatName || shortJid(m.chatJid)}</span>
-                      ) : (
-                        <span>
-                          <span className="badge text-bg-secondary me-1">Personal</span>
-                          <span className="text-muted small">{shortJid(m.chatJid)}</span>
-                        </span>
-                      )}
-                    </td>
-                    <td>{m.text}</td>
+          <div className="card">
+            <div className="table-responsive">
+              <table className="table table-hover align-middle mb-0">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>From</th>
+                    <th>Chat</th>
+                    <th>Text</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {messages.map((m) => (
+                    <tr key={m._id}>
+                      <td className="text-nowrap">{formatDate(m.timestamp)}</td>
+                      <td>{m.fromJid}</td>
+                      <td>
+                        {m.isGroup ? (
+                          <span title={m.chatJid}>{m.chatName || shortJid(m.chatJid)}</span>
+                        ) : (
+                          <span>
+                            <span className="badge text-bg-secondary me-1">Personal</span>
+                            <span className="text-muted small">{shortJid(m.chatJid)}</span>
+                          </span>
+                        )}
+                      </td>
+                      <td>{m.text}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
           <div className="d-flex align-items-center gap-3 mt-3">
             <button

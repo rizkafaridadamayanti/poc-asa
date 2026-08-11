@@ -1,5 +1,7 @@
 import { useState } from "react"
 import { api } from "../api.js"
+import { PageHeader } from "../components/PageHeader.js"
+import { NAV_COLORS } from "../navColors.js"
 
 export function QA() {
   const [question, setQuestion] = useState("")
@@ -25,11 +27,17 @@ export function QA() {
 
   return (
     <div>
-      <h2 className="mb-1">Tanya Jawab</h2>
-      <p className="text-muted mb-4">
-        Tanya berdasarkan riwayat chat yang boleh diakses Pusat. Anggota juga bisa DM bot dengan{" "}
-        <code>/tanya &lt;pertanyaan&gt;</code>.
-      </p>
+      <PageHeader
+        icon="bi-question-circle"
+        color={NAV_COLORS.qa}
+        title="Tanya Jawab"
+        subtitle={
+          <>
+            Tanya berdasarkan riwayat chat yang boleh diakses Pusat. Anggota juga bisa DM bot
+            dengan <code>/tanya &lt;pertanyaan&gt;</code>.
+          </>
+        }
+      />
 
       {error && <div className="alert alert-danger">{error}</div>}
 

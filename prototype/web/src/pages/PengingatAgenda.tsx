@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import { api, type Agenda } from "../api.js"
+import { PageHeader } from "../components/PageHeader.js"
+import { NAV_COLORS } from "../navColors.js"
 
 type FormState = {
   title: string
@@ -127,11 +129,12 @@ export function PengingatAgenda() {
 
   return (
     <div>
-      <h2 className="mb-1">Pengingat Agenda</h2>
-      <p className="text-muted mb-4">
-        Jadwalkan agenda dan waktu pengingatnya — dikirim otomatis ke WhatsApp audience saat jatuh
-        tempo.
-      </p>
+      <PageHeader
+        icon="bi-calendar-event"
+        color={NAV_COLORS.pengingatAgenda}
+        title="Pengingat Agenda"
+        subtitle="Jadwalkan agenda dan waktu pengingatnya — dikirim otomatis ke WhatsApp audience saat jatuh tempo."
+      />
 
       {error && <div className="alert alert-danger">{error}</div>}
       {info && <div className="alert alert-success">{info}</div>}

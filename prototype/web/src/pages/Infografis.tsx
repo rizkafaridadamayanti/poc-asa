@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react"
 import { api, type ContributiveRow, type PeakHourRow, type DusunRow } from "../api.js"
+import { PageHeader } from "../components/PageHeader.js"
+import { NAV_COLORS } from "../navColors.js"
 
 export function Infografis() {
   const [contributive, setContributive] = useState<ContributiveRow[]>([])
@@ -23,7 +25,7 @@ export function Infografis() {
 
   return (
     <div>
-      <h2 className="mb-4">Infografis</h2>
+      <PageHeader icon="bi-bar-chart" color={NAV_COLORS.infografis} title="Infografis" />
       {error && <div className="alert alert-danger">{error}</div>}
       {loading && <p className="text-muted">Loading stats…</p>}
 

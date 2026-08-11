@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { useOutletContext } from "react-router-dom"
 import { api, type Status, type Sentiment } from "../api.js"
+import { PageHeader } from "../components/PageHeader.js"
+import { NAV_COLORS } from "../navColors.js"
 
 function StatCard({
   icon,
@@ -69,7 +71,7 @@ export function Dashboard() {
 
   return (
     <div>
-      <h2 className="mb-4">Dashboard</h2>
+      <PageHeader icon="bi-speedometer2" color={NAV_COLORS.dashboard} title="Dashboard" />
       {error && <div className="alert alert-danger">{error}</div>}
       {!status && !error && <p className="text-muted">Loading status…</p>}
       {status && (

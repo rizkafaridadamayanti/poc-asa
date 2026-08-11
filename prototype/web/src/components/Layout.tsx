@@ -3,22 +3,23 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom"
 import { Offcanvas } from "bootstrap"
 import { clearToken } from "../api.js"
 import { useEvents } from "../hooks/useEvents.js"
+import { NAV_COLORS } from "../navColors.js"
 import { ToastContainer, useToasts } from "./Toasts.js"
 
 const NAV_ITEMS: Array<{ to: string; end?: boolean; icon: string; label: string; color: string }> = [
-  { to: "/", end: true, icon: "bi-speedometer2", label: "Dashboard", color: "#4f46e5" },
-  { to: "/login-to-bot", icon: "bi-qr-code", label: "Login to Bot", color: "#16a34a" },
-  { to: "/messages", icon: "bi-chat-dots", label: "Messages", color: "#0ea5e9" },
-  { to: "/summaries", icon: "bi-journal-text", label: "Summaries", color: "#9333ea" },
-  { to: "/groups", icon: "bi-people", label: "Groups", color: "#d97706" },
-  { to: "/infografis", icon: "bi-bar-chart", label: "Infografis", color: "#0d9488" },
-  { to: "/send", icon: "bi-send", label: "Send", color: "#2563eb" },
-  { to: "/digest", icon: "bi-envelope-paper", label: "Digest", color: "#db2777" },
-  { to: "/informasi-baru", icon: "bi-megaphone", label: "Informasi Baru", color: "#ea580c" },
-  { to: "/pengingat-agenda", icon: "bi-calendar-event", label: "Pengingat Agenda", color: "#059669" },
-  { to: "/spam-alerts", icon: "bi-shield-exclamation", label: "Spam Alerts", color: "#dc2626" },
-  { to: "/qa", icon: "bi-question-circle", label: "Tanya Jawab", color: "#7c3aed" },
-  { to: "/antrian-ide", icon: "bi-lightbulb", label: "Antrian Ide", color: "#ca8a04" },
+  { to: "/", end: true, icon: "bi-speedometer2", label: "Dashboard", color: NAV_COLORS.dashboard },
+  { to: "/login-to-bot", icon: "bi-qr-code", label: "Login to Bot", color: NAV_COLORS.loginToBot },
+  { to: "/messages", icon: "bi-chat-dots", label: "Messages", color: NAV_COLORS.messages },
+  { to: "/summaries", icon: "bi-journal-text", label: "Summaries", color: NAV_COLORS.summaries },
+  { to: "/groups", icon: "bi-people", label: "Groups", color: NAV_COLORS.groups },
+  { to: "/infografis", icon: "bi-bar-chart", label: "Infografis", color: NAV_COLORS.infografis },
+  { to: "/send", icon: "bi-send", label: "Send", color: NAV_COLORS.send },
+  { to: "/digest", icon: "bi-envelope-paper", label: "Digest", color: NAV_COLORS.digest },
+  { to: "/informasi-baru", icon: "bi-megaphone", label: "Informasi Baru", color: NAV_COLORS.informasiBaru },
+  { to: "/pengingat-agenda", icon: "bi-calendar-event", label: "Pengingat Agenda", color: NAV_COLORS.pengingatAgenda },
+  { to: "/spam-alerts", icon: "bi-shield-exclamation", label: "Spam Alerts", color: NAV_COLORS.spamAlerts },
+  { to: "/qa", icon: "bi-question-circle", label: "Tanya Jawab", color: NAV_COLORS.qa },
+  { to: "/antrian-ide", icon: "bi-lightbulb", label: "Antrian Ide", color: NAV_COLORS.antrianIde },
 ]
 
 export function Layout() {
