@@ -92,7 +92,7 @@ export function Layout() {
       </nav>
 
       <div
-        className="offcanvas-lg offcanvas-start bg-dark text-white sidebar"
+        className="offcanvas-lg offcanvas-start bg-dark text-white sidebar flex-shrink-0"
         tabIndex={-1}
         id="sidebarOffcanvas"
         ref={offcanvasRef}
