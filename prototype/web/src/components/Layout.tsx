@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { NavLink, Outlet, useNavigate } from "react-router-dom"
 import { Offcanvas } from "bootstrap"
 import { clearToken } from "../api.js"
@@ -22,11 +22,14 @@ const NAV_ITEMS: Array<{ to: string; end?: boolean; icon: string; label: string;
   { to: "/antrian-ide", icon: "bi-lightbulb", label: "Antrian Ide", color: NAV_COLORS.antrianIde },
 ]
 
+const COLLAPSE_KEY = "asa_sidebar_collapsed"
+
 export function Layout() {
   const navigate = useNavigate()
   const offcanvasRef = useRef<HTMLDivElement>(null)
   const { connected, qr, disconnectReason, lastInbound, error } = useEvents()
   const { toasts, add, remove } = useToasts()
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_KEY) === "1")
 
   const handleLogout = () => {
     clearToken()
@@ -44,6 +47,14 @@ export function Layout() {
     if (offcanvasRef.current) {
       Offcanvas.getOrCreateInstance(offcanvasRef.current).hide()
     }
+  }
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev
+      localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0")
+      return next
+    })
   }
 
   useEffect(() => {
@@ -93,11 +104,21 @@ export function Layout() {
       </nav>
 
       <div
-        className="offcanvas-lg offcanvas-start bg-white sidebar flex-shrink-0"
+        className={`offcanvas-lg offcanvas-start bg-white sidebar flex-shrink-0${collapsed ? " sidebar-collapsed" : ""}`}
         tabIndex={-1}
         id="sidebarOffcanvas"
         ref={offcanvasRef}
       >
+        <button
+          type="button"
+          className="sidebar-toggle d-none d-lg-flex"
+          onClick={toggleCollapsed}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <i className={`bi ${collapsed ? "bi-chevron-right" : "bi-chevron-left"}`} />
+        </button>
+
         <div className="offcanvas-header d-lg-none">
           <span className="fs-5 fw-bold">ASA Dashboard</span>
           <button type="button" className="btn-close" onClick={closeMobileSidebar} aria-label="Close" />
@@ -107,9 +128,21 @@ export function Layout() {
             <span className="sidebar-brand-mark">
               <i className="bi bi-whatsapp" />
             </span>
-            <span className="fs-5 fw-bold">ASA Dashboard</span>
+            {!collapsed && <span className="fs-5 fw-bold text-nowrap">ASA Dashboard</span>}
           </div>
-          <div className="mb-3">{statusBadge}</div>
+          <div className="mb-3 sidebar-status">
+            <span className="d-lg-none">{statusBadge}</span>
+            <span className="d-none d-lg-block">
+              {collapsed ? (
+                <span
+                  className={`sidebar-status-dot ${connected ? "bg-success" : "bg-danger"}`}
+                  title={connected ? "WA Connected" : "WA Disconnected"}
+                />
+              ) : (
+                statusBadge
+              )}
+            </span>
+          </div>
           <hr className="sidebar-divider" />
           <ul className="nav nav-pills flex-column mb-auto overflow-auto gap-1">
             {NAV_ITEMS.map((item) => (
@@ -118,13 +151,14 @@ export function Layout() {
                   to={item.to}
                   end={item.end}
                   onClick={closeMobileSidebar}
+                  title={collapsed ? item.label : undefined}
                   style={{ "--item-color": item.color } as React.CSSProperties}
                   className={({ isActive }) =>
                     `nav-link d-flex align-items-center gap-2${isActive ? " active" : ""}`
                   }
                 >
                   <i className={`bi ${item.icon}`} />
-                  {item.label}
+                  <span className={collapsed ? "d-lg-none" : ""}>{item.label}</span>
                 </NavLink>
               </li>
             ))}
@@ -135,9 +169,10 @@ export function Layout() {
               closeMobileSidebar()
               handleLogout()
             }}
+            title={collapsed ? "Logout" : undefined}
           >
-            <i className="bi bi-box-arrow-right me-2" />
-            Logout
+            <i className={`bi bi-box-arrow-right${collapsed ? "" : " me-2"}`} />
+            <span className={collapsed ? "d-lg-none" : ""}>Logout</span>
           </button>
         </div>
       </div>

@@ -8,6 +8,7 @@ body {
 
 .sidebar {
   --bs-offcanvas-width: var(--sidebar-width);
+  position: relative;
   background-color: #ffffff;
   border-right: 1px solid #e2e5eb;
   box-shadow: 2px 0 8px rgba(15, 23, 42, 0.05);
@@ -18,7 +19,55 @@ body {
     width: var(--sidebar-width);
     min-height: 100vh;
     flex-shrink: 0;
+    transition: width 180ms ease;
   }
+
+  .sidebar.sidebar-collapsed {
+    width: 84px;
+  }
+
+  .sidebar.sidebar-collapsed .sidebar-brand {
+    justify-content: center;
+  }
+
+  .sidebar.sidebar-collapsed .sidebar-status {
+    display: flex;
+    justify-content: center;
+  }
+
+  .sidebar.sidebar-collapsed .nav-link {
+    justify-content: center;
+  }
+}
+
+.sidebar-toggle {
+  position: absolute;
+  top: 1.35rem;
+  right: -13px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid #e2e5eb;
+  background: #ffffff;
+  color: #6b7280;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.14);
+  z-index: 5;
+}
+
+.sidebar-toggle:hover {
+  color: #1f2937;
+  border-color: #cbd2dc;
+}
+
+.sidebar-status-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
 }
 
 .sidebar-brand {
