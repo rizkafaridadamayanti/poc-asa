@@ -9,10 +9,13 @@ const SCOPE_BADGE: Record<GroupScope, string> = {
   anggota: "text-bg-secondary",
 }
 
+type ScopeFilter = GroupScope | "unreviewed" | "all"
+
 export function Groups() {
   const [groups, setGroups] = useState<Group[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
 
   const [waJid, setWaJid] = useState("")
   const [name, setName] = useState("")
@@ -20,8 +23,9 @@ export function Groups() {
   const [dusunId, setDusunId] = useState("")
   const [saving, setSaving] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [syncing, setSyncing] = useState(false)
 
-  const [scopeFilter, setScopeFilter] = useState<GroupScope | "all">("all")
+  const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all")
   const [search, setSearch] = useState("")
 
   const load = async () => {
@@ -45,6 +49,7 @@ export function Groups() {
     e.preventDefault()
     setSaving(true)
     setError(null)
+    setInfo(null)
     try {
       await api.createGroup({ waJid, name, scope, dusunId })
       setWaJid("")
@@ -72,6 +77,7 @@ export function Groups() {
     if (!confirm("Hapus registrasi grup ini?")) return
     setBusyId(id)
     setError(null)
+    setInfo(null)
     try {
       await api.deleteGroup(id)
       await load()
@@ -82,21 +88,44 @@ export function Groups() {
     }
   }
 
+  const handleSync = async () => {
+    setSyncing(true)
+    setError(null)
+    setInfo(null)
+    try {
+      const res = await api.syncGroups()
+      setInfo(
+        res.created > 0
+          ? `Sinkron selesai: ${res.scanned} grup dicek, ${res.created} baru ditambahkan (perlu ditinjau).`
+          : `Sinkron selesai: ${res.scanned} grup dicek, semua sudah terdaftar.`,
+      )
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   const q = search.trim().toLowerCase()
   const filteredGroups = groups.filter((g) => {
-    if (scopeFilter !== "all" && g.scope !== scopeFilter) return false
+    if (scopeFilter === "unreviewed" && g.scope !== null) return false
+    if (scopeFilter !== "all" && scopeFilter !== "unreviewed" && g.scope !== scopeFilter) return false
     if (!q) return true
     return (
       g.name.toLowerCase().includes(q) ||
       g.waJid.toLowerCase().includes(q) ||
-      g.dusunId.toLowerCase().includes(q)
+      (g.dusunId ?? "").toLowerCase().includes(q)
     )
   })
+
+  const unreviewedCount = groups.filter((g) => g.scope === null).length
 
   return (
     <div>
       <h2 className="mb-4">Groups</h2>
       {error && <div className="alert alert-danger">{error}</div>}
+      {info && <div className="alert alert-success">{info}</div>}
 
       <form onSubmit={handleAdd} className="card mb-4">
         <div className="card-body">
@@ -155,8 +184,10 @@ export function Groups() {
             </div>
           </div>
           <div className="form-text mt-2">
-            Grup: isi JID lengkap (<code>xxx@g.us</code>). Kontak pribadi: nomor HP biasa, otomatis
-            dinormalisasi ke format WhatsApp.
+            Grup baru otomatis terdaftar begitu bot menerima pesan darinya (scope perlu ditinjau
+            manual). Form ini buat mendaftarkan kontak pribadi, atau grup lama yang belum pernah
+            kirim pesan — pakai <b>Sync from WhatsApp</b> di bawah untuk itu. JID lengkap
+            (<code>xxx@g.us</code>) atau nomor HP biasa, otomatis dinormalisasi.
           </div>
         </div>
       </form>
@@ -178,14 +209,26 @@ export function Groups() {
               {s}
             </button>
           ))}
+          <button
+            className={`btn btn-sm ${scopeFilter === "unreviewed" ? "btn-warning" : "btn-outline-warning"}`}
+            onClick={() => setScopeFilter("unreviewed")}
+          >
+            Belum diatur{unreviewedCount > 0 ? ` (${unreviewedCount})` : ""}
+          </button>
         </div>
-        <input
-          className="form-control form-control-sm"
-          style={{ maxWidth: "260px" }}
-          placeholder="Cari nama, JID, atau dusun…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <div className="d-flex gap-2">
+          <input
+            className="form-control form-control-sm"
+            style={{ maxWidth: "260px" }}
+            placeholder="Cari nama, JID, atau dusun…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <button className="btn btn-outline-secondary btn-sm text-nowrap" onClick={handleSync} disabled={syncing}>
+            <i className="bi bi-arrow-repeat me-1" />
+            {syncing ? "Syncing…" : "Sync from WhatsApp"}
+          </button>
+        </div>
       </div>
 
       {loading && <p className="text-muted">Loading groups…</p>}
@@ -194,23 +237,33 @@ export function Groups() {
         <p className="text-muted fst-italic">No groups match this filter.</p>
       )}
       {filteredGroups.map((g) => (
-        <div key={g._id} className="card mb-2">
+        <div key={g._id} className={`card mb-2 ${g.scope === null ? "border-warning-subtle" : ""}`}>
           <div className="card-body d-flex justify-content-between align-items-center">
             <div>
               <strong>{g.name || g.waJid}</strong>
+              {g.source === "auto" && <span className="text-muted small ms-2">(auto)</span>}
               <div className="text-muted small">
                 {g.waJid}
                 {g.dusunId ? ` · dusun: ${g.dusunId}` : ""}
               </div>
             </div>
             <div className="d-flex align-items-center gap-2">
-              <span className={`badge ${SCOPE_BADGE[g.scope]}`}>{g.scope}</span>
+              {g.scope === null ? (
+                <span className="badge text-bg-warning">Belum diatur</span>
+              ) : (
+                <span className={`badge ${SCOPE_BADGE[g.scope]}`}>{g.scope}</span>
+              )}
               <select
                 className="form-select form-select-sm"
                 style={{ width: "auto" }}
-                value={g.scope}
+                value={g.scope ?? ""}
                 onChange={(e) => handleScopeChange(g._id, e.target.value as GroupScope)}
               >
+                {g.scope === null && (
+                  <option value="" disabled>
+                    — pilih scope —
+                  </option>
+                )}
                 {SCOPES.map((s) => (
                   <option key={s} value={s}>
                     {s}

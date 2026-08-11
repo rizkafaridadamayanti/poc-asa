@@ -183,5 +183,15 @@ export function createBaileysBridge(opts: BaileysBridgeOptions): WaBridge {
     isConnected() {
       return connected
     },
+    async getGroupMetadata(jid: string) {
+      if (!sock || !connected) throw new Error("WA not connected")
+      const meta = await sock.groupMetadata(jid)
+      return { subject: meta.subject }
+    },
+    async listParticipatingGroups() {
+      if (!sock || !connected) throw new Error("WA not connected")
+      const groups = await sock.groupFetchAllParticipating()
+      return Object.values(groups).map((g) => ({ id: g.id, subject: g.subject }))
+    },
   }
 }

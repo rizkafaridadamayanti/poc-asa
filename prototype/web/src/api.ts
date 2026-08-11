@@ -125,13 +125,15 @@ export type FanOutResult = {
 }
 
 export type GroupScope = "pusat" | "dusun" | "anggota"
+export type GroupSource = "manual" | "auto"
 
 export type Group = {
   _id: string
   waJid: string
   name: string
-  scope: GroupScope
-  dusunId: string
+  scope: GroupScope | null
+  dusunId: string | null
+  source: GroupSource
   createdAt: string
   updatedAt: string
 }
@@ -304,6 +306,11 @@ export const api = {
 
   deleteGroup: (id: string) =>
     fetchJson<{ ok: boolean }>(`/api/groups/${id}`, { method: "DELETE" }),
+
+  syncGroups: () =>
+    fetchJson<{ ok: boolean; scanned: number; created: number }>("/api/groups/sync", {
+      method: "POST",
+    }),
 
   updateSummary: (id: string, patch: Partial<{ read: boolean; important: boolean; trash: boolean }>) =>
     fetchJson<{ ok: boolean; summary: Summary }>(`/api/summaries/${id}`, {

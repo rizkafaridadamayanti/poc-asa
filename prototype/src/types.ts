@@ -14,6 +14,8 @@ export type WaBridge = {
   sendText(toJid: string, text: string): Promise<{ id: string }>
   onMessage(handler: (msg: InboundMessage) => void): void
   isConnected(): boolean
+  getGroupMetadata(jid: string): Promise<{ subject: string }>
+  listParticipatingGroups(): Promise<Array<{ id: string; subject: string }>>
 }
 
 export type AppConfig = {

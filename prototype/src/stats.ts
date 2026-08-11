@@ -30,7 +30,7 @@ export async function getPeakHours(): Promise<PeakHourRow[]> {
 
 export async function getGroupsByDusun(): Promise<DusunRow[]> {
   const rows = await GroupModel.aggregate([
-    { $match: { dusunId: { $ne: "" } } },
+    { $match: { dusunId: { $nin: [null, ""] } } },
     { $group: { _id: "$dusunId", groupCount: { $sum: 1 } } },
     { $sort: { _id: 1 } },
   ])

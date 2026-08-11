@@ -195,6 +195,32 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
     return { ok: true }
   })
 
+  // Backfill: registers every group the bot is already in (e.g. groups joined before
+  // auto-registration existed, or that have gone quiet since). Scope is left unset
+  // for anything not already known, same as the on-message auto-register path.
+  app.post("/api/groups/sync", async (_req, reply) => {
+    if (!bridge.isConnected()) {
+      return reply.code(503).send({ error: "WA not connected" })
+    }
+    try {
+      const participating = await bridge.listParticipatingGroups()
+      let created = 0
+      for (const g of participating) {
+        const res = await GroupModel.findOneAndUpdate(
+          { waJid: g.id },
+          { $setOnInsert: { waJid: g.id, name: g.subject, scope: null, dusunId: null, source: "auto" } },
+          { upsert: true, setDefaultsOnInsert: true, rawResult: true },
+        )
+        if (!res.lastErrorObject?.updatedExisting) created++
+      }
+      log.info({ scanned: participating.length, created }, "groups synced from WhatsApp")
+      return { ok: true, scanned: participating.length, created }
+    } catch (err) {
+      log.error({ err }, "POST /api/groups/sync failed")
+      return reply.code(500).send({ error: err instanceof Error ? err.message : "sync failed" })
+    }
+  })
+
   app.patch<{
     Params: { id: string }
     Body?: { read?: boolean; important?: boolean; trash?: boolean }

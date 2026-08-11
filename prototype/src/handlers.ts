@@ -1,5 +1,6 @@
 import { MessageModel } from "./models/message.js"
 import { ParticipantModel } from "./models/participant.js"
+import { GroupModel } from "./models/group.js"
 import { SpamAlertModel } from "./models/spamAlert.js"
 import { AnonymousIdeaModel } from "./models/anonymousIdea.js"
 import { checkSpam, SPAM_ALERT_THRESHOLD, type SpamCheckResult } from "./spam.js"
@@ -16,6 +17,39 @@ const ASK_CMD_RE = /^\/tanya\s+([\s\S]+)/i
 
 function looksLikeIdea(text: string): boolean {
   return IDEA_KEYWORDS.test(text)
+}
+
+/**
+ * Registers a group the first time the bot sees a message from it, with scope left
+ * unset so it stays out of automated jobs (digest/ACL) until Pusat reviews it.
+ * The DB existence check is cheap and skips the WA metadata round-trip for groups
+ * we already know; findOneAndUpdate + the unique index on waJid make the insert
+ * itself race-safe if two messages from a brand-new group land at once.
+ */
+async function autoRegisterGroup(bridge: WaBridge, chatJid: string, log: Logger): Promise<void> {
+  try {
+    const known = await GroupModel.exists({ waJid: chatJid })
+    if (known) return
+
+    let name = ""
+    try {
+      const meta = await bridge.getGroupMetadata(chatJid)
+      name = meta.subject
+    } catch (err) {
+      log.warn({ err, chatJid }, "auto-register: could not fetch group metadata, using blank name")
+    }
+
+    const res = await GroupModel.findOneAndUpdate(
+      { waJid: chatJid },
+      { $setOnInsert: { waJid: chatJid, name, scope: null, dusunId: null, source: "auto" } },
+      { upsert: true, setDefaultsOnInsert: true, rawResult: true },
+    )
+    if (!res.lastErrorObject?.updatedExisting) {
+      log.info({ chatJid, name }, "group auto-registered, needs scope review")
+    }
+  } catch (err) {
+    log.error({ err, chatJid }, "auto-register group failed")
+  }
 }
 
 async function handleSpamAlert(
@@ -135,6 +169,10 @@ export function createInboundHandler(log: Logger, bridge: WaBridge, llm: LlmClie
 
       if (spam.score >= SPAM_ALERT_THRESHOLD) {
         void handleSpamAlert(bridge, msg, spam, log)
+      }
+
+      if (msg.isGroup) {
+        void autoRegisterGroup(bridge, msg.chatJid, log)
       }
 
       if (!msg.isGroup) {
