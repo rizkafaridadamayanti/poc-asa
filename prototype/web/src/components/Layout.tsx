@@ -5,20 +5,20 @@ import { clearToken } from "../api.js"
 import { useEvents } from "../hooks/useEvents.js"
 import { ToastContainer, useToasts } from "./Toasts.js"
 
-const NAV_ITEMS: Array<{ to: string; end?: boolean; icon: string; label: string }> = [
-  { to: "/", end: true, icon: "bi-speedometer2", label: "Dashboard" },
-  { to: "/login-to-bot", icon: "bi-qr-code", label: "Login to Bot" },
-  { to: "/messages", icon: "bi-chat-dots", label: "Messages" },
-  { to: "/summaries", icon: "bi-journal-text", label: "Summaries" },
-  { to: "/groups", icon: "bi-people", label: "Groups" },
-  { to: "/infografis", icon: "bi-bar-chart", label: "Infografis" },
-  { to: "/send", icon: "bi-send", label: "Send" },
-  { to: "/digest", icon: "bi-envelope-paper", label: "Digest" },
-  { to: "/informasi-baru", icon: "bi-megaphone", label: "Informasi Baru" },
-  { to: "/pengingat-agenda", icon: "bi-calendar-event", label: "Pengingat Agenda" },
-  { to: "/spam-alerts", icon: "bi-shield-exclamation", label: "Spam Alerts" },
-  { to: "/qa", icon: "bi-question-circle", label: "Tanya Jawab" },
-  { to: "/antrian-ide", icon: "bi-lightbulb", label: "Antrian Ide" },
+const NAV_ITEMS: Array<{ to: string; end?: boolean; icon: string; label: string; color: string }> = [
+  { to: "/", end: true, icon: "bi-speedometer2", label: "Dashboard", color: "#4f46e5" },
+  { to: "/login-to-bot", icon: "bi-qr-code", label: "Login to Bot", color: "#16a34a" },
+  { to: "/messages", icon: "bi-chat-dots", label: "Messages", color: "#0ea5e9" },
+  { to: "/summaries", icon: "bi-journal-text", label: "Summaries", color: "#9333ea" },
+  { to: "/groups", icon: "bi-people", label: "Groups", color: "#d97706" },
+  { to: "/infografis", icon: "bi-bar-chart", label: "Infografis", color: "#0d9488" },
+  { to: "/send", icon: "bi-send", label: "Send", color: "#2563eb" },
+  { to: "/digest", icon: "bi-envelope-paper", label: "Digest", color: "#db2777" },
+  { to: "/informasi-baru", icon: "bi-megaphone", label: "Informasi Baru", color: "#ea580c" },
+  { to: "/pengingat-agenda", icon: "bi-calendar-event", label: "Pengingat Agenda", color: "#059669" },
+  { to: "/spam-alerts", icon: "bi-shield-exclamation", label: "Spam Alerts", color: "#dc2626" },
+  { to: "/qa", icon: "bi-question-circle", label: "Tanya Jawab", color: "#7c3aed" },
+  { to: "/antrian-ide", icon: "bi-lightbulb", label: "Antrian Ide", color: "#ca8a04" },
 ]
 
 export function Layout() {
@@ -75,9 +75,9 @@ export function Layout() {
 
   return (
     <div className="d-flex flex-column flex-lg-row min-vh-100">
-      <nav className="navbar navbar-dark bg-dark d-lg-none px-3">
+      <nav className="navbar navbar-light bg-white border-bottom d-lg-none px-3">
         <button
-          className="btn btn-outline-light"
+          className="btn btn-outline-secondary"
           type="button"
           onClick={() => {
             if (offcanvasRef.current) {
@@ -88,26 +88,26 @@ export function Layout() {
         >
           <i className="bi bi-list fs-4" />
         </button>
-        <span className="navbar-brand ms-2 mb-0 text-white fw-bold">ASA Dashboard</span>
+        <span className="navbar-brand ms-2 mb-0 fw-bold">ASA Dashboard</span>
       </nav>
 
       <div
-        className="offcanvas-lg offcanvas-start bg-dark text-white sidebar flex-shrink-0"
+        className="offcanvas-lg offcanvas-start bg-white sidebar flex-shrink-0"
         tabIndex={-1}
         id="sidebarOffcanvas"
         ref={offcanvasRef}
       >
         <div className="offcanvas-header d-lg-none">
           <span className="fs-5 fw-bold">ASA Dashboard</span>
-          <button
-            type="button"
-            className="btn-close btn-close-white"
-            onClick={closeMobileSidebar}
-            aria-label="Close"
-          />
+          <button type="button" className="btn-close" onClick={closeMobileSidebar} aria-label="Close" />
         </div>
         <div className="offcanvas-body d-flex flex-column p-3">
-          <span className="fs-4 fw-bold text-white mb-1 d-none d-lg-block">ASA Dashboard</span>
+          <div className="sidebar-brand d-none d-lg-flex mb-1">
+            <span className="sidebar-brand-mark">
+              <i className="bi bi-whatsapp" />
+            </span>
+            <span className="fs-5 fw-bold">ASA Dashboard</span>
+          </div>
           <div className="mb-3">{statusBadge}</div>
           <ul className="nav nav-pills flex-column mb-auto overflow-auto gap-1">
             {NAV_ITEMS.map((item) => (
@@ -116,6 +116,7 @@ export function Layout() {
                   to={item.to}
                   end={item.end}
                   onClick={closeMobileSidebar}
+                  style={{ "--item-color": item.color } as React.CSSProperties}
                   className={({ isActive }) =>
                     `nav-link d-flex align-items-center gap-2${isActive ? " active" : ""}`
                   }
@@ -127,7 +128,7 @@ export function Layout() {
             ))}
           </ul>
           <button
-            className="btn btn-outline-light mt-3"
+            className="btn btn-outline-secondary mt-3"
             onClick={() => {
               closeMobileSidebar()
               handleLogout()

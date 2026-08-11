@@ -2,13 +2,31 @@ import { useEffect, useState } from "react"
 import { useOutletContext } from "react-router-dom"
 import { api, type Status, type Sentiment } from "../api.js"
 
-function StatCard({ icon, label, value }: { icon: string; label: string; value: React.ReactNode }) {
+function StatCard({
+  icon,
+  label,
+  value,
+  color,
+}: {
+  icon: string
+  label: string
+  value: React.ReactNode
+  color: string
+}) {
   return (
     <div className="col-sm-6 col-lg-3">
       <div className="card h-100">
         <div className="card-body d-flex align-items-center gap-3">
-          <div className="fs-3 text-primary">
-            <i className={`bi ${icon}`} />
+          <div
+            className="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0"
+            style={{
+              width: 44,
+              height: 44,
+              backgroundColor: `color-mix(in srgb, ${color} 15%, white)`,
+              color,
+            }}
+          >
+            <i className={`bi ${icon} fs-4`} />
           </div>
           <div>
             <div className="text-muted text-uppercase small">{label}</div>
@@ -60,15 +78,16 @@ export function Dashboard() {
             <StatCard
               icon="bi-whatsapp"
               label="WA Connection"
+              color="#16a34a"
               value={
                 <span className={`badge ${isConnected ? "text-bg-success" : "text-bg-danger"}`}>
                   {isConnected ? "Connected" : "Disconnected"}
                 </span>
               }
             />
-            <StatCard icon="bi-chat-dots" label="Messages" value={status.messageCount} />
-            <StatCard icon="bi-journal-text" label="Summaries" value={status.summaryCount} />
-            <StatCard icon="bi-people" label="Participants" value={status.participantCount} />
+            <StatCard icon="bi-chat-dots" label="Messages" value={status.messageCount} color="#0ea5e9" />
+            <StatCard icon="bi-journal-text" label="Summaries" value={status.summaryCount} color="#9333ea" />
+            <StatCard icon="bi-people" label="Participants" value={status.participantCount} color="#d97706" />
           </div>
 
           {latestSentiment && (
