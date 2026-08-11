@@ -43,16 +43,30 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
     }
   })
 
-  app.get<{ Querystring: { limit?: string; offset?: string } }>(
+  app.get<{ Querystring: { limit?: string; offset?: string; chatJid?: string } }>(
     "/api/messages",
     async (req) => {
       const { limit, offset } = parsePagination(req.query)
-      const rows = await MessageModel.find()
-        .sort({ timestamp: -1 })
-        .skip(offset)
-        .limit(limit)
-        .lean()
-      const total = await MessageModel.countDocuments()
+      const filter = req.query.chatJid ? { chatJid: req.query.chatJid } : {}
+
+      const rows = await MessageModel.aggregate([
+        { $match: filter },
+        { $sort: { timestamp: -1 } },
+        { $skip: offset },
+        { $limit: limit },
+        {
+          $lookup: {
+            from: "groups",
+            localField: "chatJid",
+            foreignField: "waJid",
+            as: "groupInfo",
+          },
+        },
+        { $addFields: { chatName: { $arrayElemAt: ["$groupInfo.name", 0] } } },
+        { $project: { groupInfo: 0 } },
+      ])
+
+      const total = await MessageModel.countDocuments(filter)
       return { total, offset, limit, count: rows.length, messages: rows }
     },
   )

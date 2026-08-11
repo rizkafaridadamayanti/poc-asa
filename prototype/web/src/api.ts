@@ -71,6 +71,7 @@ export type Message = {
   messageId: string
   fromJid: string
   chatJid: string
+  chatName?: string | null
   timestamp: number
   type: string
   text: string
@@ -217,10 +218,13 @@ export const api = {
 
   qr: () => fetchJson<{ connected: boolean; qr: string | null }>("/api/qr"),
 
-  messages: (limit = 20, offset = 0) =>
-    fetchJson<{ total: number; offset: number; limit: number; count: number; messages: Message[] }>(
-      `/api/messages?limit=${limit}&offset=${offset}`,
-    ),
+  messages: (limit = 20, offset = 0, chatJid?: string) => {
+    const params = new URLSearchParams({ limit: String(limit), offset: String(offset) })
+    if (chatJid) params.set("chatJid", chatJid)
+    return fetchJson<{ total: number; offset: number; limit: number; count: number; messages: Message[] }>(
+      `/api/messages?${params.toString()}`,
+    )
+  },
 
   summaries: (
     limit = 20,
