@@ -110,6 +110,7 @@ export function Layout() {
             <span className="fs-5 fw-bold">ASA Dashboard</span>
           </div>
           <div className="mb-3">{statusBadge}</div>
+          <hr className="sidebar-divider" />
           <ul className="nav nav-pills flex-column mb-auto overflow-auto gap-1">
             {NAV_ITEMS.map((item) => (
               <li className="nav-item" key={item.to}>

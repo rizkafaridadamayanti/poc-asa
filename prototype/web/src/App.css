@@ -9,7 +9,8 @@ body {
 .sidebar {
   --bs-offcanvas-width: var(--sidebar-width);
   background-color: #ffffff;
-  border-right: 1px solid #e9ecf1;
+  border-right: 1px solid #e2e5eb;
+  box-shadow: 2px 0 8px rgba(15, 23, 42, 0.05);
 }
 
 @media (min-width: 992px) {
@@ -37,6 +38,14 @@ body {
   background: #16a34a;
   color: #fff;
   font-size: 1rem;
+}
+
+.sidebar-divider {
+  height: 1px;
+  margin: 0 -0.5rem 1rem;
+  border: none;
+  background: #e2e5eb;
+  box-shadow: 0 2px 3px -1px rgba(15, 23, 42, 0.08);
 }
 
 .sidebar .nav-link {
