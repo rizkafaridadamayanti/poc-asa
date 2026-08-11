@@ -85,59 +85,64 @@ export function Groups() {
       {error && <div className="alert alert-danger">{error}</div>}
 
       <form onSubmit={handleAdd} className="card mb-4">
-        <div className="card-body row g-3 align-items-end">
-          <div className="col-sm-3">
-            <label htmlFor="waJid" className="form-label">
-              WA Group JID
-            </label>
-            <input
-              id="waJid"
-              className="form-control"
-              placeholder="120363...@g.us atau 0812..."
-              value={waJid}
-              onChange={(e) => setWaJid(e.target.value)}
-              required
-            />
-            <div className="form-text">Grup: JID lengkap. Kontak: nomor HP, otomatis dinormalisasi.</div>
+        <div className="card-body">
+          <div className="row g-3 align-items-end">
+            <div className="col-md-3">
+              <label htmlFor="waJid" className="form-label">
+                WA Group JID
+              </label>
+              <input
+                id="waJid"
+                className="form-control"
+                placeholder="120363...@g.us atau 0812..."
+                value={waJid}
+                onChange={(e) => setWaJid(e.target.value)}
+                required
+              />
+            </div>
+            <div className="col-md-3">
+              <label htmlFor="name" className="form-label">
+                Name
+              </label>
+              <input id="name" className="form-control" value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="col-md-2">
+              <label htmlFor="scope" className="form-label">
+                Scope
+              </label>
+              <select
+                id="scope"
+                className="form-select"
+                value={scope}
+                onChange={(e) => setScope(e.target.value as GroupScope)}
+              >
+                {SCOPES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-2">
+              <label htmlFor="dusunId" className="form-label">
+                Dusun ID
+              </label>
+              <input
+                id="dusunId"
+                className="form-control"
+                value={dusunId}
+                onChange={(e) => setDusunId(e.target.value)}
+              />
+            </div>
+            <div className="col-md-2">
+              <button className="btn btn-primary w-100" disabled={saving}>
+                {saving ? "Saving…" : "Add group"}
+              </button>
+            </div>
           </div>
-          <div className="col-sm-3">
-            <label htmlFor="name" className="form-label">
-              Name
-            </label>
-            <input id="name" className="form-control" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div className="col-sm-2">
-            <label htmlFor="scope" className="form-label">
-              Scope
-            </label>
-            <select
-              id="scope"
-              className="form-select"
-              value={scope}
-              onChange={(e) => setScope(e.target.value as GroupScope)}
-            >
-              {SCOPES.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-sm-2">
-            <label htmlFor="dusunId" className="form-label">
-              Dusun ID
-            </label>
-            <input
-              id="dusunId"
-              className="form-control"
-              value={dusunId}
-              onChange={(e) => setDusunId(e.target.value)}
-            />
-          </div>
-          <div className="col-sm-2">
-            <button className="btn btn-primary w-100" disabled={saving}>
-              {saving ? "Saving…" : "Add group"}
-            </button>
+          <div className="form-text mt-2">
+            Grup: isi JID lengkap (<code>xxx@g.us</code>). Kontak pribadi: nomor HP biasa, otomatis
+            dinormalisasi ke format WhatsApp.
           </div>
         </div>
       </form>
