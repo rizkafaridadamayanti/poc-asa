@@ -21,6 +21,9 @@ export function Groups() {
   const [saving, setSaving] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
 
+  const [scopeFilter, setScopeFilter] = useState<GroupScope | "all">("all")
+  const [search, setSearch] = useState("")
+
   const load = async () => {
     setLoading(true)
     setError(null)
@@ -78,6 +81,17 @@ export function Groups() {
       setBusyId(null)
     }
   }
+
+  const q = search.trim().toLowerCase()
+  const filteredGroups = groups.filter((g) => {
+    if (scopeFilter !== "all" && g.scope !== scopeFilter) return false
+    if (!q) return true
+    return (
+      g.name.toLowerCase().includes(q) ||
+      g.waJid.toLowerCase().includes(q) ||
+      g.dusunId.toLowerCase().includes(q)
+    )
+  })
 
   return (
     <div>
@@ -147,9 +161,39 @@ export function Groups() {
         </div>
       </form>
 
+      <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div className="btn-group">
+          <button
+            className={`btn btn-sm ${scopeFilter === "all" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => setScopeFilter("all")}
+          >
+            All
+          </button>
+          {SCOPES.map((s) => (
+            <button
+              key={s}
+              className={`btn btn-sm ${scopeFilter === s ? "btn-primary" : "btn-outline-primary"}`}
+              onClick={() => setScopeFilter(s)}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+        <input
+          className="form-control form-control-sm"
+          style={{ maxWidth: "260px" }}
+          placeholder="Cari nama, JID, atau dusun…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
       {loading && <p className="text-muted">Loading groups…</p>}
       {!loading && groups.length === 0 && <p className="text-muted fst-italic">No groups yet.</p>}
-      {groups.map((g) => (
+      {!loading && groups.length > 0 && filteredGroups.length === 0 && (
+        <p className="text-muted fst-italic">No groups match this filter.</p>
+      )}
+      {filteredGroups.map((g) => (
         <div key={g._id} className="card mb-2">
           <div className="card-body d-flex justify-content-between align-items-center">
             <div>
