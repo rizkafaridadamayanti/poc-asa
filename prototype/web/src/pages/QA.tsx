@@ -41,7 +41,7 @@ export function QA() {
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      <form onSubmit={handleSubmit} className="card mb-4" style={{ maxWidth: "560px" }}>
+      <form onSubmit={handleSubmit} className="card mb-4 mx-auto" style={{ maxWidth: "560px" }}>
         <div className="card-body">
           <div className="mb-3">
             <label htmlFor="question" className="form-label">
@@ -77,7 +77,7 @@ export function QA() {
       </form>
 
       {result && (
-        <div className="card" style={{ maxWidth: "560px" }}>
+        <div className="card mx-auto" style={{ maxWidth: "560px" }}>
           <div className="card-body">
             <h5 className="card-title">Jawaban</h5>
             <p style={{ whiteSpace: "pre-wrap" }}>{result.answer}</p>

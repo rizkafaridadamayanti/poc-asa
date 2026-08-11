@@ -212,7 +212,7 @@ export function InformasiBaru() {
       </div>
 
       {showForm && (
-        <form onSubmit={submitForm} className="card mb-4" style={{ maxWidth: "560px" }}>
+        <form onSubmit={submitForm} className="card mb-4 mx-auto" style={{ maxWidth: "560px" }}>
           <div className="card-body">
             <h5 className="card-title">{editingId ? "Edit draft" : "New draft"}</h5>
             <div className="mb-3">

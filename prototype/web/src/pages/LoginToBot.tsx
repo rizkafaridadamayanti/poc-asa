@@ -57,7 +57,7 @@ export function LoginToBot() {
     <div>
       <PageHeader icon="bi-qr-code" color={NAV_COLORS.loginToBot} title="Login to Bot" />
 
-      <div className="card mb-4" style={{ maxWidth: "420px" }}>
+      <div className="card mb-4 mx-auto" style={{ maxWidth: "420px" }}>
         <div className="card-body">
           <h5 className="card-title">Connection status</h5>
           <span className={`badge ${connected ? "text-bg-success" : "text-bg-danger"}`}>
@@ -77,7 +77,7 @@ export function LoginToBot() {
       </div>
 
       {connected ? (
-        <div className="card" style={{ maxWidth: "420px" }}>
+        <div className="card mx-auto" style={{ maxWidth: "420px" }}>
           <div className="card-body">
             <h5 className="card-title">
               <i className="bi bi-check-circle text-success me-2" />
@@ -90,7 +90,7 @@ export function LoginToBot() {
           </div>
         </div>
       ) : (
-        <div className="card" style={{ maxWidth: "420px" }}>
+        <div className="card mx-auto" style={{ maxWidth: "420px" }}>
           <div className="card-body">
             <h5 className="card-title">Scan to pair</h5>
             <p className="text-muted small">

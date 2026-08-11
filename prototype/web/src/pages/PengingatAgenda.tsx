@@ -161,7 +161,7 @@ export function PengingatAgenda() {
       </div>
 
       {showForm && (
-        <form onSubmit={submitForm} className="card mb-4" style={{ maxWidth: "560px" }}>
+        <form onSubmit={submitForm} className="card mb-4 mx-auto" style={{ maxWidth: "560px" }}>
           <div className="card-body">
             <h5 className="card-title">{editingId ? "Edit agenda" : "New agenda"}</h5>
             <div className="mb-3">

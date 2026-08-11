@@ -35,7 +35,7 @@ export function Send() {
           Sent. Message ID: <code>{result.id}</code>
         </div>
       )}
-      <form onSubmit={handleSubmit} className="card" style={{ maxWidth: "480px" }}>
+      <form onSubmit={handleSubmit} className="card mx-auto" style={{ maxWidth: "480px" }}>
         <div className="card-body">
           <div className="mb-3">
             <label htmlFor="to" className="form-label">
