@@ -144,11 +144,15 @@ export function Messages() {
             <div className="table-responsive">
               <table className="table table-hover align-middle mb-0">
                 <thead>
-                  <tr>
-                    <th className="text-nowrap">Time</th>
-                    <th className="text-nowrap">From</th>
-                    <th className="text-nowrap">Chat</th>
-                    <th>Text</th>
+                  <tr
+                    style={
+                      { "--bs-table-bg": `color-mix(in srgb, ${NAV_COLORS.messages} 12%, white)` } as React.CSSProperties
+                    }
+                  >
+                    <th className="text-nowrap text-center">Time</th>
+                    <th className="text-nowrap text-center">From</th>
+                    <th className="text-nowrap text-center">Chat</th>
+                    <th className="text-center">Text</th>
                   </tr>
                 </thead>
                 <tbody>
