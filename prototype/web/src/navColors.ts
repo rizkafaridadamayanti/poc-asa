@@ -2,6 +2,7 @@
 export const NAV_COLORS = {
   dashboard: "#4f46e5",
   messages: "#0ea5e9",
+  riwayat: "#64748b",
   summaries: "#9333ea",
   groups: "#d97706",
   infografis: "#0d9488",

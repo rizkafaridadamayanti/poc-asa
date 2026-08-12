@@ -43,7 +43,7 @@ export async function startHttp(deps: HttpDeps) {
     const requireAuth = createAuthMiddleware(cfg.jwtSecret)
     api.addHook("onRequest", requireAuth)
 
-    await registerDashboardApi(api, { bridge, llm, log })
+    await registerDashboardApi(api, { bridge, llm, log, mediaDir: cfg.mediaDir })
     await registerCuratedInfoApi(api, { bridge, log })
     await registerAgendaApi(api, { log })
     await registerOutboundLogApi(api)

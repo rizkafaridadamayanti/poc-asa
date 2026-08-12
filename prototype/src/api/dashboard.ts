@@ -1,4 +1,6 @@
-import { MessageModel } from "../models/message.js"
+import fs from "node:fs/promises"
+import path from "node:path"
+import { MessageModel, type MessageDoc } from "../models/message.js"
 import { SummaryModel, type SummaryDoc } from "../models/summary.js"
 import { ParticipantModel } from "../models/participant.js"
 import { GroupModel, GROUP_SCOPES, type GroupScope } from "../models/group.js"
@@ -18,6 +20,7 @@ export type DashboardDeps = {
   bridge: WaBridge
   llm: LlmClient
   log: Logger
+  mediaDir: string
 }
 
 function parsePagination(query: { limit?: string; offset?: string }) {
@@ -27,7 +30,7 @@ function parsePagination(query: { limit?: string; offset?: string }) {
 }
 
 export async function registerDashboardApi(app: FastifyInstance, deps: DashboardDeps) {
-  const { bridge, llm, log } = deps
+  const { bridge, llm, log, mediaDir } = deps
 
   app.get("/api/dashboard/status", async () => {
     const [messageCount, summaryCount, participantCount] = await Promise.all([
@@ -44,11 +47,13 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
     }
   })
 
-  app.get<{ Querystring: { limit?: string; offset?: string; chatJid?: string; q?: string } }>(
+  app.get<{ Querystring: { limit?: string; offset?: string; chatJid?: string; q?: string; trash?: string } }>(
     "/api/messages",
     async (req) => {
       const { limit, offset } = parsePagination(req.query)
-      const filter: Record<string, unknown> = {}
+      // Pre-existing messages predate the trash field and have it unset, so
+      // "active" means "not explicitly trashed" rather than "trash === false".
+      const filter: Record<string, unknown> = { trash: req.query.trash === "true" ? true : { $ne: true } }
       if (req.query.chatJid) filter.chatJid = req.query.chatJid
       if (req.query.q) {
         const re = { $regex: req.query.q, $options: "i" }
@@ -76,6 +81,56 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
       return { total, offset, limit, count: rows.length, messages: rows }
     },
   )
+
+  // Soft delete: hide from the active Messages view, keep in Riwayat until purged or hard-deleted.
+  app.delete<{ Params: { id: string } }>("/api/messages/:id", async (req, reply) => {
+    const res = await MessageModel.updateOne(
+      { _id: req.params.id },
+      { $set: { trash: true, trashedAt: new Date() } },
+    )
+    if (res.matchedCount === 0) return reply.code(404).send({ error: "message not found" })
+    return { ok: true }
+  })
+
+  // Undo a soft delete, restoring the message back to the active Messages view.
+  app.post<{ Params: { id: string } }>("/api/messages/:id/restore", async (req, reply) => {
+    const res = await MessageModel.updateOne(
+      { _id: req.params.id },
+      { $set: { trash: false, trashedAt: null } },
+    )
+    if (res.matchedCount === 0) return reply.code(404).send({ error: "message not found" })
+    return { ok: true }
+  })
+
+  app.delete<{ Params: { id: string } }>("/api/messages/:id/permanent", async (req, reply) => {
+    const doc = await MessageModel.findByIdAndDelete(req.params.id).lean<MessageDoc>()
+    if (!doc) return reply.code(404).send({ error: "message not found" })
+    if (doc.mediaFilename) {
+      await fs.rm(path.join(mediaDir, doc.mediaFilename), { force: true }).catch(() => {})
+    }
+    return { ok: true }
+  })
+
+  app.post("/api/messages/reset", async () => {
+    const res = await MessageModel.deleteMany({})
+    await fs.rm(mediaDir, { recursive: true, force: true }).catch(() => {})
+    await fs.mkdir(mediaDir, { recursive: true }).catch(() => {})
+    log.warn({ deletedCount: res.deletedCount }, "all messages reset")
+    return { ok: true, deletedCount: res.deletedCount }
+  })
+
+  app.get<{ Params: { id: string } }>("/api/messages/:id/media", async (req, reply) => {
+    const doc = await MessageModel.findById(req.params.id).lean<MessageDoc>()
+    if (!doc?.mediaFilename) return reply.code(404).send({ error: "no media for this message" })
+    try {
+      const filePath = path.join(mediaDir, doc.mediaFilename)
+      const data = await fs.readFile(filePath)
+      reply.header("content-type", doc.mediaMimetype || "application/octet-stream")
+      return reply.send(data)
+    } catch {
+      return reply.code(404).send({ error: "media file not found" })
+    }
+  })
 
   app.get<{
     Querystring: {

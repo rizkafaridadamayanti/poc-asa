@@ -17,10 +17,11 @@ async function main() {
   const log = createLogger(cfg.logLevel)
 
   await connectDb(cfg.mongodbUri, cfg.dbName, log)
-  startPurgeJob(log)
+  startPurgeJob(log, cfg.mediaDir)
 
   const bridge = createBaileysBridge({
     authDir: cfg.authDir,
+    mediaDir: cfg.mediaDir,
     log,
     sendMinDelayMs: cfg.sendMinDelayMs,
     sendMaxDelayMs: cfg.sendMaxDelayMs,

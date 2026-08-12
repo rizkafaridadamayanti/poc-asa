@@ -1,11 +1,15 @@
+export type InboundMessageType = "text" | "image" | "video" | "audio" | "document"
+
 export type InboundMessage = {
   messageId: string
   fromJid: string
   chatJid: string
   timestamp: number
-  type: "text"
+  type: InboundMessageType
   text: string
   isGroup: boolean
+  mediaFilename?: string | null
+  mediaMimetype?: string | null
 }
 
 export type WaDevice = { id: string; name: string | null; platform: string | null }
@@ -25,6 +29,7 @@ export type AppConfig = {
   port: number
   logLevel: string
   authDir: string
+  mediaDir: string
   mongodbUri: string
   dbName: string
   deepseekApiKey: string

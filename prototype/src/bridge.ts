@@ -1,5 +1,8 @@
+import fs from "node:fs/promises"
+import path from "node:path"
 import makeWASocket, {
   DisconnectReason,
+  downloadMediaMessage,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
   type WAMessage,
@@ -10,14 +13,43 @@ import pino from "pino"
 import { loadAuthState } from "./session.js"
 import { isGroupJid, isStatusBroadcast } from "./jid.js"
 import { bridgeEvents } from "./events.js"
-import type { InboundMessage, WaBridge, WaDevice } from "./types.js"
+import type { InboundMessage, InboundMessageType, WaBridge, WaDevice } from "./types.js"
 import type { Logger } from "./logger.js"
 
 export type BaileysBridgeOptions = {
   authDir: string
+  mediaDir: string
   log: Logger
   sendMinDelayMs: number
   sendMaxDelayMs: number
+}
+
+const MEDIA_EXTENSION: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+  "video/mp4": "mp4",
+  "video/3gpp": "3gp",
+  "audio/ogg": "ogg",
+  "audio/mpeg": "mp3",
+  "application/pdf": "pdf",
+}
+
+function extensionForMimetype(mimetype: string): string {
+  return MEDIA_EXTENSION[mimetype] || mimetype.split("/")[1]?.replace(/[^a-z0-9]/gi, "") || "bin"
+}
+
+function extractMediaInfo(msg: WAMessage): { type: InboundMessageType; mimetype: string } | null {
+  const m = msg.message
+  if (!m) return null
+  if (m.imageMessage) return { type: "image", mimetype: m.imageMessage.mimetype || "image/jpeg" }
+  if (m.videoMessage) return { type: "video", mimetype: m.videoMessage.mimetype || "video/mp4" }
+  if (m.audioMessage) return { type: "audio", mimetype: m.audioMessage.mimetype || "audio/ogg" }
+  if (m.documentMessage) {
+    return { type: "document", mimetype: m.documentMessage.mimetype || "application/octet-stream" }
+  }
+  return null
 }
 
 function sleep(ms: number): Promise<void> {
@@ -40,13 +72,14 @@ function extractText(msg: WAMessage): string | null {
   return null
 }
 
-function mapInbound(msg: WAMessage): InboundMessage | null {
+async function mapInbound(msg: WAMessage, mediaDir: string, log: Logger): Promise<InboundMessage | null> {
   if (!msg.key?.id || !msg.key.remoteJid) return null
   if (msg.key.fromMe) return null
   const chatJid = msg.key.remoteJid
   if (isStatusBroadcast(chatJid)) return null
   const text = extractText(msg)
-  if (text == null) return null
+  const media = extractMediaInfo(msg)
+  if (text == null && !media) return null
 
   const isGroup = isGroupJid(chatJid)
   const fromJid =
@@ -59,19 +92,35 @@ function mapInbound(msg: WAMessage): InboundMessage | null {
       ? msg.messageTimestamp
       : Number(msg.messageTimestamp) || Math.floor(Date.now() / 1000)
 
+  let mediaFilename: string | null = null
+  let mediaMimetype: string | null = null
+  if (media) {
+    try {
+      const buffer = await downloadMediaMessage(msg, "buffer", {})
+      const filename = `${msg.key.id}.${extensionForMimetype(media.mimetype)}`
+      await fs.writeFile(path.join(mediaDir, filename), buffer)
+      mediaFilename = filename
+      mediaMimetype = media.mimetype
+    } catch (err) {
+      log.error({ err, messageId: msg.key.id }, "media download failed")
+    }
+  }
+
   return {
     messageId: msg.key.id,
     fromJid,
     chatJid,
     timestamp: ts,
-    type: "text",
-    text,
+    type: media ? media.type : "text",
+    text: text ?? "",
     isGroup,
+    mediaFilename,
+    mediaMimetype,
   }
 }
 
 export function createBaileysBridge(opts: BaileysBridgeOptions): WaBridge {
-  const { authDir, log, sendMinDelayMs, sendMaxDelayMs } = opts
+  const { authDir, mediaDir, log, sendMinDelayMs, sendMaxDelayMs } = opts
   let sock: WASocket | null = null
   let connected = false
   let device: WaDevice | null = null
@@ -82,6 +131,7 @@ export function createBaileysBridge(opts: BaileysBridgeOptions): WaBridge {
   const baileysLog = pino({ level: "silent" })
 
   async function connect(): Promise<void> {
+    await fs.mkdir(mediaDir, { recursive: true })
     const { state, saveCreds } = await loadAuthState(authDir)
     const { version } = await fetchLatestBaileysVersion()
     log.info({ version }, "baileys version")
@@ -141,18 +191,20 @@ export function createBaileysBridge(opts: BaileysBridgeOptions): WaBridge {
 
     socket.ev.on("messages.upsert", ({ type, messages }) => {
       if (type !== "notify" && type !== "append") return
-      for (const raw of messages) {
-        const inbound = mapInbound(raw)
-        if (!inbound) continue
-        bridgeEvents.emitEvent({ type: "inbound", message: inbound })
-        for (const h of handlers) {
-          try {
-            h(inbound)
-          } catch (err) {
-            log.error({ err }, "onMessage handler error")
+      void (async () => {
+        for (const raw of messages) {
+          const inbound = await mapInbound(raw, mediaDir, log)
+          if (!inbound) continue
+          bridgeEvents.emitEvent({ type: "inbound", message: inbound })
+          for (const h of handlers) {
+            try {
+              h(inbound)
+            } catch (err) {
+              log.error({ err }, "onMessage handler error")
+            }
           }
         }
-      }
+      })()
     })
   }
 

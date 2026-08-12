@@ -143,6 +143,8 @@ export function createInboundHandler(log: Logger, bridge: WaBridge, llm: LlmClie
             type: msg.type,
             text: msg.text,
             isGroup: msg.isGroup,
+            mediaFilename: msg.mediaFilename ?? null,
+            mediaMimetype: msg.mediaMimetype ?? null,
             flags: { spamScore: spam.score, sentiment: "", isIdea: looksLikeIdea(msg.text) },
           },
         },

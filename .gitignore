@@ -5,6 +5,7 @@ dist/
 *.log
 .DS_Store
 prototype/auth_session/
+prototype/media_storage/
 prototype/node_modules/
 prototype/dist/
 prototype/.env

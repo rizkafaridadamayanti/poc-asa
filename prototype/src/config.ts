@@ -20,6 +20,7 @@ export function loadConfig(): AppConfig {
     port: intEnv("PORT", 3000),
     logLevel: process.env.LOG_LEVEL?.trim() || "info",
     authDir: process.env.AUTH_DIR?.trim() || "./auth_session",
+    mediaDir: process.env.MEDIA_DIR?.trim() || "./media_storage",
     mongodbUri: requireEnv("MONGODB_URI"),
     dbName: process.env.DB_NAME?.trim() || "asa_karang_taruna",
     deepseekApiKey: requireEnv("DEEPSEEK_API_KEY"),

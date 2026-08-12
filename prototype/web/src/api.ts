@@ -81,6 +81,8 @@ export type Status = {
   participantCount: number
 }
 
+export type MessageType = "text" | "image" | "video" | "audio" | "document"
+
 export type Message = {
   _id: string
   messageId: string
@@ -88,9 +90,13 @@ export type Message = {
   chatJid: string
   chatName?: string | null
   timestamp: number
-  type: string
+  type: MessageType
   text: string
   isGroup: boolean
+  mediaFilename: string | null
+  mediaMimetype: string | null
+  trash: boolean
+  trashedAt: string | null
   createdAt: string
   updatedAt: string
 }
@@ -233,13 +239,34 @@ export const api = {
 
   qr: () => fetchJson<{ connected: boolean; qr: string | null }>("/api/qr"),
 
-  messages: (limit = 20, offset = 0, chatJid?: string, q?: string) => {
+  messages: (limit = 20, offset = 0, chatJid?: string, q?: string, trash = false) => {
     const params = new URLSearchParams({ limit: String(limit), offset: String(offset) })
     if (chatJid) params.set("chatJid", chatJid)
     if (q) params.set("q", q)
+    if (trash) params.set("trash", "true")
     return fetchJson<{ total: number; offset: number; limit: number; count: number; messages: Message[] }>(
       `/api/messages?${params.toString()}`,
     )
+  },
+
+  trashMessage: (id: string) => fetchJson<{ ok: boolean }>(`/api/messages/${id}`, { method: "DELETE" }),
+
+  restoreMessage: (id: string) =>
+    fetchJson<{ ok: boolean }>(`/api/messages/${id}/restore`, { method: "POST" }),
+
+  deleteMessagePermanent: (id: string) =>
+    fetchJson<{ ok: boolean }>(`/api/messages/${id}/permanent`, { method: "DELETE" }),
+
+  resetMessages: () =>
+    fetchJson<{ ok: boolean; deletedCount: number }>("/api/messages/reset", { method: "POST" }),
+
+  messageMediaBlob: async (id: string): Promise<Blob> => {
+    const token = getToken()
+    const res = await fetch(`${API_BASE}/api/messages/${id}/media`, {
+      headers: token ? { authorization: `Bearer ${token}` } : {},
+    })
+    if (!res.ok) throw new Error(`Failed to load media: ${res.status} ${res.statusText}`)
+    return res.blob()
   },
 
   summaries: (

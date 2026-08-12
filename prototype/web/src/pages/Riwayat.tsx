@@ -1,24 +1,18 @@
 import { useEffect, useState } from "react"
-import { useOutletContext } from "react-router-dom"
-import { api, type Group, type Message } from "../api.js"
+import { api, type Message } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
 import { Modal } from "../components/Modal.js"
 import { MediaPreview } from "../components/MediaPreview.js"
 import { MEDIA_TYPE_INFO, MediaTypeBadge, truncateWords } from "../messageUtils.js"
 import { NAV_COLORS } from "../navColors.js"
 
-export function Messages() {
-  const { lastInbound } = useOutletContext<{ lastInbound: Record<string, unknown> | null }>()
+export function Riwayat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [total, setTotal] = useState(0)
   const [offset, setOffset] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
-  const [groups, setGroups] = useState<Group[]>([])
-  const [chatFilter, setChatFilter] = useState("")
-  const [search, setSearch] = useState("")
-  const [debouncedSearch, setDebouncedSearch] = useState("")
   const limit = 20
 
   const [viewingMessage, setViewingMessage] = useState<Message | null>(null)
@@ -31,7 +25,7 @@ export function Messages() {
     setLoading(true)
     setError(null)
     try {
-      const res = await api.messages(limit, newOffset, chatFilter || undefined, debouncedSearch || undefined)
+      const res = await api.messages(limit, newOffset, undefined, undefined, true)
       setMessages(res.messages)
       setTotal(res.total)
       setOffset(res.offset)
@@ -43,50 +37,35 @@ export function Messages() {
   }
 
   useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300)
-    return () => clearTimeout(t)
-  }, [search])
-
-  useEffect(() => {
     load(0)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chatFilter, debouncedSearch])
-
-  useEffect(() => {
-    api
-      .groups()
-      .then((res) => setGroups(res.groups))
-      .catch(() => {})
   }, [])
 
-  useEffect(() => {
-    if (!lastInbound) return
-    const msg = lastInbound as unknown as Message
-    if (chatFilter && msg.chatJid !== chatFilter) return
-    setMessages((prev) => {
-      if (prev.some((m) => m.messageId === msg.messageId)) return prev
-      const group = groups.find((g) => g.waJid === msg.chatJid)
-      return [{ ...msg, chatName: group?.name || null }, ...prev]
-    })
-    setTotal((t) => t + 1)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastInbound])
-
   const formatDate = (ts: number) => new Date(ts * 1000).toLocaleString()
-  const hasFilters = chatFilter !== "" || search !== ""
-  const clearFilters = () => {
-    setChatFilter("")
-    setSearch("")
-  }
 
-  const handleTrash = async (id: string) => {
+  const handleRestore = async (id: string) => {
     setBusyId(id)
     setError(null)
     try {
-      await api.trashMessage(id)
+      await api.restoreMessage(id)
       setMessages((prev) => prev.filter((m) => m._id !== id))
       setTotal((t) => Math.max(t - 1, 0))
-      setInfo("Pesan dipindahkan ke Riwayat.")
+      setInfo("Pesan dipulihkan ke Messages.")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const handleDeletePermanent = async (id: string) => {
+    setBusyId(id)
+    setError(null)
+    try {
+      await api.deleteMessagePermanent(id)
+      setMessages((prev) => prev.filter((m) => m._id !== id))
+      setTotal((t) => Math.max(t - 1, 0))
+      setInfo("Pesan dihapus permanen.")
       setConfirmingDeleteId(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -113,62 +92,14 @@ export function Messages() {
 
   return (
     <div>
-      <PageHeader eyebrow="Pesan Masuk" color={NAV_COLORS.messages} title="Messages" />
+      <PageHeader
+        eyebrow="Riwayat"
+        color={NAV_COLORS.riwayat}
+        title="Riwayat Pesan"
+        subtitle="Pesan yang dihapus dari Messages singgah di sini dulu. Pulihkan, hapus permanen satu per satu, atau bersihkan semuanya sekaligus lewat Reset."
+      />
       {error && <div className="alert alert-danger">{error}</div>}
       {info && <div className="alert alert-success">{info}</div>}
-
-      <div className="card mb-3">
-        <div className="card-body">
-          <div className="row g-3 align-items-end">
-            <div className="col-md-4">
-              <label htmlFor="chatFilter" className="form-label">
-                Chat / Group
-              </label>
-              <select
-                id="chatFilter"
-                className="form-select"
-                value={chatFilter}
-                onChange={(e) => setChatFilter(e.target.value)}
-              >
-                <option value="">All chats</option>
-                {groups.map((g) => (
-                  <option key={g._id} value={g.waJid}>
-                    {g.name || g.waJid}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-md-6">
-              <label htmlFor="search" className="form-label">
-                Cari pesan
-              </label>
-              <div className="input-group">
-                <span className="input-group-text bg-white">
-                  <i className="bi bi-search text-muted" />
-                </span>
-                <input
-                  id="search"
-                  type="search"
-                  className="form-control"
-                  placeholder="Cari isi pesan atau pengirim…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="col-md-2">
-              <button
-                className="btn btn-outline-secondary w-100"
-                onClick={clearFilters}
-                disabled={!hasFilters}
-              >
-                <i className="bi bi-x-lg me-1" />
-                Bersihkan
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div className="d-flex justify-content-end mb-2">
         <button
@@ -181,12 +112,9 @@ export function Messages() {
         </button>
       </div>
 
-      {loading && <p className="text-muted">Loading messages…</p>}
-      {!loading && messages.length === 0 && (
-        <p className="text-muted fst-italic">
-          {hasFilters ? "Tidak ada pesan yang cocok dengan filter." : "No messages yet."}
-        </p>
-      )}
+      {loading && <p className="text-muted">Loading…</p>}
+      {!loading && messages.length === 0 && <p className="text-muted fst-italic">Riwayat kosong.</p>}
+
       {messages.length > 0 && (
         <>
           <div className="card">
@@ -195,10 +123,10 @@ export function Messages() {
                 <thead>
                   <tr
                     style={
-                      { "--bs-table-bg": `color-mix(in srgb, ${NAV_COLORS.messages} 12%, white)` } as React.CSSProperties
+                      { "--bs-table-bg": `color-mix(in srgb, ${NAV_COLORS.riwayat} 12%, white)` } as React.CSSProperties
                     }
                   >
-                    <th className="text-nowrap text-center">Time</th>
+                    <th className="text-nowrap text-center">Dihapus</th>
                     <th className="text-nowrap text-center">From</th>
                     <th className="text-nowrap text-center">Chat</th>
                     <th className="text-center">Text</th>
@@ -208,7 +136,9 @@ export function Messages() {
                 <tbody>
                   {messages.map((m) => (
                     <tr key={m._id}>
-                      <td className="text-nowrap text-center text-muted small">{formatDate(m.timestamp)}</td>
+                      <td className="text-nowrap text-center text-muted small">
+                        {m.trashedAt ? new Date(m.trashedAt).toLocaleString() : "—"}
+                      </td>
                       <td className="text-center">{m.fromJid}</td>
                       <td className="text-center">
                         {m.isGroup ? (
@@ -233,12 +163,20 @@ export function Messages() {
                           <i className="bi bi-eye" />
                         </button>
                         <button
+                          className="btn btn-outline-success btn-sm me-1"
+                          onClick={() => handleRestore(m._id)}
+                          disabled={busyId === m._id}
+                          title="Pulihkan"
+                        >
+                          <i className="bi bi-arrow-counterclockwise" />
+                        </button>
+                        <button
                           className="btn btn-outline-danger btn-sm"
                           onClick={() => setConfirmingDeleteId(m._id)}
                           disabled={busyId === m._id}
-                          title="Hapus"
+                          title="Hapus permanen"
                         >
-                          <i className="bi bi-trash" />
+                          <i className="bi bi-trash3" />
                         </button>
                       </td>
                     </tr>
@@ -282,6 +220,10 @@ export function Messages() {
             </dd>
             <dt className="col-4">Tipe</dt>
             <dd className="col-8">{MEDIA_TYPE_INFO[viewingMessage.type]?.label ?? "Teks"}</dd>
+            <dt className="col-4">Dihapus</dt>
+            <dd className="col-8">
+              {viewingMessage.trashedAt ? new Date(viewingMessage.trashedAt).toLocaleString() : "—"}
+            </dd>
           </dl>
           {viewingMessage.type !== "text" && viewingMessage.mediaFilename && (
             <div className="mt-3">
@@ -307,7 +249,7 @@ export function Messages() {
 
       {confirmingDeleteId && (
         <Modal
-          title="Hapus pesan?"
+          title="Hapus permanen?"
           onClose={() => setConfirmingDeleteId(null)}
           footer={
             <>
@@ -316,17 +258,18 @@ export function Messages() {
               </button>
               <button
                 className="btn btn-danger"
-                onClick={() => handleTrash(confirmingDeleteId)}
+                onClick={() => handleDeletePermanent(confirmingDeleteId)}
                 disabled={busyId === confirmingDeleteId}
               >
-                {busyId === confirmingDeleteId ? "Menghapus…" : "Ya, hapus"}
+                {busyId === confirmingDeleteId ? "Menghapus…" : "Ya, hapus permanen"}
               </button>
             </>
           }
         >
-          <p className="mb-0">
-            Pesan ini akan dipindahkan ke <strong>Riwayat</strong>. Kamu masih bisa menghapusnya permanen dari
-            sana nanti.
+          <p className="mb-0 text-danger">
+            <i className="bi bi-exclamation-triangle-fill me-2" />
+            Pesan ini (dan berkas media-nya, jika ada) akan dihapus permanen. Tindakan ini tidak bisa
+            dibatalkan.
           </p>
         </Modal>
       )}
@@ -348,8 +291,8 @@ export function Messages() {
         >
           <p className="mb-0 text-danger">
             <i className="bi bi-exclamation-triangle-fill me-2" />
-            Ini akan menghapus <strong>SEMUA</strong> pesan secara permanen — termasuk yang ada di Riwayat dan
-            berkas media-nya. Tindakan ini tidak bisa dibatalkan.
+            Ini akan menghapus <strong>SEMUA</strong> pesan secara permanen — baik di Messages maupun di
+            Riwayat, termasuk berkas media-nya. Tindakan ini tidak bisa dibatalkan.
           </p>
         </Modal>
       )}
