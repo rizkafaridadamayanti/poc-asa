@@ -1,9 +1,19 @@
 :root {
   --sidebar-width: 260px;
+  --topbar-height: 60px;
 }
 
 body {
   background-color: #f1f3f7;
+}
+
+.app-topbar {
+  height: var(--topbar-height);
+  flex-shrink: 0;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e2e5eb;
+  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.05);
+  z-index: 20;
 }
 
 .sidebar {
@@ -17,22 +27,13 @@ body {
 @media (min-width: 992px) {
   .sidebar {
     width: var(--sidebar-width);
-    height: 100vh;
+    height: 100%;
     flex-shrink: 0;
     transition: width 180ms ease;
   }
 
   .sidebar.sidebar-collapsed {
     width: 84px;
-  }
-
-  .sidebar.sidebar-collapsed .sidebar-brand {
-    justify-content: center;
-  }
-
-  .sidebar.sidebar-collapsed .sidebar-status {
-    display: flex;
-    justify-content: center;
   }
 
   .sidebar.sidebar-collapsed .nav-link {
@@ -64,19 +65,6 @@ body {
   border-color: #cbd2dc;
 }
 
-.sidebar-status-dot {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.sidebar-brand {
-  align-items: center;
-  gap: 0.65rem;
-  margin-bottom: 0.25rem;
-}
-
 .sidebar-brand-mark {
   display: flex;
   align-items: center;
@@ -88,14 +76,6 @@ body {
   background: #16a34a;
   color: #fff;
   font-size: 1rem;
-}
-
-.sidebar-divider {
-  height: 1px;
-  margin: 0 -0.5rem 1rem;
-  border: none;
-  background: #e2e5eb;
-  box-shadow: 0 2px 3px -1px rgba(15, 23, 42, 0.08);
 }
 
 .sidebar .nav-link {
@@ -128,7 +108,7 @@ body {
 
 .main-content {
   min-width: 0;
-  height: 100vh;
+  height: 100%;
   overflow-y: auto;
   background-color: #f1f3f7;
 }

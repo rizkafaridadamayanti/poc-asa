@@ -86,100 +86,87 @@ export function Layout() {
     )
 
   return (
-    <div className="d-flex flex-column flex-lg-row vh-100 overflow-hidden">
-      <nav className="navbar navbar-light bg-white border-bottom d-lg-none px-3">
-        <button
-          className="btn btn-outline-secondary"
-          type="button"
-          onClick={() => {
-            if (offcanvasRef.current) {
-              Offcanvas.getOrCreateInstance(offcanvasRef.current).toggle()
-            }
-          }}
-          aria-controls="sidebarOffcanvas"
-        >
-          <i className="bi bi-list fs-4" />
-        </button>
-        <span className="navbar-brand ms-2 mb-0 fw-bold">ASA Dashboard</span>
-      </nav>
-
-      <div
-        className={`offcanvas-lg offcanvas-start bg-white sidebar flex-shrink-0${collapsed ? " sidebar-collapsed" : ""}`}
-        tabIndex={-1}
-        id="sidebarOffcanvas"
-        ref={offcanvasRef}
-      >
-        <button
-          type="button"
-          className="sidebar-toggle d-none d-lg-flex"
-          onClick={toggleCollapsed}
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          <i className={`bi ${collapsed ? "bi-chevron-right" : "bi-chevron-left"}`} />
-        </button>
-
-        <div className="offcanvas-header d-lg-none">
-          <span className="fs-5 fw-bold">ASA Dashboard</span>
-          <button type="button" className="btn-close" onClick={closeMobileSidebar} aria-label="Close" />
-        </div>
-        <div className="offcanvas-body d-flex flex-column p-3">
-          <div className="sidebar-brand d-none d-lg-flex mb-1">
-            <span className="sidebar-brand-mark">
-              <i className="bi bi-whatsapp" />
-            </span>
-            {!collapsed && <span className="fs-5 fw-bold text-nowrap">ASA Dashboard</span>}
-          </div>
-          <div className="mb-3 sidebar-status">
-            <span className="d-lg-none">{statusBadge}</span>
-            <span className="d-none d-lg-block">
-              {collapsed ? (
-                <span
-                  className={`sidebar-status-dot ${connected ? "bg-success" : "bg-danger"}`}
-                  title={connected ? "WA Connected" : "WA Disconnected"}
-                />
-              ) : (
-                statusBadge
-              )}
-            </span>
-          </div>
-          <hr className="sidebar-divider" />
-          <ul className="nav nav-pills flex-column mb-auto overflow-auto gap-1">
-            {NAV_ITEMS.map((item) => (
-              <li className="nav-item" key={item.to}>
-                <NavLink
-                  to={item.to}
-                  end={item.end}
-                  onClick={closeMobileSidebar}
-                  title={collapsed ? item.label : undefined}
-                  style={{ "--item-color": item.color } as React.CSSProperties}
-                  className={({ isActive }) =>
-                    `nav-link d-flex align-items-center gap-2${isActive ? " active" : ""}`
-                  }
-                >
-                  <i className={`bi ${item.icon}`} />
-                  <span className={collapsed ? "d-lg-none" : ""}>{item.label}</span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
+    <div className="d-flex flex-column vh-100 overflow-hidden">
+      <header className="app-topbar d-flex align-items-center justify-content-between px-3">
+        <div className="d-flex align-items-center gap-2">
           <button
-            className="btn btn-outline-secondary mt-3"
+            className="btn btn-outline-secondary d-lg-none"
+            type="button"
             onClick={() => {
-              closeMobileSidebar()
-              handleLogout()
+              if (offcanvasRef.current) {
+                Offcanvas.getOrCreateInstance(offcanvasRef.current).toggle()
+              }
             }}
-            title={collapsed ? "Logout" : undefined}
+            aria-controls="sidebarOffcanvas"
           >
-            <i className={`bi bi-box-arrow-right${collapsed ? "" : " me-2"}`} />
-            <span className={collapsed ? "d-lg-none" : ""}>Logout</span>
+            <i className="bi bi-list fs-5" />
           </button>
+          <span className="sidebar-brand-mark">
+            <i className="bi bi-whatsapp" />
+          </span>
+          <span className="fs-5 fw-bold text-nowrap">ASA Dashboard</span>
         </div>
-      </div>
+        {statusBadge}
+      </header>
 
-      <main className="main-content flex-grow-1 p-4">
-        <Outlet context={{ connected, qr, disconnectReason, lastInbound }} />
-      </main>
+      <div className="d-flex flex-grow-1 overflow-hidden">
+        <div
+          className={`offcanvas-lg offcanvas-start bg-white sidebar flex-shrink-0${collapsed ? " sidebar-collapsed" : ""}`}
+          tabIndex={-1}
+          id="sidebarOffcanvas"
+          ref={offcanvasRef}
+        >
+          <button
+            type="button"
+            className="sidebar-toggle d-none d-lg-flex"
+            onClick={toggleCollapsed}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            <i className={`bi ${collapsed ? "bi-chevron-right" : "bi-chevron-left"}`} />
+          </button>
+
+          <div className="offcanvas-header d-lg-none justify-content-end py-2">
+            <button type="button" className="btn-close" onClick={closeMobileSidebar} aria-label="Close" />
+          </div>
+          <div className="offcanvas-body d-flex flex-column p-3">
+            <ul className="nav nav-pills flex-column mb-auto overflow-auto gap-1">
+              {NAV_ITEMS.map((item) => (
+                <li className="nav-item" key={item.to}>
+                  <NavLink
+                    to={item.to}
+                    end={item.end}
+                    onClick={closeMobileSidebar}
+                    title={collapsed ? item.label : undefined}
+                    style={{ "--item-color": item.color } as React.CSSProperties}
+                    className={({ isActive }) =>
+                      `nav-link d-flex align-items-center gap-2${isActive ? " active" : ""}`
+                    }
+                  >
+                    <i className={`bi ${item.icon}`} />
+                    <span className={collapsed ? "d-lg-none" : ""}>{item.label}</span>
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+            <button
+              className="btn btn-outline-secondary mt-3"
+              onClick={() => {
+                closeMobileSidebar()
+                handleLogout()
+              }}
+              title={collapsed ? "Logout" : undefined}
+            >
+              <i className={`bi bi-box-arrow-right${collapsed ? "" : " me-2"}`} />
+              <span className={collapsed ? "d-lg-none" : ""}>Logout</span>
+            </button>
+          </div>
+        </div>
+
+        <main className="main-content flex-grow-1 p-4">
+          <Outlet context={{ connected, qr, disconnectReason, lastInbound }} />
+        </main>
+      </div>
       <ToastContainer toasts={toasts} onRemove={remove} />
     </div>
   )
