@@ -1,5 +1,6 @@
 import fs from "node:fs/promises"
 import path from "node:path"
+import mongoose from "mongoose"
 import { MessageModel, type MessageDoc } from "../models/message.js"
 import { SummaryModel, type SummaryDoc } from "../models/summary.js"
 import { ParticipantModel } from "../models/participant.js"
@@ -27,6 +28,13 @@ function parsePagination(query: { limit?: string; offset?: string }) {
   const limit = Math.min(Math.max(Number(query.limit) || 20, 1), 100)
   const offset = Math.max(Number(query.offset) || 0, 0)
   return { limit, offset }
+}
+
+// A message row rendered from the live SSE "inbound" event (before its DB
+// write has been fetched back) can carry a placeholder/missing id — reject
+// that cleanly as 404 instead of letting Mongoose throw a CastError on it.
+function isValidMessageId(id: string): boolean {
+  return mongoose.Types.ObjectId.isValid(id)
 }
 
 export async function registerDashboardApi(app: FastifyInstance, deps: DashboardDeps) {
@@ -84,6 +92,7 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
 
   // Soft delete: hide from the active Messages view, keep in Riwayat until purged or hard-deleted.
   app.delete<{ Params: { id: string } }>("/api/messages/:id", async (req, reply) => {
+    if (!isValidMessageId(req.params.id)) return reply.code(404).send({ error: "message not found" })
     const res = await MessageModel.updateOne(
       { _id: req.params.id },
       { $set: { trash: true, trashedAt: new Date() } },
@@ -103,6 +112,7 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
 
   // Undo a soft delete, restoring the message back to the active Messages view.
   app.post<{ Params: { id: string } }>("/api/messages/:id/restore", async (req, reply) => {
+    if (!isValidMessageId(req.params.id)) return reply.code(404).send({ error: "message not found" })
     const res = await MessageModel.updateOne(
       { _id: req.params.id },
       { $set: { trash: false, trashedAt: null } },
@@ -112,6 +122,7 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
   })
 
   app.delete<{ Params: { id: string } }>("/api/messages/:id/permanent", async (req, reply) => {
+    if (!isValidMessageId(req.params.id)) return reply.code(404).send({ error: "message not found" })
     const doc = await MessageModel.findByIdAndDelete(req.params.id).lean<MessageDoc>()
     if (!doc) return reply.code(404).send({ error: "message not found" })
     if (doc.mediaFilename) {
@@ -136,6 +147,7 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
   })
 
   app.get<{ Params: { id: string } }>("/api/messages/:id/media", async (req, reply) => {
+    if (!isValidMessageId(req.params.id)) return reply.code(404).send({ error: "no media for this message" })
     const doc = await MessageModel.findById(req.params.id).lean<MessageDoc>()
     if (!doc?.mediaFilename) return reply.code(404).send({ error: "no media for this message" })
     try {

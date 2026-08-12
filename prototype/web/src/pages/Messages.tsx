@@ -30,9 +30,9 @@ export function Messages() {
   const [confirmingReset, setConfirmingReset] = useState(false)
   const [resetting, setResetting] = useState(false)
 
-  const load = async (newOffset: number) => {
-    setLoading(true)
-    setError(null)
+  const load = async (newOffset: number, opts: { silent?: boolean } = {}) => {
+    if (!opts.silent) setLoading(true)
+    if (!opts.silent) setError(null)
     try {
       const res = await api.messages(
         limit,
@@ -45,9 +45,9 @@ export function Messages() {
       setTotal(res.total)
       setOffset(res.offset)
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      if (!opts.silent) setError(err instanceof Error ? err.message : String(err))
     } finally {
-      setLoading(false)
+      if (!opts.silent) setLoading(false)
     }
   }
 
@@ -78,6 +78,15 @@ export function Messages() {
       return [{ ...msg, chatName: group?.name || null }, ...prev]
     })
     setTotal((t) => t + 1)
+    // The SSE event fires straight from the WA bridge, before the message is
+    // even written to Mongo — it has no real _id yet, so actions like "view
+    // detail" (media fetch) or delete would 404/500 against it. Silently
+    // reconcile with the DB shortly after so the row picks up its real _id
+    // without the user needing to reload.
+    if (offset === 0) {
+      const t = setTimeout(() => load(0, { silent: true }), 800)
+      return () => clearTimeout(t)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastInbound])
 
