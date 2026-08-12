@@ -185,27 +185,6 @@ export type Sentiment = {
   createdAt: string
 }
 
-export type Reminder = { at: string; sent: boolean; sentAt: string | null }
-
-export type Agenda = {
-  _id: string
-  title: string
-  description: string
-  dueAt: string
-  remindAt: Reminder[]
-  audience: string[]
-  createdAt: string
-  updatedAt: string
-}
-
-export type AgendaInput = {
-  title: string
-  description?: string
-  dueAt: string
-  remindAt: string[]
-  audience: string[]
-}
-
 export type SpamAlert = {
   _id: string
   messageId: string
@@ -393,20 +372,6 @@ export const api = {
   dusunStats: () => fetchJson<{ rows: DusunRow[] }>("/api/stats/dusun"),
 
   sentiments: () => fetchJson<{ count: number; sentiments: Sentiment[] }>("/api/sentiments"),
-
-  agendas: (upcoming = false) =>
-    fetchJson<{ count: number; agendas: Agenda[] }>(
-      `/api/agendas${upcoming ? "?upcoming=true" : ""}`,
-    ),
-
-  createAgenda: (data: AgendaInput) =>
-    fetchJson<Agenda>("/api/agendas", { method: "POST", body: JSON.stringify(data) }),
-
-  updateAgenda: (id: string, data: Partial<AgendaInput>) =>
-    fetchJson<Agenda>(`/api/agendas/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
-
-  deleteAgenda: (id: string) =>
-    fetchJson<{ ok: boolean }>(`/api/agendas/${id}`, { method: "DELETE" }),
 
   spamAlerts: () => fetchJson<{ count: number; alerts: SpamAlert[] }>("/api/spam-alerts"),
 

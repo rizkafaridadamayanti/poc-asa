@@ -4,7 +4,6 @@ import Fastify from "fastify"
 import staticPlugin from "@fastify/static"
 import { registerDashboardApi } from "./api/dashboard.js"
 import { registerCuratedInfoApi } from "./api/curatedInfo.js"
-import { registerAgendaApi } from "./api/agenda.js"
 import { registerOutboundLogApi } from "./api/outboundLog.js"
 import { registerSpamAlertApi } from "./api/spamAlert.js"
 import { registerQaApi } from "./api/qa.js"
@@ -45,7 +44,6 @@ export async function startHttp(deps: HttpDeps) {
 
     await registerDashboardApi(api, { bridge, llm, log, mediaDir: cfg.mediaDir })
     await registerCuratedInfoApi(api, { bridge, log })
-    await registerAgendaApi(api, { log })
     await registerOutboundLogApi(api)
     await registerSpamAlertApi(api)
     await registerQaApi(api, { llm, log })
