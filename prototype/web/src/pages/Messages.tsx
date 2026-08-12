@@ -4,11 +4,6 @@ import { api, type Group, type Message } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
 import { NAV_COLORS } from "../navColors.js"
 
-function shortJid(jid: string): string {
-  const local = jid.split("@")[0] ?? jid
-  return local.length > 12 ? `${local.slice(0, 6)}…${local.slice(-4)}` : local
-}
-
 export function Messages() {
   const { lastInbound } = useOutletContext<{ lastInbound: Record<string, unknown> | null }>()
   const [messages, setMessages] = useState<Message[]>([])
@@ -158,23 +153,19 @@ export function Messages() {
                 <tbody>
                   {messages.map((m) => (
                     <tr key={m._id}>
-                      <td className="text-nowrap text-muted small">{formatDate(m.timestamp)}</td>
-                      <td className="text-nowrap" title={m.fromJid}>
-                        {shortJid(m.fromJid)}
-                      </td>
-                      <td className="text-nowrap">
+                      <td className="text-nowrap text-center text-muted small">{formatDate(m.timestamp)}</td>
+                      <td className="text-center">{m.fromJid}</td>
+                      <td className="text-center">
                         {m.isGroup ? (
-                          <span title={m.chatJid}>{m.chatName || shortJid(m.chatJid)}</span>
+                          <span>{m.chatName || m.chatJid}</span>
                         ) : (
                           <span>
                             <span className="badge text-bg-secondary me-1">Personal</span>
-                            <span className="text-muted small" title={m.chatJid}>
-                              {shortJid(m.chatJid)}
-                            </span>
+                            <span className="text-muted small">{m.chatJid}</span>
                           </span>
                         )}
                       </td>
-                      <td className="text-truncate" style={{ maxWidth: "480px" }} title={m.text}>
+                      <td className="text-center" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                         {m.text}
                       </td>
                     </tr>
