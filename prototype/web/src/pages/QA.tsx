@@ -28,7 +28,7 @@ export function QA() {
   return (
     <div>
       <PageHeader
-        icon="bi-question-circle"
+        eyebrow="AI Q&A"
         color={NAV_COLORS.qa}
         title="Tanya Jawab"
         subtitle={

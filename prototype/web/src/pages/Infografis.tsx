@@ -25,7 +25,7 @@ export function Infografis() {
 
   return (
     <div>
-      <PageHeader icon="bi-bar-chart" color={NAV_COLORS.infografis} title="Infografis" />
+      <PageHeader eyebrow="Statistik & Insight" color={NAV_COLORS.infografis} title="Infografis" />
       {error && <div className="alert alert-danger">{error}</div>}
       {loading && <p className="text-muted">Loading stats…</p>}
 

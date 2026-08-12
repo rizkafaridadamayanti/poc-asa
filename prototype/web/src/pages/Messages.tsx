@@ -64,7 +64,7 @@ export function Messages() {
 
   return (
     <div>
-      <PageHeader icon="bi-chat-dots" color={NAV_COLORS.messages} title="Messages" />
+      <PageHeader eyebrow="Pesan Masuk" color={NAV_COLORS.messages} title="Messages" />
       {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="card mb-3">

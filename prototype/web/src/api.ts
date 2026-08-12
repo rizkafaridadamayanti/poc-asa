@@ -1,5 +1,6 @@
 const API_BASE = ""
 const TOKEN_KEY = "asa_token"
+const USER_KEY = "asa_username"
 
 export function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY)
@@ -9,8 +10,17 @@ export function setToken(token: string) {
   localStorage.setItem(TOKEN_KEY, token)
 }
 
+export function getStoredUsername(): string | null {
+  return localStorage.getItem(USER_KEY)
+}
+
+function setStoredUsername(username: string) {
+  localStorage.setItem(USER_KEY, username)
+}
+
 export function clearToken() {
   localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem(USER_KEY)
 }
 
 export function isLoggedIn(): boolean {
@@ -47,6 +57,7 @@ export async function login(username: string, password: string) {
     { method: "POST", body: JSON.stringify({ username, password }) },
   )
   setToken(data.token)
+  setStoredUsername(data.user.username)
   return data
 }
 
@@ -56,6 +67,7 @@ export async function register(username: string, password: string) {
     { method: "POST", body: JSON.stringify({ username, password }) },
   )
   setToken(data.token)
+  setStoredUsername(data.user.username)
   return data
 }
 

@@ -55,7 +55,7 @@ export function LoginToBot() {
 
   return (
     <div>
-      <PageHeader icon="bi-qr-code" color={NAV_COLORS.loginToBot} title="Login to Bot" />
+      <PageHeader eyebrow="Koneksi Bot" color={NAV_COLORS.loginToBot} title="Login to Bot" />
 
       <div className="card mb-4 mx-auto" style={{ maxWidth: "420px" }}>
         <div className="card-body">

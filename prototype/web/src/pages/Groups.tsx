@@ -125,7 +125,7 @@ export function Groups() {
 
   return (
     <div>
-      <PageHeader icon="bi-people" color={NAV_COLORS.groups} title="Groups" />
+      <PageHeader eyebrow="Manajemen Grup" color={NAV_COLORS.groups} title="Groups" />
       {error && <div className="alert alert-danger">{error}</div>}
       {info && <div className="alert alert-success">{info}</div>}
 

@@ -71,7 +71,7 @@ export function Dashboard() {
 
   return (
     <div>
-      <PageHeader icon="bi-speedometer2" color={NAV_COLORS.dashboard} title="Dashboard" />
+      <PageHeader eyebrow="Ringkasan" color={NAV_COLORS.dashboard} title="Dashboard" />
       {error && <div className="alert alert-danger">{error}</div>}
       {!status && !error && <p className="text-muted">Loading status…</p>}
       {status && (

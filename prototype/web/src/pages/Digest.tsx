@@ -25,7 +25,7 @@ export function Digest() {
   return (
     <div>
       <PageHeader
-        icon="bi-envelope-paper"
+        eyebrow="Digest Otomatis"
         color={NAV_COLORS.digest}
         title="Run Digest"
         subtitle={

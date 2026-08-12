@@ -28,7 +28,7 @@ export function Send() {
 
   return (
     <div>
-      <PageHeader icon="bi-send" color={NAV_COLORS.send} title="Send WhatsApp Message" />
+      <PageHeader eyebrow="Kirim Pesan" color={NAV_COLORS.send} title="Send WhatsApp Message" />
       {error && <div className="alert alert-danger">{error}</div>}
       {result && (
         <div className="alert alert-success">

@@ -182,7 +182,7 @@ export function InformasiBaru() {
   return (
     <div>
       <PageHeader
-        icon="bi-megaphone"
+        eyebrow="Broadcast Info"
         color={NAV_COLORS.informasiBaru}
         title="Informasi Baru"
         subtitle="Curate beasiswa / magang / inovasi info. Draft it, get Pusat approval, then fan out to target groups."

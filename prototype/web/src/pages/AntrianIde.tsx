@@ -44,7 +44,7 @@ export function AntrianIde() {
   return (
     <div>
       <PageHeader
-        icon="bi-lightbulb"
+        eyebrow="Ide Anonim"
         color={NAV_COLORS.antrianIde}
         title="Antrian Ide Anonim"
         subtitle={

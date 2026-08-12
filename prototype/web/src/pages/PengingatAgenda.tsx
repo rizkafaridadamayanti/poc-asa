@@ -130,7 +130,7 @@ export function PengingatAgenda() {
   return (
     <div>
       <PageHeader
-        icon="bi-calendar-event"
+        eyebrow="Penjadwalan"
         color={NAV_COLORS.pengingatAgenda}
         title="Pengingat Agenda"
         subtitle="Jadwalkan agenda dan waktu pengingatnya — dikirim otomatis ke WhatsApp audience saat jatuh tempo."

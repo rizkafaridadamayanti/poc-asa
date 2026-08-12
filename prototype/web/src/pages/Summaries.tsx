@@ -76,7 +76,7 @@ export function Summaries() {
   return (
     <div>
       <PageHeader
-        icon="bi-journal-text"
+        eyebrow="Ringkasan Harian"
         color={NAV_COLORS.summaries}
         title="Summaries"
         subtitle={

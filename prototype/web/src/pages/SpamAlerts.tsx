@@ -28,7 +28,7 @@ export function SpamAlerts() {
   return (
     <div>
       <PageHeader
-        icon="bi-shield-exclamation"
+        eyebrow="Keamanan"
         color={NAV_COLORS.spamAlerts}
         title="Spam / Fraud Alerts"
         subtitle="Pesan realtime yang lolos heuristik spam/fraud/hoax (skor ≥ 50) otomatis masuk di sini dan dikirim ke Pusat."
