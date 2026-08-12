@@ -30,10 +30,11 @@ function parsePagination(query: { limit?: string; offset?: string }) {
   return { limit, offset }
 }
 
-// A message row rendered from the live SSE "inbound" event (before its DB
-// write has been fetched back) can carry a placeholder/missing id — reject
-// that cleanly as 404 instead of letting Mongoose throw a CastError on it.
-function isValidMessageId(id: string): boolean {
+// Guards :id routes against malformed ids (e.g. a message row rendered from
+// the live SSE "inbound" event before its DB write is fetched back can carry
+// a placeholder/missing id) — reject cleanly as 404 instead of letting
+// Mongoose throw a CastError on it.
+function isValidObjectId(id: string): boolean {
   return mongoose.Types.ObjectId.isValid(id)
 }
 
@@ -92,7 +93,7 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
 
   // Soft delete: hide from the active Messages view, keep in Riwayat until purged or hard-deleted.
   app.delete<{ Params: { id: string } }>("/api/messages/:id", async (req, reply) => {
-    if (!isValidMessageId(req.params.id)) return reply.code(404).send({ error: "message not found" })
+    if (!isValidObjectId(req.params.id)) return reply.code(404).send({ error: "message not found" })
     const res = await MessageModel.updateOne(
       { _id: req.params.id },
       { $set: { trash: true, trashedAt: new Date() } },
@@ -112,7 +113,7 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
 
   // Undo a soft delete, restoring the message back to the active Messages view.
   app.post<{ Params: { id: string } }>("/api/messages/:id/restore", async (req, reply) => {
-    if (!isValidMessageId(req.params.id)) return reply.code(404).send({ error: "message not found" })
+    if (!isValidObjectId(req.params.id)) return reply.code(404).send({ error: "message not found" })
     const res = await MessageModel.updateOne(
       { _id: req.params.id },
       { $set: { trash: false, trashedAt: null } },
@@ -122,7 +123,7 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
   })
 
   app.delete<{ Params: { id: string } }>("/api/messages/:id/permanent", async (req, reply) => {
-    if (!isValidMessageId(req.params.id)) return reply.code(404).send({ error: "message not found" })
+    if (!isValidObjectId(req.params.id)) return reply.code(404).send({ error: "message not found" })
     const doc = await MessageModel.findByIdAndDelete(req.params.id).lean<MessageDoc>()
     if (!doc) return reply.code(404).send({ error: "message not found" })
     if (doc.mediaFilename) {
@@ -147,7 +148,7 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
   })
 
   app.get<{ Params: { id: string } }>("/api/messages/:id/media", async (req, reply) => {
-    if (!isValidMessageId(req.params.id)) return reply.code(404).send({ error: "no media for this message" })
+    if (!isValidObjectId(req.params.id)) return reply.code(404).send({ error: "no media for this message" })
     const doc = await MessageModel.findById(req.params.id).lean<MessageDoc>()
     if (!doc?.mediaFilename) return reply.code(404).send({ error: "no media for this message" })
     try {
@@ -168,12 +169,15 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
       from?: string
       to?: string
       keyword?: string
+      trash?: string
     }
   }>("/api/summaries", async (req) => {
     const { limit, offset } = parsePagination(req.query)
     const { groupJid, from, to, keyword } = req.query
 
-    const filter: Record<string, unknown> = {}
+    // Pre-existing summaries predate the trash field and have it unset, so
+    // "active" means "not explicitly trashed" rather than "trash === false".
+    const filter: Record<string, unknown> = { trash: req.query.trash === "true" ? true : { $ne: true } }
     if (groupJid) filter.sourceGroupJid = groupJid
     if (from || to) {
       const periodStart: Record<string, Date> = {}
@@ -342,6 +346,13 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
     const doc = await SummaryModel.findByIdAndUpdate(req.params.id, { $set: update }, { new: true }).lean()
     if (!doc) return reply.code(404).send({ error: "summary not found" })
     return { ok: true, summary: doc }
+  })
+
+  app.delete<{ Params: { id: string } }>("/api/summaries/:id/permanent", async (req, reply) => {
+    if (!isValidObjectId(req.params.id)) return reply.code(404).send({ error: "summary not found" })
+    const doc = await SummaryModel.findByIdAndDelete(req.params.id).lean()
+    if (!doc) return reply.code(404).send({ error: "summary not found" })
+    return { ok: true }
   })
 
   app.get<{ Params: { id: string } }>("/api/summaries/:id/export", async (req, reply) => {

@@ -2,16 +2,21 @@ import { useEffect, useState } from "react"
 import { api, type Group, type Summary } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
 import { AiChatPanel } from "../components/AiChatPanel.js"
+import { Modal } from "../components/Modal.js"
+import { truncateWords } from "../messageUtils.js"
 import { NAV_COLORS } from "../navColors.js"
 
 type DigestResult = { summaryId: string; bodyMd: string; messageCount: number; waMessageId?: string }
+type ViewMode = "active" | "trash"
 
 export function Summaries() {
+  const [viewMode, setViewMode] = useState<ViewMode>("active")
   const [summaries, setSummaries] = useState<Summary[]>([])
   const [total, setTotal] = useState(0)
   const [offset, setOffset] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
   const limit = 10
 
   const [groups, setGroups] = useState<Group[]>([])
@@ -23,16 +28,25 @@ export function Summaries() {
   const [digestLoading, setDigestLoading] = useState(false)
   const [digestResult, setDigestResult] = useState<DigestResult | null>(null)
 
+  const [viewingSummary, setViewingSummary] = useState<Summary | null>(null)
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null)
+  const [busyId, setBusyId] = useState<string | null>(null)
+
   const load = async (newOffset: number) => {
     setLoading(true)
     setError(null)
     try {
-      const res = await api.summaries(limit, newOffset, {
-        groupJid: groupFilter || undefined,
-        from: fromFilter || undefined,
-        to: toFilter || undefined,
-        keyword: keywordFilter || undefined,
-      })
+      const res = await api.summaries(
+        limit,
+        newOffset,
+        {
+          groupJid: groupFilter || undefined,
+          from: fromFilter || undefined,
+          to: toFilter || undefined,
+          keyword: keywordFilter || undefined,
+        },
+        viewMode === "trash",
+      )
       setSummaries(res.summaries)
       setTotal(res.total)
       setOffset(res.offset)
@@ -45,6 +59,10 @@ export function Summaries() {
 
   useEffect(() => {
     load(0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode])
+
+  useEffect(() => {
     api
       .groups()
       .then((res) => setGroups(res.groups))
@@ -56,6 +74,12 @@ export function Summaries() {
     load(0)
   }
 
+  const switchView = (mode: ViewMode) => {
+    setViewMode(mode)
+    setInfo(null)
+    setError(null)
+  }
+
   const runDigest = async (last24h: boolean) => {
     setDigestLoading(true)
     setError(null)
@@ -63,7 +87,7 @@ export function Summaries() {
     try {
       const res = await api.digest(last24h)
       setDigestResult(res)
-      await load(0)
+      if (viewMode === "active") await load(0)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
@@ -74,9 +98,31 @@ export function Summaries() {
   const toggle = async (s: Summary, field: "read" | "important" | "trash") => {
     try {
       await api.updateSummary(s._id, { [field]: !s[field] })
-      await load(offset)
+      if (field === "trash") {
+        setSummaries((prev) => prev.filter((x) => x._id !== s._id))
+        setTotal((t) => Math.max(t - 1, 0))
+        setInfo(viewMode === "active" ? "Ringkasan dipindahkan ke Riwayat." : "Ringkasan dipulihkan.")
+      } else {
+        await load(offset)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  const handleDeletePermanent = async (id: string) => {
+    setBusyId(id)
+    setError(null)
+    try {
+      await api.deleteSummaryPermanent(id)
+      setSummaries((prev) => prev.filter((s) => s._id !== id))
+      setTotal((t) => Math.max(t - 1, 0))
+      setInfo("Ringkasan dihapus permanen.")
+      setConfirmingDeleteId(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusyId(null)
     }
   }
 
@@ -94,6 +140,8 @@ export function Summaries() {
     }
   }
 
+  const groupName = (jid: string) => groups.find((g) => g.waJid === jid)?.name || jid
+
   return (
     <div>
       <PageHeader
@@ -108,6 +156,7 @@ export function Summaries() {
         }
       />
       {error && <div className="alert alert-danger">{error}</div>}
+      {info && <div className="alert alert-success">{info}</div>}
 
       <AiChatPanel groups={groups} />
 
@@ -140,6 +189,25 @@ export function Summaries() {
               Run Last 24h
             </button>
           </div>
+        </div>
+      </div>
+
+      <div className="mb-3">
+        <div className="btn-group">
+          <button
+            className={`btn btn-sm ${viewMode === "active" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => switchView("active")}
+          >
+            <i className="bi bi-journal-text me-1" />
+            Ringkasan Aktif
+          </button>
+          <button
+            className={`btn btn-sm ${viewMode === "trash" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => switchView("trash")}
+          >
+            <i className="bi bi-clock-history me-1" />
+            Riwayat
+          </button>
         </div>
       </div>
 
@@ -208,7 +276,11 @@ export function Summaries() {
       </form>
 
       {loading && <p className="text-muted">Loading summaries…</p>}
-      {!loading && summaries.length === 0 && <p className="text-muted fst-italic">No summaries yet.</p>}
+      {!loading && summaries.length === 0 && (
+        <p className="text-muted fst-italic">
+          {viewMode === "trash" ? "Riwayat kosong." : "No summaries yet."}
+        </p>
+      )}
       {summaries.map((s) => (
         <div key={s._id} className="card mb-3">
           <div className="card-body">
@@ -219,28 +291,49 @@ export function Summaries() {
               </strong>
               <span className="text-muted small">{s.sourceMessageIds.length} messages</span>
             </div>
-            <div className="markdown-body mb-3">
-              <pre className="bg-body-tertiary p-3 rounded">{s.bodyMd}</pre>
-            </div>
+            <p className="text-muted mb-3">{truncateWords(s.bodyMd, 40, 320)}</p>
             <div className="d-flex gap-2 flex-wrap">
-              <button className="btn btn-outline-secondary btn-sm" onClick={() => toggle(s, "read")}>
-                <i className={`bi ${s.read ? "bi-envelope" : "bi-envelope-open"} me-1`} />
-                {s.read ? "Mark unread" : "Mark read"}
-              </button>
               <button
-                className={`btn btn-sm ${s.important ? "btn-warning" : "btn-outline-secondary"}`}
-                onClick={() => toggle(s, "important")}
+                className="btn btn-outline-secondary btn-sm"
+                onClick={() => setViewingSummary(s)}
               >
-                <i className="bi bi-star me-1" />
-                {s.important ? "Unmark important" : "Mark important"}
+                <i className="bi bi-eye me-1" />
+                Lihat Detail
               </button>
-              <button
-                className={`btn btn-sm ${s.trash ? "btn-outline-success" : "btn-outline-danger"}`}
-                onClick={() => toggle(s, "trash")}
-              >
-                <i className={`bi ${s.trash ? "bi-arrow-counterclockwise" : "bi-trash"} me-1`} />
-                {s.trash ? "Restore" : "Trash"}
-              </button>
+              {viewMode === "active" ? (
+                <>
+                  <button className="btn btn-outline-secondary btn-sm" onClick={() => toggle(s, "read")}>
+                    <i className={`bi ${s.read ? "bi-envelope" : "bi-envelope-open"} me-1`} />
+                    {s.read ? "Mark unread" : "Mark read"}
+                  </button>
+                  <button
+                    className={`btn btn-sm ${s.important ? "btn-warning" : "btn-outline-secondary"}`}
+                    onClick={() => toggle(s, "important")}
+                  >
+                    <i className="bi bi-star me-1" />
+                    {s.important ? "Unmark important" : "Mark important"}
+                  </button>
+                  <button className="btn btn-outline-danger btn-sm" onClick={() => toggle(s, "trash")}>
+                    <i className="bi bi-trash me-1" />
+                    Hapus
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button className="btn btn-outline-success btn-sm" onClick={() => toggle(s, "trash")}>
+                    <i className="bi bi-arrow-counterclockwise me-1" />
+                    Pulihkan
+                  </button>
+                  <button
+                    className="btn btn-outline-danger btn-sm"
+                    onClick={() => setConfirmingDeleteId(s._id)}
+                    disabled={busyId === s._id}
+                  >
+                    <i className="bi bi-trash3 me-1" />
+                    Hapus Permanen
+                  </button>
+                </>
+              )}
               <button className="btn btn-outline-secondary btn-sm" onClick={() => exportDocx(s)}>
                 <i className="bi bi-file-earmark-word me-1" />
                 Export .docx
@@ -269,6 +362,57 @@ export function Summaries() {
             Next <i className="bi bi-chevron-right" />
           </button>
         </div>
+      )}
+
+      {viewingSummary && (
+        <Modal title="Detail Ringkasan" onClose={() => setViewingSummary(null)} size="lg">
+          <dl className="row mb-3">
+            <dt className="col-3">Periode</dt>
+            <dd className="col-9">
+              {new Date(viewingSummary.periodStart).toLocaleString()} —{" "}
+              {new Date(viewingSummary.periodEnd).toLocaleString()}
+            </dd>
+            <dt className="col-3">Grup</dt>
+            <dd className="col-9">{groupName(viewingSummary.sourceGroupJid)}</dd>
+            <dt className="col-3">Jumlah pesan</dt>
+            <dd className="col-9">{viewingSummary.sourceMessageIds.length}</dd>
+            <dt className="col-3">Status</dt>
+            <dd className="col-9">
+              {viewingSummary.read && <span className="badge text-bg-secondary me-1">Read</span>}
+              {viewingSummary.important && <span className="badge text-bg-warning me-1">Important</span>}
+              {!viewingSummary.read && !viewingSummary.important && <span className="text-muted">—</span>}
+            </dd>
+          </dl>
+          <div className="markdown-body">
+            <pre className="bg-body-tertiary p-3 rounded">{viewingSummary.bodyMd}</pre>
+          </div>
+        </Modal>
+      )}
+
+      {confirmingDeleteId && (
+        <Modal
+          title="Hapus permanen?"
+          onClose={() => setConfirmingDeleteId(null)}
+          footer={
+            <>
+              <button className="btn btn-outline-secondary" onClick={() => setConfirmingDeleteId(null)}>
+                Batal
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={() => handleDeletePermanent(confirmingDeleteId)}
+                disabled={busyId === confirmingDeleteId}
+              >
+                {busyId === confirmingDeleteId ? "Menghapus…" : "Ya, hapus permanen"}
+              </button>
+            </>
+          }
+        >
+          <p className="mb-0 text-danger">
+            <i className="bi bi-exclamation-triangle-fill me-2" />
+            Ringkasan ini akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.
+          </p>
+        </Modal>
       )}
     </div>
   )

@@ -276,16 +276,21 @@ export const api = {
     limit = 20,
     offset = 0,
     filters: { groupJid?: string; from?: string; to?: string; keyword?: string } = {},
+    trash = false,
   ) => {
     const params = new URLSearchParams({ limit: String(limit), offset: String(offset) })
     if (filters.groupJid) params.set("groupJid", filters.groupJid)
     if (filters.from) params.set("from", filters.from)
     if (filters.to) params.set("to", filters.to)
     if (filters.keyword) params.set("keyword", filters.keyword)
+    if (trash) params.set("trash", "true")
     return fetchJson<{ total: number; offset: number; limit: number; count: number; summaries: Summary[] }>(
       `/api/summaries?${params.toString()}`,
     )
   },
+
+  deleteSummaryPermanent: (id: string) =>
+    fetchJson<{ ok: boolean }>(`/api/summaries/${id}/permanent`, { method: "DELETE" }),
 
   exportSummary: async (id: string): Promise<Blob> => {
     const token = getToken()
