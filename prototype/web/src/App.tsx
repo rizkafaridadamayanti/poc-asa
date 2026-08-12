@@ -9,7 +9,6 @@ import { Send } from "./pages/Send.js"
 import { InformasiBaru } from "./pages/InformasiBaru.js"
 import { PengingatAgenda } from "./pages/PengingatAgenda.js"
 import { SpamAlerts } from "./pages/SpamAlerts.js"
-import { QA } from "./pages/QA.js"
 import { AntrianIde } from "./pages/AntrianIde.js"
 import { LoginPage } from "./pages/Login.js"
 import { RegisterPage } from "./pages/Register.js"
@@ -46,7 +45,6 @@ function App() {
           <Route path="informasi-baru" element={<InformasiBaru />} />
           <Route path="pengingat-agenda" element={<PengingatAgenda />} />
           <Route path="spam-alerts" element={<SpamAlerts />} />
-          <Route path="qa" element={<QA />} />
           <Route path="antrian-ide" element={<AntrianIde />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

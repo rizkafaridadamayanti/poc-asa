@@ -18,7 +18,6 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/informasi-baru", icon: "bi-megaphone", label: "Informasi Baru", group: "Engagement & Safety", color: NAV_COLORS.informasiBaru },
   { to: "/pengingat-agenda", icon: "bi-calendar-event", label: "Pengingat Agenda", group: "Engagement & Safety", color: NAV_COLORS.pengingatAgenda },
   { to: "/spam-alerts", icon: "bi-shield-exclamation", label: "Spam Alerts", group: "Engagement & Safety", color: NAV_COLORS.spamAlerts },
-  { to: "/qa", icon: "bi-question-circle", label: "Tanya Jawab", group: "Engagement & Safety", color: NAV_COLORS.qa },
   { to: "/antrian-ide", icon: "bi-lightbulb", label: "Antrian Ide", group: "Engagement & Safety", color: NAV_COLORS.antrianIde },
 ]
 

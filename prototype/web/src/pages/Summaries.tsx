@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { api, type Group, type Summary } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
+import { AiChatPanel } from "../components/AiChatPanel.js"
 import { NAV_COLORS } from "../navColors.js"
 
 type DigestResult = { summaryId: string; bodyMd: string; messageCount: number; waMessageId?: string }
@@ -107,6 +108,8 @@ export function Summaries() {
         }
       />
       {error && <div className="alert alert-danger">{error}</div>}
+
+      <AiChatPanel groups={groups} />
 
       <div className="card mb-4">
         <div className="card-body">
