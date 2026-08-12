@@ -145,10 +145,17 @@ export function Messages() {
     setResetting(true)
     setError(null)
     try {
-      const res = await api.resetMessages()
-      setMessages([])
-      setTotal(0)
-      setInfo(`Semua pesan dihapus permanen (${res.deletedCount}).`)
+      if (viewMode === "active") {
+        const res = await api.trashAllMessages()
+        setMessages([])
+        setTotal(0)
+        setInfo(`Semua pesan aktif dipindahkan ke Riwayat (${res.trashedCount}).`)
+      } else {
+        const res = await api.resetMessages()
+        setMessages([])
+        setTotal(0)
+        setInfo(`Semua pesan dihapus permanen (${res.deletedCount}).`)
+      }
       setConfirmingReset(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -465,28 +472,50 @@ export function Messages() {
           </Modal>
         ))}
 
-      {confirmingReset && (
-        <Modal
-          title="Reset semua pesan?"
-          onClose={() => setConfirmingReset(false)}
-          footer={
-            <>
-              <button className="btn btn-outline-secondary" onClick={() => setConfirmingReset(false)}>
-                Batal
-              </button>
-              <button className="btn btn-danger" onClick={handleReset} disabled={resetting}>
-                {resetting ? "Menghapus…" : "Ya, hapus semua"}
-              </button>
-            </>
-          }
-        >
-          <p className="mb-0 text-danger">
-            <i className="bi bi-exclamation-triangle-fill me-2" />
-            Ini akan menghapus <strong>SEMUA</strong> pesan secara permanen — termasuk yang ada di Riwayat dan
-            berkas media-nya. Tindakan ini tidak bisa dibatalkan.
-          </p>
-        </Modal>
-      )}
+      {confirmingReset &&
+        (viewMode === "active" ? (
+          <Modal
+            title="Reset semua pesan?"
+            onClose={() => setConfirmingReset(false)}
+            footer={
+              <>
+                <button className="btn btn-outline-secondary" onClick={() => setConfirmingReset(false)}>
+                  Batal
+                </button>
+                <button className="btn btn-warning" onClick={handleReset} disabled={resetting}>
+                  {resetting ? "Memindahkan…" : "Ya, pindahkan ke Riwayat"}
+                </button>
+              </>
+            }
+          >
+            <p className="mb-0">
+              <i className="bi bi-info-circle me-2" />
+              Ini akan memindahkan <strong>SEMUA</strong> pesan aktif ke Riwayat. Belum permanen — kamu masih
+              bisa memulihkannya, atau menghapusnya permanen satu per satu (atau sekaligus) dari Riwayat.
+            </p>
+          </Modal>
+        ) : (
+          <Modal
+            title="Reset semua pesan?"
+            onClose={() => setConfirmingReset(false)}
+            footer={
+              <>
+                <button className="btn btn-outline-secondary" onClick={() => setConfirmingReset(false)}>
+                  Batal
+                </button>
+                <button className="btn btn-danger" onClick={handleReset} disabled={resetting}>
+                  {resetting ? "Menghapus…" : "Ya, hapus semua"}
+                </button>
+              </>
+            }
+          >
+            <p className="mb-0 text-danger">
+              <i className="bi bi-exclamation-triangle-fill me-2" />
+              Ini akan menghapus <strong>SEMUA</strong> pesan di Riwayat secara permanen, termasuk berkas
+              media-nya. Tindakan ini tidak bisa dibatalkan.
+            </p>
+          </Modal>
+        ))}
     </div>
   )
 }

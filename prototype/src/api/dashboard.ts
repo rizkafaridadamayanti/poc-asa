@@ -92,6 +92,15 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
     return { ok: true }
   })
 
+  // Bulk soft delete: moves every currently active message into Riwayat in one go.
+  app.post("/api/messages/trash-all", async () => {
+    const res = await MessageModel.updateMany(
+      { trash: { $ne: true } },
+      { $set: { trash: true, trashedAt: new Date() } },
+    )
+    return { ok: true, trashedCount: res.modifiedCount }
+  })
+
   // Undo a soft delete, restoring the message back to the active Messages view.
   app.post<{ Params: { id: string } }>("/api/messages/:id/restore", async (req, reply) => {
     const res = await MessageModel.updateOne(
@@ -111,11 +120,18 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
     return { ok: true }
   })
 
+  // Permanently wipes everything currently in Riwayat (trash: true) — active
+  // messages are untouched, since those first need to move to Riwayat via
+  // trash-all or an individual delete before this can remove them.
   app.post("/api/messages/reset", async () => {
-    const res = await MessageModel.deleteMany({})
-    await fs.rm(mediaDir, { recursive: true, force: true }).catch(() => {})
-    await fs.mkdir(mediaDir, { recursive: true }).catch(() => {})
-    log.warn({ deletedCount: res.deletedCount }, "all messages reset")
+    const trashed = await MessageModel.find({ trash: true }, { mediaFilename: 1 }).lean<MessageDoc[]>()
+    await Promise.all(
+      trashed
+        .filter((m) => m.mediaFilename)
+        .map((m) => fs.rm(path.join(mediaDir, m.mediaFilename as string), { force: true }).catch(() => {})),
+    )
+    const res = await MessageModel.deleteMany({ trash: true })
+    log.warn({ deletedCount: res.deletedCount }, "riwayat reset")
     return { ok: true, deletedCount: res.deletedCount }
   })
 

@@ -251,6 +251,9 @@ export const api = {
 
   trashMessage: (id: string) => fetchJson<{ ok: boolean }>(`/api/messages/${id}`, { method: "DELETE" }),
 
+  trashAllMessages: () =>
+    fetchJson<{ ok: boolean; trashedCount: number }>("/api/messages/trash-all", { method: "POST" }),
+
   restoreMessage: (id: string) =>
     fetchJson<{ ok: boolean }>(`/api/messages/${id}/restore`, { method: "POST" }),
 
