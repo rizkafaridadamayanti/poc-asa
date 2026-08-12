@@ -21,13 +21,23 @@ body {
   --bs-offcanvas-color: #cbd5e1;
   --bs-offcanvas-bg: #0f172a;
   position: relative;
-  background-color: #0f172a;
+  /* Bootstrap's .offcanvas-lg responsive reset forces
+     background-color: transparent !important (and the .offcanvas-body inside
+     it to overflow-y: visible / flex-grow: 0) once the viewport crosses the
+     lg breakpoint, so the dark background and inner scroll region both need
+     matching !important overrides here to survive that reset. */
+  background-color: #0f172a !important;
   border-right: 1px solid #1e293b;
   box-shadow: 2px 0 10px rgba(15, 23, 42, 0.15);
 }
 
 @media (min-width: 992px) {
   .sidebar {
+    /* Bootstrap's .offcanvas-lg flex/column layout only exists inside its
+       own <992px media query, so it's gone at this breakpoint — restore it
+       here or .offcanvas-body has no bounded height to scroll within. */
+    display: flex;
+    flex-direction: column;
     width: var(--sidebar-width);
     height: 100%;
     flex-shrink: 0;
@@ -40,6 +50,15 @@ body {
 
   .sidebar.sidebar-collapsed .nav-link {
     justify-content: center;
+  }
+
+  .sidebar .offcanvas-body {
+    flex-grow: 1 !important;
+    min-height: 0;
+  }
+
+  .sidebar .sidebar-nav-scroll {
+    min-height: 0;
   }
 }
 

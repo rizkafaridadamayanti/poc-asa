@@ -179,7 +179,7 @@ export function Layout() {
             <button type="button" className="btn-close btn-close-white" onClick={closeMobileSidebar} aria-label="Close" />
           </div>
           <div className="offcanvas-body d-flex flex-column p-3">
-            <div className="flex-grow-1 overflow-auto">
+            <div className="sidebar-nav-scroll flex-grow-1 overflow-auto">
               {NAV_GROUPS.map((group, idx) => (
                 <div key={group} className={idx > 0 ? "mt-2" : ""}>
                   <div className={`sidebar-group-label${collapsed ? " d-lg-none" : ""}`}>{group}</div>
