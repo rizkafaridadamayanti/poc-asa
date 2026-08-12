@@ -3,6 +3,8 @@ import { api, type Group, type Summary } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
 import { NAV_COLORS } from "../navColors.js"
 
+type DigestResult = { summaryId: string; bodyMd: string; messageCount: number; waMessageId?: string }
+
 export function Summaries() {
   const [summaries, setSummaries] = useState<Summary[]>([])
   const [total, setTotal] = useState(0)
@@ -16,6 +18,9 @@ export function Summaries() {
   const [fromFilter, setFromFilter] = useState("")
   const [toFilter, setToFilter] = useState("")
   const [keywordFilter, setKeywordFilter] = useState("")
+
+  const [digestLoading, setDigestLoading] = useState(false)
+  const [digestResult, setDigestResult] = useState<DigestResult | null>(null)
 
   const load = async (newOffset: number) => {
     setLoading(true)
@@ -48,6 +53,21 @@ export function Summaries() {
   const applyFilters = (e: React.FormEvent) => {
     e.preventDefault()
     load(0)
+  }
+
+  const runDigest = async (last24h: boolean) => {
+    setDigestLoading(true)
+    setError(null)
+    setDigestResult(null)
+    try {
+      const res = await api.digest(last24h)
+      setDigestResult(res)
+      await load(0)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setDigestLoading(false)
+    }
   }
 
   const toggle = async (s: Summary, field: "read" | "important" | "trash") => {
@@ -87,6 +107,38 @@ export function Summaries() {
         }
       />
       {error && <div className="alert alert-danger">{error}</div>}
+
+      <div className="card mb-4">
+        <div className="card-body">
+          <h5 className="card-title d-flex align-items-center gap-2">
+            <i className="bi bi-envelope-paper" style={{ color: NAV_COLORS.digest }} />
+            Run Digest
+          </h5>
+          <p className="text-muted small">
+            Summarize yesterday's messages from <code>TEST_GROUP_JID</code> and send the result to{" "}
+            <code>REPORT_TO_JID</code>. The result is added to the list below.
+          </p>
+          {digestResult && (
+            <div className="alert alert-success">
+              Digest created ({digestResult.messageCount} messages). WA message ID:{" "}
+              {digestResult.waMessageId ?? "n/a"}
+            </div>
+          )}
+          <div className="d-flex gap-2">
+            <button className="btn btn-primary" disabled={digestLoading} onClick={() => runDigest(false)}>
+              <i className="bi bi-play-fill me-1" />
+              {digestLoading ? "Running…" : "Run Yesterday"}
+            </button>
+            <button
+              className="btn btn-outline-secondary"
+              disabled={digestLoading}
+              onClick={() => runDigest(true)}
+            >
+              Run Last 24h
+            </button>
+          </div>
+        </div>
+      </div>
 
       <form onSubmit={applyFilters} className="card mb-4">
         <div className="card-body row g-3 align-items-end">
