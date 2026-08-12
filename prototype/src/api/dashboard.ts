@@ -44,11 +44,16 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
     }
   })
 
-  app.get<{ Querystring: { limit?: string; offset?: string; chatJid?: string } }>(
+  app.get<{ Querystring: { limit?: string; offset?: string; chatJid?: string; q?: string } }>(
     "/api/messages",
     async (req) => {
       const { limit, offset } = parsePagination(req.query)
-      const filter = req.query.chatJid ? { chatJid: req.query.chatJid } : {}
+      const filter: Record<string, unknown> = {}
+      if (req.query.chatJid) filter.chatJid = req.query.chatJid
+      if (req.query.q) {
+        const re = { $regex: req.query.q, $options: "i" }
+        filter.$or = [{ text: re }, { fromJid: re }]
+      }
 
       const rows = await MessageModel.aggregate([
         { $match: filter },

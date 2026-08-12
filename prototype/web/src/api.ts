@@ -233,9 +233,10 @@ export const api = {
 
   qr: () => fetchJson<{ connected: boolean; qr: string | null }>("/api/qr"),
 
-  messages: (limit = 20, offset = 0, chatJid?: string) => {
+  messages: (limit = 20, offset = 0, chatJid?: string, q?: string) => {
     const params = new URLSearchParams({ limit: String(limit), offset: String(offset) })
     if (chatJid) params.set("chatJid", chatJid)
+    if (q) params.set("q", q)
     return fetchJson<{ total: number; offset: number; limit: number; count: number; messages: Message[] }>(
       `/api/messages?${params.toString()}`,
     )

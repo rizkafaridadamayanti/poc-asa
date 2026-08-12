@@ -18,13 +18,15 @@ export function Messages() {
   const [error, setError] = useState<string | null>(null)
   const [groups, setGroups] = useState<Group[]>([])
   const [chatFilter, setChatFilter] = useState("")
+  const [search, setSearch] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
   const limit = 20
 
   const load = async (newOffset: number) => {
     setLoading(true)
     setError(null)
     try {
-      const res = await api.messages(limit, newOffset, chatFilter || undefined)
+      const res = await api.messages(limit, newOffset, chatFilter || undefined, debouncedSearch || undefined)
       setMessages(res.messages)
       setTotal(res.total)
       setOffset(res.offset)
@@ -36,9 +38,14 @@ export function Messages() {
   }
 
   useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300)
+    return () => clearTimeout(t)
+  }, [search])
+
+  useEffect(() => {
     load(0)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chatFilter])
+  }, [chatFilter, debouncedSearch])
 
   useEffect(() => {
     api
@@ -61,6 +68,11 @@ export function Messages() {
   }, [lastInbound])
 
   const formatDate = (ts: number) => new Date(ts * 1000).toLocaleString()
+  const hasFilters = chatFilter !== "" || search !== ""
+  const clearFilters = () => {
+    setChatFilter("")
+    setSearch("")
+  }
 
   return (
     <div>
@@ -68,66 +80,116 @@ export function Messages() {
       {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="card mb-3">
-        <div className="card-body row g-3 align-items-end">
-          <div className="col-sm-4">
-            <label htmlFor="chatFilter" className="form-label">
-              Chat / Group
-            </label>
-            <select
-              id="chatFilter"
-              className="form-select"
-              value={chatFilter}
-              onChange={(e) => setChatFilter(e.target.value)}
-            >
-              <option value="">All chats</option>
-              {groups.map((g) => (
-                <option key={g._id} value={g.waJid}>
-                  {g.name || g.waJid}
-                </option>
-              ))}
-            </select>
+        <div className="card-body">
+          <div className="row g-3 align-items-end">
+            <div className="col-md-4">
+              <label htmlFor="chatFilter" className="form-label">
+                Chat / Group
+              </label>
+              <select
+                id="chatFilter"
+                className="form-select"
+                value={chatFilter}
+                onChange={(e) => setChatFilter(e.target.value)}
+              >
+                <option value="">All chats</option>
+                {groups.map((g) => (
+                  <option key={g._id} value={g.waJid}>
+                    {g.name || g.waJid}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-6">
+              <label htmlFor="search" className="form-label">
+                Cari pesan
+              </label>
+              <div className="input-group">
+                <span className="input-group-text bg-white">
+                  <i className="bi bi-search text-muted" />
+                </span>
+                <input
+                  id="search"
+                  type="search"
+                  className="form-control"
+                  placeholder="Cari isi pesan atau pengirim…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="col-md-2">
+              <button
+                className="btn btn-outline-secondary w-100"
+                onClick={clearFilters}
+                disabled={!hasFilters}
+              >
+                <i className="bi bi-x-lg me-1" />
+                Reset
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {loading && <p className="text-muted">Loading messages…</p>}
-      {!loading && messages.length === 0 && <p className="text-muted fst-italic">No messages yet.</p>}
+      {!loading && messages.length === 0 && (
+        <p className="text-muted fst-italic">
+          {hasFilters ? "Tidak ada pesan yang cocok dengan filter." : "No messages yet."}
+        </p>
+      )}
       {messages.length > 0 && (
         <>
           <div className="card">
             <div className="table-responsive">
-              <table className="table table-hover align-middle mb-0">
+              <table className="table table-hover align-middle mb-0" style={{ tableLayout: "fixed", width: "100%" }}>
                 <thead>
                   <tr>
-                    <th>Time</th>
-                    <th>From</th>
-                    <th>Chat</th>
+                    <th className="text-nowrap" style={{ width: "16%" }}>
+                      Time
+                    </th>
+                    <th style={{ width: "14%" }}>From</th>
+                    <th style={{ width: "16%" }}>Chat</th>
                     <th>Text</th>
                   </tr>
                 </thead>
                 <tbody>
                   {messages.map((m) => (
                     <tr key={m._id}>
-                      <td className="text-nowrap">{formatDate(m.timestamp)}</td>
-                      <td>{m.fromJid}</td>
+                      <td className="text-nowrap text-muted small">{formatDate(m.timestamp)}</td>
+                      <td>
+                        <span className="text-nowrap" title={m.fromJid}>
+                          {shortJid(m.fromJid)}
+                        </span>
+                      </td>
                       <td>
                         {m.isGroup ? (
-                          <span title={m.chatJid}>{m.chatName || shortJid(m.chatJid)}</span>
+                          <span className="text-nowrap" title={m.chatJid}>
+                            {m.chatName || shortJid(m.chatJid)}
+                          </span>
                         ) : (
-                          <span>
+                          <span className="text-nowrap">
                             <span className="badge text-bg-secondary me-1">Personal</span>
-                            <span className="text-muted small">{shortJid(m.chatJid)}</span>
+                            <span className="text-muted small" title={m.chatJid}>
+                              {shortJid(m.chatJid)}
+                            </span>
                           </span>
                         )}
                       </td>
-                      <td>{m.text}</td>
+                      <td
+                        className="text-truncate"
+                        style={{ maxWidth: "1px" }}
+                        title={m.text}
+                      >
+                        {m.text}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </div>
-          <div className="d-flex align-items-center gap-3 mt-3">
+          <div className="d-flex align-items-center justify-content-center gap-3 mt-3">
             <button
               className="btn btn-outline-secondary btn-sm"
               disabled={offset === 0 || loading}
