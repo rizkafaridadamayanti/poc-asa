@@ -111,7 +111,9 @@ export function createBaileysBridge(opts: BaileysBridgeOptions): WaBridge {
       }
       if (connection === "open") {
         connected = true
-        device = socket.user ? { id: socket.user.id, name: socket.user.name ?? null } : null
+        device = socket.user
+          ? { id: socket.user.id, name: socket.user.name ?? null, platform: state.creds.platform ?? null }
+          : null
         log.info("wa connected")
         bridgeEvents.emitEvent({ type: "connection", connected: true, device })
       }

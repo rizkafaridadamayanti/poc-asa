@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 
-export type WaDevice = { id: string; name: string | null }
+export type WaDevice = { id: string; name: string | null; platform: string | null }
 
 export type SseEvent =
   | { type: "qr"; qr: string }

@@ -21,6 +21,22 @@ function formatWaNumber(id: string): string {
   return `+${id.split(":")[0].split("@")[0]}`
 }
 
+// WhatsApp only exposes the OS of the paired phone (Android/iPhone), not an
+// exact hardware model — the primary device in multi-device WA is always a
+// phone, so this is the most specific "what device" info available.
+const PLATFORM_LABEL: Record<string, { label: string; icon: string }> = {
+  android: { label: "Android", icon: "bi-android2" },
+  smba: { label: "Android (WhatsApp Business)", icon: "bi-android2" },
+  iphone: { label: "iPhone", icon: "bi-apple" },
+  smbi: { label: "iPhone (WhatsApp Business)", icon: "bi-apple" },
+  ipad: { label: "iPad", icon: "bi-apple" },
+}
+
+function describePlatform(platform: string | null): { label: string; icon: string } {
+  if (!platform) return { label: "Tidak diketahui", icon: "bi-phone" }
+  return PLATFORM_LABEL[platform.toLowerCase()] ?? { label: platform, icon: "bi-phone" }
+}
+
 function StatCard({
   icon,
   label,
@@ -136,10 +152,17 @@ export function Dashboard() {
                     <>
                       Perangkat: <strong>{formatWaNumber(deviceInfo.id)}</strong>
                       {deviceInfo.name ? ` (${deviceInfo.name})` : ""}
+                      {" · "}
+                      <i className={`bi ${describePlatform(deviceInfo.platform).icon} me-1`} />
+                      {describePlatform(deviceInfo.platform).label}
                     </>
                   ) : (
                     "Info perangkat belum tersedia."
                   )}
+                </p>
+                <p className="text-muted mb-0" style={{ fontSize: "0.72rem" }}>
+                  WhatsApp cuma membagikan jenis OS HP yang terpasang, bukan model spesifiknya —
+                  perangkat utama akun WA selalu berupa HP, bukan laptop/PC.
                 </p>
               </div>
             </div>

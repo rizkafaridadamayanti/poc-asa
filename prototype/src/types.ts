@@ -8,7 +8,7 @@ export type InboundMessage = {
   isGroup: boolean
 }
 
-export type WaDevice = { id: string; name: string | null }
+export type WaDevice = { id: string; name: string | null; platform: string | null }
 
 export type WaBridge = {
   start(): Promise<void>

@@ -71,7 +71,7 @@ export async function register(username: string, password: string) {
   return data
 }
 
-export type WaDevice = { id: string; name: string | null }
+export type WaDevice = { id: string; name: string | null; platform: string | null }
 
 export type Status = {
   connected: boolean
