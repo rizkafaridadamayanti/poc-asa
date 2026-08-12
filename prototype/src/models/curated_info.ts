@@ -16,12 +16,15 @@ const curatedInfoSchema = new Schema(
     targets: { type: [String], default: [] },
     scheduledAt: { type: Date, default: null },
     sentAt: { type: Date, default: null },
+    trash: { type: Boolean, default: false },
+    trashedAt: { type: Date, default: null },
   },
   { timestamps: true },
 )
 
 curatedInfoSchema.index({ status: 1, createdAt: -1 })
 curatedInfoSchema.index({ status: 1, scheduledAt: 1 })
+curatedInfoSchema.index({ trash: 1, trashedAt: 1 })
 
 export type CuratedInfoDoc = InferSchemaType<typeof curatedInfoSchema> & {
   _id: mongoose.Types.ObjectId

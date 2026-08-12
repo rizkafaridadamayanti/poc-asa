@@ -11,6 +11,7 @@ async function fireDueCuratedInfos(bridge: WaBridge, log: Logger): Promise<void>
   const due = await CuratedInfoModel.find({
     status: "scheduled",
     scheduledAt: { $lte: new Date() },
+    trash: { $ne: true },
   }).lean()
 
   for (const doc of due) {

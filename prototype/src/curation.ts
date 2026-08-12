@@ -21,10 +21,14 @@ export async function fanOutCuratedInfo(
   bridge: WaBridge,
   log: Logger,
 ): Promise<FanOutResult> {
-  const doc = await CuratedInfoModel.findOne({ _id: id, status: { $in: ["draft", "scheduled"] } })
+  const doc = await CuratedInfoModel.findOne({
+    _id: id,
+    status: { $in: ["draft", "scheduled"] },
+    trash: { $ne: true },
+  })
   if (!doc) {
     const exists = await CuratedInfoModel.exists({ _id: id })
-    throw new Error(exists ? "cannot send: item was already sent" : "curated info not found")
+    throw new Error(exists ? "cannot send: item was already sent or is in Riwayat" : "curated info not found")
   }
   if (doc.targets.length === 0) throw new Error("add at least one target before sending")
   if (!bridge.isConnected()) throw new Error("WA not connected")

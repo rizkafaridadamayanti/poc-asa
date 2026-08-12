@@ -128,6 +128,8 @@ export type CuratedInfo = {
   targets: string[]
   scheduledAt: string | null
   sentAt: string | null
+  trash: boolean
+  trashedAt: string | null
   createdAt: string
   updatedAt: string
 }
@@ -313,10 +315,15 @@ export const api = {
       },
     ),
 
-  curatedInfos: (status?: CuratedInfoStatus) =>
-    fetchJson<{ count: number; curatedInfos: CuratedInfo[] }>(
-      `/api/curated-infos${status ? `?status=${status}` : ""}`,
-    ),
+  curatedInfos: (status?: CuratedInfoStatus, trash = false) => {
+    const params = new URLSearchParams()
+    if (status) params.set("status", status)
+    if (trash) params.set("trash", "true")
+    const qs = params.toString()
+    return fetchJson<{ count: number; curatedInfos: CuratedInfo[] }>(
+      `/api/curated-infos${qs ? `?${qs}` : ""}`,
+    )
+  },
 
   createCuratedInfo: (data: CuratedInfoInput) =>
     fetchJson<CuratedInfo>("/api/curated-infos", {
@@ -332,6 +339,12 @@ export const api = {
 
   deleteCuratedInfo: (id: string) =>
     fetchJson<{ ok: boolean }>(`/api/curated-infos/${id}`, { method: "DELETE" }),
+
+  restoreCuratedInfo: (id: string) =>
+    fetchJson<{ ok: boolean }>(`/api/curated-infos/${id}/restore`, { method: "POST" }),
+
+  deleteCuratedInfoPermanent: (id: string) =>
+    fetchJson<{ ok: boolean }>(`/api/curated-infos/${id}/permanent`, { method: "DELETE" }),
 
   scheduleCuratedInfo: (id: string, scheduledAt: string) =>
     fetchJson<CuratedInfo>(`/api/curated-infos/${id}/schedule`, {

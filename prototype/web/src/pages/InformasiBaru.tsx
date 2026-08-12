@@ -48,6 +48,10 @@ export function InformasiBaru() {
   const [saving, setSaving] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
 
+  const [viewMode, setViewMode] = useState<"active" | "trash">("active")
+  const [viewingItem, setViewingItem] = useState<CuratedInfo | null>(null)
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null)
+
   const [actionModal, setActionModal] = useState<ActionMode | null>(null)
   const [pickedTargets, setPickedTargets] = useState<Set<string>>(new Set())
   const [scheduleDate, setScheduleDate] = useState("")
@@ -58,7 +62,7 @@ export function InformasiBaru() {
     setLoading(true)
     setError(null)
     try {
-      const res = await api.curatedInfos(filter === "all" ? undefined : filter)
+      const res = await api.curatedInfos(filter === "all" ? undefined : filter, viewMode === "trash")
       setItems(res.curatedInfos)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -70,7 +74,13 @@ export function InformasiBaru() {
   useEffect(() => {
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter])
+  }, [filter, viewMode])
+
+  const switchView = (mode: "active" | "trash") => {
+    setViewMode(mode)
+    setInfo(null)
+    setError(null)
+  }
 
   const startCreate = () => {
     setEditingId(null)
@@ -129,6 +139,38 @@ export function InformasiBaru() {
     setInfo(null)
     try {
       await api.deleteCuratedInfo(id)
+      setInfo("Dipindahkan ke Riwayat.")
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const handleRestore = async (id: string) => {
+    setBusyId(id)
+    setError(null)
+    setInfo(null)
+    try {
+      await api.restoreCuratedInfo(id)
+      setInfo("Dipulihkan.")
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const handleDeletePermanent = async (id: string) => {
+    setBusyId(id)
+    setError(null)
+    setInfo(null)
+    try {
+      await api.deleteCuratedInfoPermanent(id)
+      setInfo("Dihapus permanen.")
+      setConfirmingDeleteId(null)
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -254,6 +296,25 @@ export function InformasiBaru() {
       {error && <div className="alert alert-danger">{error}</div>}
       {info && <div className="alert alert-success">{info}</div>}
 
+      <div className="mb-3">
+        <div className="btn-group">
+          <button
+            className={`btn btn-sm ${viewMode === "active" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => switchView("active")}
+          >
+            <i className="bi bi-megaphone me-1" />
+            Aktif
+          </button>
+          <button
+            className={`btn btn-sm ${viewMode === "trash" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => switchView("trash")}
+          >
+            <i className="bi bi-clock-history me-1" />
+            Riwayat
+          </button>
+        </div>
+      </div>
+
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <div className="btn-group">
           {STATUS_FILTERS.map((f) => (
@@ -371,33 +432,88 @@ export function InformasiBaru() {
                 Terjadwal: {item.scheduledAt ? new Date(item.scheduledAt).toLocaleString() : "—"}
               </p>
             )}
-            <div className="d-flex gap-2 flex-wrap">
-              {item.status === "draft" && (
+            <div className="d-flex gap-2 flex-wrap align-items-center">
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                onClick={() => setViewingItem(item)}
+              >
+                <i className="bi bi-eye me-1" />
+                Lihat Detail
+              </button>
+              {viewMode === "trash" ? (
                 <>
                   <button
-                    className="btn btn-outline-secondary btn-sm"
-                    onClick={() => startEdit(item)}
+                    className="btn btn-outline-success btn-sm"
+                    onClick={() => handleRestore(item._id)}
                     disabled={busyId === item._id}
                   >
-                    <i className="bi bi-pencil me-1" />
-                    Edit
+                    <i className="bi bi-arrow-counterclockwise me-1" />
+                    Pulihkan
                   </button>
                   <button
-                    className="btn btn-primary btn-sm"
-                    onClick={() => quickAction(item, "send")}
+                    className="btn btn-outline-danger btn-sm"
+                    onClick={() => setConfirmingDeleteId(item._id)}
                     disabled={busyId === item._id}
                   >
-                    <i className="bi bi-send-fill me-1" />
-                    Kirim Langsung
+                    <i className="bi bi-trash3 me-1" />
+                    Hapus Permanen
                   </button>
-                  <button
-                    className="btn btn-outline-primary btn-sm"
-                    onClick={() => quickAction(item, "schedule")}
-                    disabled={busyId === item._id}
-                  >
-                    <i className="bi bi-clock me-1" />
-                    Jadwalkan
-                  </button>
+                </>
+              ) : (
+                <>
+                  {item.status === "draft" && (
+                    <>
+                      <button
+                        className="btn btn-outline-secondary btn-sm"
+                        onClick={() => startEdit(item)}
+                        disabled={busyId === item._id}
+                      >
+                        <i className="bi bi-pencil me-1" />
+                        Edit
+                      </button>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => quickAction(item, "send")}
+                        disabled={busyId === item._id}
+                      >
+                        <i className="bi bi-send-fill me-1" />
+                        Kirim Langsung
+                      </button>
+                      <button
+                        className="btn btn-outline-primary btn-sm"
+                        onClick={() => quickAction(item, "schedule")}
+                        disabled={busyId === item._id}
+                      >
+                        <i className="bi bi-clock me-1" />
+                        Jadwalkan
+                      </button>
+                    </>
+                  )}
+                  {item.status === "scheduled" && (
+                    <>
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => handleSendNow(item._id)}
+                        disabled={busyId === item._id}
+                      >
+                        <i className="bi bi-send-fill me-1" />
+                        {busyId === item._id ? "Mengirim…" : "Kirim Sekarang"}
+                      </button>
+                      <button
+                        className="btn btn-outline-secondary btn-sm"
+                        onClick={() => handleUnschedule(item._id)}
+                        disabled={busyId === item._id}
+                      >
+                        <i className="bi bi-x-circle me-1" />
+                        Batalkan Jadwal
+                      </button>
+                    </>
+                  )}
+                  {item.status === "sent" && (
+                    <span className="text-muted small">
+                      Sent {item.sentAt ? new Date(item.sentAt).toLocaleString() : ""}
+                    </span>
+                  )}
                   <button
                     className="btn btn-outline-danger btn-sm"
                     onClick={() => handleDelete(item._id)}
@@ -407,39 +523,6 @@ export function InformasiBaru() {
                     Delete
                   </button>
                 </>
-              )}
-              {item.status === "scheduled" && (
-                <>
-                  <button
-                    className="btn btn-primary btn-sm"
-                    onClick={() => handleSendNow(item._id)}
-                    disabled={busyId === item._id}
-                  >
-                    <i className="bi bi-send-fill me-1" />
-                    {busyId === item._id ? "Mengirim…" : "Kirim Sekarang"}
-                  </button>
-                  <button
-                    className="btn btn-outline-secondary btn-sm"
-                    onClick={() => handleUnschedule(item._id)}
-                    disabled={busyId === item._id}
-                  >
-                    <i className="bi bi-x-circle me-1" />
-                    Batalkan Jadwal
-                  </button>
-                  <button
-                    className="btn btn-outline-danger btn-sm"
-                    onClick={() => handleDelete(item._id)}
-                    disabled={busyId === item._id}
-                  >
-                    <i className="bi bi-trash me-1" />
-                    Delete
-                  </button>
-                </>
-              )}
-              {item.status === "sent" && (
-                <span className="text-muted small">
-                  Sent {item.sentAt ? new Date(item.sentAt).toLocaleString() : ""}
-                </span>
               )}
             </div>
           </div>
@@ -501,6 +584,87 @@ export function InformasiBaru() {
               </div>
             </>
           )}
+        </Modal>
+      )}
+
+      {viewingItem && (
+        <Modal title="Detail Info" onClose={() => setViewingItem(null)}>
+          <dl className="row mb-3">
+            <dt className="col-4">Tipe</dt>
+            <dd className="col-8">{TYPE_LABEL[viewingItem.type]}</dd>
+            <dt className="col-4">Status</dt>
+            <dd className="col-8">
+              <span className={`badge ${STATUS_BADGE[viewingItem.status]}`}>{viewingItem.status}</span>
+            </dd>
+            <dt className="col-4">Dibuat</dt>
+            <dd className="col-8">{new Date(viewingItem.createdAt).toLocaleString()}</dd>
+            {viewingItem.scheduledAt && (
+              <>
+                <dt className="col-4">Terjadwal</dt>
+                <dd className="col-8">{new Date(viewingItem.scheduledAt).toLocaleString()}</dd>
+              </>
+            )}
+            {viewingItem.sentAt && (
+              <>
+                <dt className="col-4">Terkirim</dt>
+                <dd className="col-8">{new Date(viewingItem.sentAt).toLocaleString()}</dd>
+              </>
+            )}
+            {viewingItem.trashedAt && (
+              <>
+                <dt className="col-4">Dihapus</dt>
+                <dd className="col-8">{new Date(viewingItem.trashedAt).toLocaleString()}</dd>
+              </>
+            )}
+          </dl>
+          <div className="mb-3">
+            <div className="text-muted small mb-1">Judul</div>
+            <strong>{viewingItem.title}</strong>
+          </div>
+          <div className="mb-3">
+            <div className="text-muted small mb-1">Isi</div>
+            <p className="mb-0" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+              {viewingItem.body}
+            </p>
+          </div>
+          <div>
+            <div className="text-muted small mb-1">Target ({viewingItem.targets.length})</div>
+            {viewingItem.targets.length > 0 ? (
+              <ul className="mb-0 small">
+                {viewingItem.targets.map((t) => (
+                  <li key={t}>{t}</li>
+                ))}
+              </ul>
+            ) : (
+              <span className="text-muted">—</span>
+            )}
+          </div>
+        </Modal>
+      )}
+
+      {confirmingDeleteId && (
+        <Modal
+          title="Hapus permanen?"
+          onClose={() => setConfirmingDeleteId(null)}
+          footer={
+            <>
+              <button className="btn btn-outline-secondary" onClick={() => setConfirmingDeleteId(null)}>
+                Batal
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={() => handleDeletePermanent(confirmingDeleteId)}
+                disabled={busyId === confirmingDeleteId}
+              >
+                {busyId === confirmingDeleteId ? "Menghapus…" : "Ya, hapus permanen"}
+              </button>
+            </>
+          }
+        >
+          <p className="mb-0 text-danger">
+            <i className="bi bi-exclamation-triangle-fill me-2" />
+            Info ini akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.
+          </p>
         </Modal>
       )}
     </div>

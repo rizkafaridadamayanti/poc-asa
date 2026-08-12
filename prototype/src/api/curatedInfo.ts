@@ -1,3 +1,4 @@
+import mongoose from "mongoose"
 import {
   CuratedInfoModel,
   CURATED_INFO_TYPES,
@@ -19,6 +20,10 @@ function isValidType(v: unknown): v is CuratedInfoType {
   return typeof v === "string" && (CURATED_INFO_TYPES as readonly string[]).includes(v)
 }
 
+function isValidObjectId(id: string): boolean {
+  return mongoose.Types.ObjectId.isValid(id)
+}
+
 /** Targets can be group JIDs (@g.us) or individual number JIDs (@s.whatsapp.net / @lid) — just require a JID shape. */
 function invalidTargets(targets: string[]): string[] {
   return targets.filter((t) => !t.includes("@"))
@@ -27,18 +32,23 @@ function invalidTargets(targets: string[]): string[] {
 export async function registerCuratedInfoApi(app: FastifyInstance, deps: CuratedInfoDeps) {
   const { bridge, log } = deps
 
-  app.get<{ Querystring: { status?: string } }>("/api/curated-infos", async (req, reply) => {
-    const { status } = req.query
-    if (status && !(CURATED_INFO_STATUSES as readonly string[]).includes(status)) {
-      return reply
-        .code(400)
-        .send({ error: `status must be one of ${CURATED_INFO_STATUSES.join(", ")}` })
-    }
-    const rows = await CuratedInfoModel.find(status ? { status } : {})
-      .sort({ createdAt: -1 })
-      .lean()
-    return { count: rows.length, curatedInfos: rows }
-  })
+  app.get<{ Querystring: { status?: string; trash?: string } }>(
+    "/api/curated-infos",
+    async (req, reply) => {
+      const { status } = req.query
+      if (status && !(CURATED_INFO_STATUSES as readonly string[]).includes(status)) {
+        return reply
+          .code(400)
+          .send({ error: `status must be one of ${CURATED_INFO_STATUSES.join(", ")}` })
+      }
+      // Pre-existing items predate the trash field and have it unset, so
+      // "active" means "not explicitly trashed" rather than "trash === false".
+      const filter: Record<string, unknown> = { trash: req.query.trash === "true" ? true : { $ne: true } }
+      if (status) filter.status = status
+      const rows = await CuratedInfoModel.find(filter).sort({ createdAt: -1 }).lean()
+      return { count: rows.length, curatedInfos: rows }
+    },
+  )
 
   app.get<{ Params: { id: string } }>("/api/curated-infos/:id", async (req, reply) => {
     const doc = await CuratedInfoModel.findById(req.params.id).lean()
@@ -105,17 +115,31 @@ export async function registerCuratedInfoApi(app: FastifyInstance, deps: Curated
     return updated
   })
 
+  // Soft delete: hide from the active list, keep in Riwayat until restored or permanently deleted.
   app.delete<{ Params: { id: string } }>("/api/curated-infos/:id", async (req, reply) => {
-    const deleted = await CuratedInfoModel.findOneAndDelete({
-      _id: req.params.id,
-      status: { $ne: "sent" },
-    }).lean()
-    if (!deleted) {
-      const exists = await CuratedInfoModel.exists({ _id: req.params.id })
-      return reply
-        .code(exists ? 409 : 404)
-        .send({ error: exists ? "cannot delete: item was already sent" : "not found" })
-    }
+    if (!isValidObjectId(req.params.id)) return reply.code(404).send({ error: "not found" })
+    const res = await CuratedInfoModel.updateOne(
+      { _id: req.params.id },
+      { $set: { trash: true, trashedAt: new Date() } },
+    )
+    if (res.matchedCount === 0) return reply.code(404).send({ error: "not found" })
+    return { ok: true }
+  })
+
+  app.post<{ Params: { id: string } }>("/api/curated-infos/:id/restore", async (req, reply) => {
+    if (!isValidObjectId(req.params.id)) return reply.code(404).send({ error: "not found" })
+    const res = await CuratedInfoModel.updateOne(
+      { _id: req.params.id },
+      { $set: { trash: false, trashedAt: null } },
+    )
+    if (res.matchedCount === 0) return reply.code(404).send({ error: "not found" })
+    return { ok: true }
+  })
+
+  app.delete<{ Params: { id: string } }>("/api/curated-infos/:id/permanent", async (req, reply) => {
+    if (!isValidObjectId(req.params.id)) return reply.code(404).send({ error: "not found" })
+    const deleted = await CuratedInfoModel.findByIdAndDelete(req.params.id).lean()
+    if (!deleted) return reply.code(404).send({ error: "not found" })
     return { ok: true }
   })
 
