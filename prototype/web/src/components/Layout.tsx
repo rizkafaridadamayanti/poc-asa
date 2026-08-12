@@ -3,24 +3,25 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom"
 import { Offcanvas } from "bootstrap"
 import { clearToken, getStoredUsername } from "../api.js"
 import { useEvents } from "../hooks/useEvents.js"
+import { NAV_COLORS } from "../navColors.js"
 import { ToastContainer, useToasts } from "./Toasts.js"
 
-type NavItem = { to: string; end?: boolean; icon: string; label: string; group: string }
+type NavItem = { to: string; end?: boolean; icon: string; label: string; group: string; color: string }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: "/", end: true, icon: "bi-speedometer2", label: "Dashboard", group: "Utama" },
-  { to: "/login-to-bot", icon: "bi-qr-code", label: "Login to Bot", group: "Utama" },
-  { to: "/messages", icon: "bi-chat-dots", label: "Messages", group: "Utama" },
-  { to: "/summaries", icon: "bi-journal-text", label: "Summaries", group: "Summary & Insights" },
-  { to: "/groups", icon: "bi-people", label: "Groups", group: "Summary & Insights" },
-  { to: "/infografis", icon: "bi-bar-chart", label: "Infografis", group: "Summary & Insights" },
-  { to: "/digest", icon: "bi-envelope-paper", label: "Digest", group: "Summary & Insights" },
-  { to: "/send", icon: "bi-send", label: "Send", group: "Engagement & Safety" },
-  { to: "/informasi-baru", icon: "bi-megaphone", label: "Informasi Baru", group: "Engagement & Safety" },
-  { to: "/pengingat-agenda", icon: "bi-calendar-event", label: "Pengingat Agenda", group: "Engagement & Safety" },
-  { to: "/spam-alerts", icon: "bi-shield-exclamation", label: "Spam Alerts", group: "Engagement & Safety" },
-  { to: "/qa", icon: "bi-question-circle", label: "Tanya Jawab", group: "Engagement & Safety" },
-  { to: "/antrian-ide", icon: "bi-lightbulb", label: "Antrian Ide", group: "Engagement & Safety" },
+  { to: "/", end: true, icon: "bi-speedometer2", label: "Dashboard", group: "Utama", color: NAV_COLORS.dashboard },
+  { to: "/login-to-bot", icon: "bi-qr-code", label: "Login to Bot", group: "Utama", color: NAV_COLORS.loginToBot },
+  { to: "/messages", icon: "bi-chat-dots", label: "Messages", group: "Utama", color: NAV_COLORS.messages },
+  { to: "/summaries", icon: "bi-journal-text", label: "Summaries", group: "Summary & Insights", color: NAV_COLORS.summaries },
+  { to: "/groups", icon: "bi-people", label: "Groups", group: "Summary & Insights", color: NAV_COLORS.groups },
+  { to: "/infografis", icon: "bi-bar-chart", label: "Infografis", group: "Summary & Insights", color: NAV_COLORS.infografis },
+  { to: "/digest", icon: "bi-envelope-paper", label: "Digest", group: "Summary & Insights", color: NAV_COLORS.digest },
+  { to: "/send", icon: "bi-send", label: "Send", group: "Engagement & Safety", color: NAV_COLORS.send },
+  { to: "/informasi-baru", icon: "bi-megaphone", label: "Informasi Baru", group: "Engagement & Safety", color: NAV_COLORS.informasiBaru },
+  { to: "/pengingat-agenda", icon: "bi-calendar-event", label: "Pengingat Agenda", group: "Engagement & Safety", color: NAV_COLORS.pengingatAgenda },
+  { to: "/spam-alerts", icon: "bi-shield-exclamation", label: "Spam Alerts", group: "Engagement & Safety", color: NAV_COLORS.spamAlerts },
+  { to: "/qa", icon: "bi-question-circle", label: "Tanya Jawab", group: "Engagement & Safety", color: NAV_COLORS.qa },
+  { to: "/antrian-ide", icon: "bi-lightbulb", label: "Antrian Ide", group: "Engagement & Safety", color: NAV_COLORS.antrianIde },
 ]
 
 const NAV_GROUPS: string[] = Array.from(new Set(NAV_ITEMS.map((item) => item.group)))
@@ -176,7 +177,7 @@ export function Layout() {
           </button>
 
           <div className="offcanvas-header d-lg-none justify-content-end py-2">
-            <button type="button" className="btn-close btn-close-white" onClick={closeMobileSidebar} aria-label="Close" />
+            <button type="button" className="btn-close" onClick={closeMobileSidebar} aria-label="Close" />
           </div>
           <div className="offcanvas-body d-flex flex-column p-3">
             <div className="sidebar-nav-scroll flex-grow-1 overflow-auto">
@@ -191,6 +192,7 @@ export function Layout() {
                           end={item.end}
                           onClick={closeMobileSidebar}
                           title={collapsed ? item.label : undefined}
+                          style={{ "--item-color": item.color } as React.CSSProperties}
                           className={({ isActive }) =>
                             `nav-link d-flex align-items-center gap-2${isActive ? " active" : ""}`
                           }
@@ -205,7 +207,7 @@ export function Layout() {
               ))}
             </div>
             <button
-              className="btn btn-outline-light mt-3 sidebar-logout"
+              className="btn btn-outline-secondary mt-3"
               onClick={() => {
                 closeMobileSidebar()
                 handleLogout()

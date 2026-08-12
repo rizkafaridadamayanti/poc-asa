@@ -18,17 +18,17 @@ body {
 
 .sidebar {
   --bs-offcanvas-width: var(--sidebar-width);
-  --bs-offcanvas-color: #cbd5e1;
-  --bs-offcanvas-bg: #0f172a;
+  --bs-offcanvas-color: #4b5566;
+  --bs-offcanvas-bg: #ffffff;
   position: relative;
   /* Bootstrap's .offcanvas-lg responsive reset forces
      background-color: transparent !important (and the .offcanvas-body inside
      it to overflow-y: visible / flex-grow: 0) once the viewport crosses the
-     lg breakpoint, so the dark background and inner scroll region both need
+     lg breakpoint, so the background and inner scroll region both need
      matching !important overrides here to survive that reset. */
-  background-color: #0f172a !important;
-  border-right: 1px solid #1e293b;
-  box-shadow: 2px 0 10px rgba(15, 23, 42, 0.15);
+  background-color: #ffffff !important;
+  border-right: 1px solid #e2e5eb;
+  box-shadow: 2px 0 8px rgba(15, 23, 42, 0.05);
 }
 
 @media (min-width: 992px) {
@@ -64,7 +64,7 @@ body {
 
 .sidebar-nav-scroll {
   scrollbar-width: thin;
-  scrollbar-color: #334155 transparent;
+  scrollbar-color: #d7dbe3 transparent;
 }
 
 .sidebar-nav-scroll::-webkit-scrollbar {
@@ -76,12 +76,12 @@ body {
 }
 
 .sidebar-nav-scroll::-webkit-scrollbar-thumb {
-  background-color: #334155;
+  background-color: #d7dbe3;
   border-radius: 3px;
 }
 
 .sidebar-nav-scroll::-webkit-scrollbar-thumb:hover {
-  background-color: #475569;
+  background-color: #b9c0cc;
 }
 
 .sidebar-toggle {
@@ -167,7 +167,7 @@ body {
 
 .sidebar .nav-link {
   position: relative;
-  color: #cbd5e1;
+  color: #4b5566;
   font-weight: 500;
   font-size: 0.9rem;
   border-radius: 0.6rem;
@@ -176,7 +176,7 @@ body {
 }
 
 .sidebar .nav-link i {
-  color: #7b8aa3;
+  color: var(--item-color, #8891a2);
   font-size: 1.05rem;
   width: 1.2rem;
   text-align: center;
@@ -185,38 +185,17 @@ body {
 }
 
 .sidebar .nav-link:hover {
-  background-color: rgba(255, 255, 255, 0.06);
-  color: #f1f5f9;
-}
-.sidebar .nav-link:hover i {
-  color: #f1f5f9;
+  background-color: color-mix(in srgb, var(--item-color, #8891a2) 10%, white);
+  color: #1f2937;
 }
 
 .sidebar .nav-link.active {
-  background-color: #1d2c47;
-  color: #ffffff;
+  background-color: color-mix(in srgb, var(--item-color, #8891a2) 14%, white);
+  color: var(--item-color, #1f2937);
   font-weight: 600;
 }
 .sidebar .nav-link.active i {
-  color: #ffffff;
-}
-.sidebar .nav-link.active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.3rem;
-  bottom: 0.3rem;
-  width: 3px;
-  border-radius: 2px;
-  background: #3b82f6;
-}
-
-.sidebar-logout {
-  --bs-btn-color: #cbd5e1;
-  --bs-btn-border-color: #334155;
-  --bs-btn-hover-bg: rgba(255, 255, 255, 0.08);
-  --bs-btn-hover-color: #f1f5f9;
-  --bs-btn-hover-border-color: #475569;
+  color: var(--item-color, #1f2937);
 }
 
 .main-content {
