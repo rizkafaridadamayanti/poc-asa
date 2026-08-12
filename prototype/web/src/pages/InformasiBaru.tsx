@@ -4,8 +4,11 @@ import {
   type CuratedInfo,
   type CuratedInfoStatus,
   type CuratedInfoType,
+  type FanOutResult,
 } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
+import { Modal } from "../components/Modal.js"
+import { RecipientPicker } from "../components/RecipientPicker.js"
 import { NAV_COLORS } from "../navColors.js"
 
 const TYPE_LABEL: Record<CuratedInfoType, string> = {
@@ -16,32 +19,21 @@ const TYPE_LABEL: Record<CuratedInfoType, string> = {
 
 const STATUS_BADGE: Record<CuratedInfoStatus, string> = {
   draft: "text-bg-warning",
-  approved: "text-bg-primary",
+  scheduled: "text-bg-info",
   sent: "text-bg-success",
 }
 
 const STATUS_FILTERS: Array<{ value: CuratedInfoStatus | "all"; label: string }> = [
   { value: "all", label: "All" },
   { value: "draft", label: "Draft" },
-  { value: "approved", label: "Approved" },
+  { value: "scheduled", label: "Terjadwal" },
   { value: "sent", label: "Sent" },
 ]
 
-type FormState = {
-  type: CuratedInfoType
-  title: string
-  body: string
-  targetsText: string
-}
+type FormState = { type: CuratedInfoType; title: string; body: string }
+const EMPTY_FORM: FormState = { type: "beasiswa", title: "", body: "" }
 
-const EMPTY_FORM: FormState = { type: "beasiswa", title: "", body: "", targetsText: "" }
-
-function parseTargets(text: string): string[] {
-  return text
-    .split(/[\n,]/)
-    .map((t) => t.trim())
-    .filter(Boolean)
-}
+type ActionMode = "send" | "schedule"
 
 export function InformasiBaru() {
   const [items, setItems] = useState<CuratedInfo[]>([])
@@ -55,6 +47,12 @@ export function InformasiBaru() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
+
+  const [actionModal, setActionModal] = useState<ActionMode | null>(null)
+  const [pickedTargets, setPickedTargets] = useState<Set<string>>(new Set())
+  const [scheduleDate, setScheduleDate] = useState("")
+  const [actionBusy, setActionBusy] = useState(false)
+  const [actionResult, setActionResult] = useState<FanOutResult | null>(null)
 
   const load = async () => {
     setLoading(true)
@@ -84,12 +82,7 @@ export function InformasiBaru() {
 
   const startEdit = (item: CuratedInfo) => {
     setEditingId(item._id)
-    setForm({
-      type: item.type,
-      title: item.title,
-      body: item.body,
-      targetsText: item.targets.join("\n"),
-    })
+    setForm({ type: item.type, title: item.title, body: item.body })
     setShowForm(true)
     setInfo(null)
     setError(null)
@@ -101,24 +94,25 @@ export function InformasiBaru() {
     setForm(EMPTY_FORM)
   }
 
-  const submitForm = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const validateForm = () => {
+    if (!form.title.trim() || !form.body.trim()) {
+      setError("Judul dan isi wajib diisi.")
+      return false
+    }
+    return true
+  }
+
+  const saveDraft = async () => {
+    if (!validateForm()) return
     setSaving(true)
     setError(null)
-    setInfo(null)
-    const payload = {
-      type: form.type,
-      title: form.title.trim(),
-      body: form.body.trim(),
-      targets: parseTargets(form.targetsText),
-    }
     try {
       if (editingId) {
-        await api.updateCuratedInfo(editingId, payload)
-        setInfo("Draft updated.")
+        await api.updateCuratedInfo(editingId, { type: form.type, title: form.title.trim(), body: form.body.trim() })
+        setInfo("Draft diperbarui.")
       } else {
-        await api.createCuratedInfo(payload)
-        setInfo("Draft created.")
+        await api.createCuratedInfo({ type: form.type, title: form.title.trim(), body: form.body.trim(), targets: [] })
+        setInfo("Draft disimpan.")
       }
       cancelForm()
       await load()
@@ -143,13 +137,88 @@ export function InformasiBaru() {
     }
   }
 
-  const handleApprove = async (id: string) => {
+  // Opens the recipient-picker modal for the compose form (new or being-edited item).
+  const openActionModal = (mode: ActionMode) => {
+    if (!validateForm()) return
+    setPickedTargets(new Set())
+    setScheduleDate("")
+    setActionResult(null)
+    setActionModal(mode)
+  }
+
+  // Opens the same modal directly from a draft's list card, pre-filled with its existing content/targets.
+  const quickAction = (item: CuratedInfo, mode: ActionMode) => {
+    setEditingId(item._id)
+    setForm({ type: item.type, title: item.title, body: item.body })
+    setPickedTargets(new Set(item.targets))
+    setScheduleDate("")
+    setActionResult(null)
+    setError(null)
+    setActionModal(mode)
+  }
+
+  const closeActionModal = () => {
+    if (actionBusy) return
+    setActionModal(null)
+  }
+
+  const confirmAction = async () => {
+    if (pickedTargets.size === 0) {
+      setError("Pilih minimal satu penerima.")
+      return
+    }
+    if (actionModal === "schedule" && !scheduleDate) {
+      setError("Pilih tanggal & jam jadwal.")
+      return
+    }
+    setActionBusy(true)
+    setError(null)
+    try {
+      const payload = { type: form.type, title: form.title.trim(), body: form.body.trim(), targets: [...pickedTargets] }
+      let id = editingId
+      if (id) {
+        await api.updateCuratedInfo(id, payload)
+      } else {
+        const created = await api.createCuratedInfo(payload)
+        id = created._id
+      }
+      if (actionModal === "send") {
+        const res = await api.sendCuratedInfo(id)
+        setActionResult(res)
+      } else {
+        await api.scheduleCuratedInfo(id, new Date(scheduleDate).toISOString())
+        setActionModal(null)
+        setShowForm(false)
+        setEditingId(null)
+        setForm(EMPTY_FORM)
+        setInfo("Info dijadwalkan.")
+      }
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setActionBusy(false)
+    }
+  }
+
+  const finishSendResult = () => {
+    setActionModal(null)
+    setShowForm(false)
+    setEditingId(null)
+    setForm(EMPTY_FORM)
+  }
+
+  const handleSendNow = async (id: string) => {
     setBusyId(id)
     setError(null)
     setInfo(null)
     try {
-      await api.approveCuratedInfo(id)
-      setInfo("Approved. Ready to fan out.")
+      const res = await api.sendCuratedInfo(id)
+      setInfo(
+        res.failed.length === 0
+          ? `Terkirim ke ${res.sent} penerima.`
+          : `Terkirim ke ${res.sent}/${res.targets} penerima. Gagal: ${res.failed.map((f) => `${f.jid} (${f.error})`).join(", ")}`,
+      )
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -158,19 +227,13 @@ export function InformasiBaru() {
     }
   }
 
-  const handleFanOut = async (id: string) => {
+  const handleUnschedule = async (id: string) => {
     setBusyId(id)
     setError(null)
     setInfo(null)
     try {
-      const res = await api.fanOutCuratedInfo(id)
-      setInfo(
-        res.failed.length === 0
-          ? `Sent to all ${res.targets} group(s).`
-          : `Sent to ${res.sent}/${res.targets} group(s). Failed: ${res.failed
-              .map((f) => `${f.jid} (${f.error})`)
-              .join(", ")}`,
-      )
+      await api.unscheduleCuratedInfo(id)
+      setInfo("Jadwal dibatalkan, kembali ke draft.")
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -185,7 +248,7 @@ export function InformasiBaru() {
         eyebrow="Broadcast Info"
         color={NAV_COLORS.informasiBaru}
         title="Informasi Baru"
-        subtitle="Curate beasiswa / magang / inovasi info. Draft it, get Pusat approval, then fan out to target groups."
+        subtitle="Tulis info beasiswa / magang / inovasi, lalu kirim langsung, jadwalkan, atau simpan sebagai draft dulu."
       />
 
       {error && <div className="alert alert-danger">{error}</div>}
@@ -206,15 +269,15 @@ export function InformasiBaru() {
         {!showForm && (
           <button className="btn btn-primary" onClick={startCreate}>
             <i className="bi bi-plus-lg me-1" />
-            New draft
+            New info
           </button>
         )}
       </div>
 
       {showForm && (
-        <form onSubmit={submitForm} className="card mb-4 mx-auto" style={{ maxWidth: "560px" }}>
+        <div className="card mb-4 mx-auto" style={{ maxWidth: "560px" }}>
           <div className="card-body">
-            <h5 className="card-title">{editingId ? "Edit draft" : "New draft"}</h5>
+            <h5 className="card-title">{editingId ? "Edit info" : "Info baru"}</h5>
             <div className="mb-3">
               <label htmlFor="type" className="form-label">
                 Type
@@ -242,7 +305,6 @@ export function InformasiBaru() {
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 placeholder="Beasiswa Unggulan 2026"
-                required
               />
             </div>
             <div className="mb-3">
@@ -252,36 +314,31 @@ export function InformasiBaru() {
               <textarea
                 id="body"
                 className="form-control"
-                rows={3}
+                rows={4}
                 value={form.body}
                 onChange={(e) => setForm({ ...form, body: e.target.value })}
                 placeholder="Detail info, syarat, link pendaftaran…"
-                required
               />
             </div>
-            <div className="mb-3">
-              <label htmlFor="targets" className="form-label">
-                Target groups (one JID per line)
-              </label>
-              <textarea
-                id="targets"
-                className="form-control"
-                rows={3}
-                value={form.targetsText}
-                onChange={(e) => setForm({ ...form, targetsText: e.target.value })}
-                placeholder="120363xxxxxxxxxxxx@g.us"
-              />
-            </div>
-            <div className="d-flex gap-2">
-              <button className="btn btn-primary" disabled={saving}>
-                {saving ? "Saving…" : editingId ? "Save changes" : "Create draft"}
+            <div className="d-flex gap-2 flex-wrap">
+              <button type="button" className="btn btn-outline-secondary" onClick={saveDraft} disabled={saving}>
+                <i className="bi bi-save me-1" />
+                {saving ? "Menyimpan…" : "Simpan Draft"}
               </button>
-              <button type="button" className="btn btn-outline-secondary" onClick={cancelForm} disabled={saving}>
-                Cancel
+              <button type="button" className="btn btn-primary" onClick={() => openActionModal("send")} disabled={saving}>
+                <i className="bi bi-send-fill me-1" />
+                Kirim Langsung
+              </button>
+              <button type="button" className="btn btn-outline-primary" onClick={() => openActionModal("schedule")} disabled={saving}>
+                <i className="bi bi-clock me-1" />
+                Jadwalkan
+              </button>
+              <button type="button" className="btn btn-link text-muted" onClick={cancelForm} disabled={saving}>
+                Batal
               </button>
             </div>
           </div>
-        </form>
+        </div>
       )}
 
       {loading && <p className="text-muted">Loading…</p>}
@@ -308,6 +365,12 @@ export function InformasiBaru() {
             <p className="text-muted small mb-3">
               Targets ({item.targets.length}): {item.targets.length > 0 ? item.targets.join(", ") : "—"}
             </p>
+            {item.status === "scheduled" && (
+              <p className="text-info small mb-3">
+                <i className="bi bi-clock me-1" />
+                Terjadwal: {item.scheduledAt ? new Date(item.scheduledAt).toLocaleString() : "—"}
+              </p>
+            )}
             <div className="d-flex gap-2 flex-wrap">
               {item.status === "draft" && (
                 <>
@@ -321,11 +384,19 @@ export function InformasiBaru() {
                   </button>
                   <button
                     className="btn btn-primary btn-sm"
-                    onClick={() => handleApprove(item._id)}
+                    onClick={() => quickAction(item, "send")}
                     disabled={busyId === item._id}
                   >
-                    <i className="bi bi-check-lg me-1" />
-                    {busyId === item._id ? "Approving…" : "Approve"}
+                    <i className="bi bi-send-fill me-1" />
+                    Kirim Langsung
+                  </button>
+                  <button
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={() => quickAction(item, "schedule")}
+                    disabled={busyId === item._id}
+                  >
+                    <i className="bi bi-clock me-1" />
+                    Jadwalkan
                   </button>
                   <button
                     className="btn btn-outline-danger btn-sm"
@@ -337,15 +408,33 @@ export function InformasiBaru() {
                   </button>
                 </>
               )}
-              {item.status === "approved" && (
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={() => handleFanOut(item._id)}
-                  disabled={busyId === item._id}
-                >
-                  <i className="bi bi-broadcast me-1" />
-                  {busyId === item._id ? "Sending…" : "Fan out now"}
-                </button>
+              {item.status === "scheduled" && (
+                <>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    onClick={() => handleSendNow(item._id)}
+                    disabled={busyId === item._id}
+                  >
+                    <i className="bi bi-send-fill me-1" />
+                    {busyId === item._id ? "Mengirim…" : "Kirim Sekarang"}
+                  </button>
+                  <button
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={() => handleUnschedule(item._id)}
+                    disabled={busyId === item._id}
+                  >
+                    <i className="bi bi-x-circle me-1" />
+                    Batalkan Jadwal
+                  </button>
+                  <button
+                    className="btn btn-outline-danger btn-sm"
+                    onClick={() => handleDelete(item._id)}
+                    disabled={busyId === item._id}
+                  >
+                    <i className="bi bi-trash me-1" />
+                    Delete
+                  </button>
+                </>
               )}
               {item.status === "sent" && (
                 <span className="text-muted small">
@@ -356,6 +445,64 @@ export function InformasiBaru() {
           </div>
         </div>
       ))}
+
+      {actionModal && (
+        <Modal
+          title={actionModal === "send" ? "Kirim Langsung" : "Jadwalkan Pengiriman"}
+          onClose={closeActionModal}
+          size="lg"
+        >
+          {actionResult ? (
+            <div>
+              <div className={`alert ${actionResult.failed.length === 0 ? "alert-success" : "alert-warning"}`}>
+                Terkirim ke {actionResult.sent} penerima
+                {actionResult.failed.length > 0 && `, gagal ke ${actionResult.failed.length}`}.
+              </div>
+              {actionResult.failed.length > 0 && (
+                <ul className="list-unstyled small text-danger mb-3">
+                  {actionResult.failed.map((f) => (
+                    <li key={f.jid}>
+                      {f.jid}: {f.error}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <button className="btn btn-primary" onClick={finishSendResult}>
+                Selesai
+              </button>
+            </div>
+          ) : (
+            <>
+              {actionModal === "schedule" && (
+                <div className="mb-3">
+                  <label htmlFor="scheduleDate" className="form-label">
+                    Kirim pada
+                  </label>
+                  <input
+                    id="scheduleDate"
+                    type="datetime-local"
+                    className="form-control"
+                    style={{ maxWidth: "260px" }}
+                    value={scheduleDate}
+                    onChange={(e) => setScheduleDate(e.target.value)}
+                  />
+                </div>
+              )}
+              <RecipientPicker selected={pickedTargets} onChange={setPickedTargets} />
+              <div className="d-flex align-items-center justify-content-between mt-3">
+                <span className="text-muted small">{pickedTargets.size} penerima dipilih</span>
+                <button className="btn btn-primary" disabled={pickedTargets.size === 0 || actionBusy} onClick={confirmAction}>
+                  {actionBusy
+                    ? "Memproses…"
+                    : actionModal === "send"
+                      ? `Kirim ke ${pickedTargets.size} penerima`
+                      : "Jadwalkan"}
+                </button>
+              </div>
+            </>
+          )}
+        </Modal>
+      )}
     </div>
   )
 }

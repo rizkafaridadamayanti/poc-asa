@@ -5,7 +5,6 @@ import { Messages } from "./pages/Messages.js"
 import { Summaries } from "./pages/Summaries.js"
 import { Groups } from "./pages/Groups.js"
 import { Infografis } from "./pages/Infografis.js"
-import { Send } from "./pages/Send.js"
 import { InformasiBaru } from "./pages/InformasiBaru.js"
 import { PengingatAgenda } from "./pages/PengingatAgenda.js"
 import { SpamAlerts } from "./pages/SpamAlerts.js"
@@ -41,7 +40,6 @@ function App() {
           <Route path="summaries" element={<Summaries />} />
           <Route path="groups" element={<Groups />} />
           <Route path="infografis" element={<Infografis />} />
-          <Route path="send" element={<Send />} />
           <Route path="informasi-baru" element={<InformasiBaru />} />
           <Route path="pengingat-agenda" element={<PengingatAgenda />} />
           <Route path="spam-alerts" element={<SpamAlerts />} />

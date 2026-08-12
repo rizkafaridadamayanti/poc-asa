@@ -6,7 +6,6 @@ export const NAV_COLORS = {
   summaries: "#9333ea",
   groups: "#d97706",
   infografis: "#0d9488",
-  send: "#2563eb",
   digest: "#db2777",
   informasiBaru: "#ea580c",
   pengingatAgenda: "#059669",

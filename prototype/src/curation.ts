@@ -15,19 +15,18 @@ export type FanOutResult = {
   failed: Array<{ jid: string; error: string }>
 }
 
-/** Sends an approved curated info to every target group. Only "approved" items may fan out. */
+/** Sends a curated info to every target. Only "draft" or "scheduled" items may still send. */
 export async function fanOutCuratedInfo(
   id: string,
   bridge: WaBridge,
   log: Logger,
 ): Promise<FanOutResult> {
-  const doc = await CuratedInfoModel.findOne({ _id: id, status: "approved" })
+  const doc = await CuratedInfoModel.findOne({ _id: id, status: { $in: ["draft", "scheduled"] } })
   if (!doc) {
     const exists = await CuratedInfoModel.exists({ _id: id })
-    throw new Error(
-      exists ? 'cannot fan out: item is not in "approved" status' : "curated info not found",
-    )
+    throw new Error(exists ? "cannot send: item was already sent" : "curated info not found")
   }
+  if (doc.targets.length === 0) throw new Error("add at least one target before sending")
   if (!bridge.isConnected()) throw new Error("WA not connected")
 
   const text = `*${TYPE_LABEL[doc.type as CuratedInfoType]}*\n${doc.title}\n\n${doc.body}`

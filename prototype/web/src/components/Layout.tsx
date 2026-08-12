@@ -14,7 +14,6 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/summaries", icon: "bi-journal-text", label: "Summaries", group: "Summary & Insights", color: NAV_COLORS.summaries },
   { to: "/groups", icon: "bi-people", label: "Groups", group: "Summary & Insights", color: NAV_COLORS.groups },
   { to: "/infografis", icon: "bi-bar-chart", label: "Infografis", group: "Summary & Insights", color: NAV_COLORS.infografis },
-  { to: "/send", icon: "bi-send", label: "Send", group: "Engagement & Safety", color: NAV_COLORS.send },
   { to: "/informasi-baru", icon: "bi-megaphone", label: "Informasi Baru", group: "Engagement & Safety", color: NAV_COLORS.informasiBaru },
   { to: "/pengingat-agenda", icon: "bi-calendar-event", label: "Pengingat Agenda", group: "Engagement & Safety", color: NAV_COLORS.pengingatAgenda },
   { to: "/spam-alerts", icon: "bi-shield-exclamation", label: "Spam Alerts", group: "Engagement & Safety", color: NAV_COLORS.spamAlerts },

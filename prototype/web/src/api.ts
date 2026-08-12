@@ -117,7 +117,7 @@ export type Summary = {
 }
 
 export type CuratedInfoType = "beasiswa" | "loker" | "inovasi"
-export type CuratedInfoStatus = "draft" | "approved" | "sent"
+export type CuratedInfoStatus = "draft" | "scheduled" | "sent"
 
 export type CuratedInfo = {
   _id: string
@@ -126,7 +126,7 @@ export type CuratedInfo = {
   body: string
   status: CuratedInfoStatus
   targets: string[]
-  approvedAt: string | null
+  scheduledAt: string | null
   sentAt: string | null
   createdAt: string
   updatedAt: string
@@ -304,12 +304,6 @@ export const api = {
   participants: () =>
     fetchJson<{ count: number; participants: Participant[] }>("/api/participants"),
 
-  send: (to: string, text: string) =>
-    fetchJson<{ ok: boolean; id: string }>("/api/send", {
-      method: "POST",
-      body: JSON.stringify({ to, text }),
-    }),
-
   digest: (last24h = false) =>
     fetchJson<{ ok: boolean; summaryId: string; bodyMd: string; messageCount: number; waMessageId?: string }>(
       "/api/digest/run",
@@ -339,11 +333,17 @@ export const api = {
   deleteCuratedInfo: (id: string) =>
     fetchJson<{ ok: boolean }>(`/api/curated-infos/${id}`, { method: "DELETE" }),
 
-  approveCuratedInfo: (id: string) =>
-    fetchJson<CuratedInfo>(`/api/curated-infos/${id}/approve`, { method: "POST" }),
+  scheduleCuratedInfo: (id: string, scheduledAt: string) =>
+    fetchJson<CuratedInfo>(`/api/curated-infos/${id}/schedule`, {
+      method: "POST",
+      body: JSON.stringify({ scheduledAt }),
+    }),
 
-  fanOutCuratedInfo: (id: string) =>
-    fetchJson<FanOutResult>(`/api/curated-infos/${id}/fan-out`, { method: "POST" }),
+  unscheduleCuratedInfo: (id: string) =>
+    fetchJson<CuratedInfo>(`/api/curated-infos/${id}/unschedule`, { method: "POST" }),
+
+  sendCuratedInfo: (id: string) =>
+    fetchJson<FanOutResult>(`/api/curated-infos/${id}/send`, { method: "POST" }),
 
   groups: () => fetchJson<{ count: number; groups: Group[] }>("/api/groups"),
 

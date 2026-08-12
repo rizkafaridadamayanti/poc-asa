@@ -5,7 +5,6 @@ import {
   type CuratedInfoStatus,
   type CuratedInfoType,
 } from "../models/curated_info.js"
-import { isGroupJid } from "../jid.js"
 import { fanOutCuratedInfo } from "../curation.js"
 import type { WaBridge } from "../types.js"
 import type { Logger } from "../logger.js"
@@ -20,8 +19,9 @@ function isValidType(v: unknown): v is CuratedInfoType {
   return typeof v === "string" && (CURATED_INFO_TYPES as readonly string[]).includes(v)
 }
 
+/** Targets can be group JIDs (@g.us) or individual number JIDs (@s.whatsapp.net / @lid) — just require a JID shape. */
 function invalidTargets(targets: string[]): string[] {
-  return targets.filter((t) => !isGroupJid(t))
+  return targets.filter((t) => !t.includes("@"))
 }
 
 export async function registerCuratedInfoApi(app: FastifyInstance, deps: CuratedInfoDeps) {
@@ -59,7 +59,7 @@ export async function registerCuratedInfoApi(app: FastifyInstance, deps: Curated
     const targetList = Array.isArray(targets) ? targets : []
     const bad = invalidTargets(targetList)
     if (bad.length > 0) {
-      return reply.code(400).send({ error: `targets must be group JIDs (@g.us): ${bad.join(", ")}` })
+      return reply.code(400).send({ error: `targets must be valid JIDs: ${bad.join(", ")}` })
     }
     const doc = await CuratedInfoModel.create({
       type,
@@ -82,9 +82,7 @@ export async function registerCuratedInfoApi(app: FastifyInstance, deps: Curated
     if (targets !== undefined) {
       const bad = invalidTargets(targets)
       if (bad.length > 0) {
-        return reply
-          .code(400)
-          .send({ error: `targets must be group JIDs (@g.us): ${bad.join(", ")}` })
+        return reply.code(400).send({ error: `targets must be valid JIDs: ${bad.join(", ")}` })
       }
     }
     const set: Record<string, unknown> = {}
@@ -94,7 +92,7 @@ export async function registerCuratedInfoApi(app: FastifyInstance, deps: Curated
     if (targets !== undefined) set.targets = targets
 
     const updated = await CuratedInfoModel.findOneAndUpdate(
-      { _id: req.params.id, status: "draft" },
+      { _id: req.params.id, status: { $ne: "sent" } },
       { $set: set },
       { new: true },
     ).lean()
@@ -102,7 +100,7 @@ export async function registerCuratedInfoApi(app: FastifyInstance, deps: Curated
       const exists = await CuratedInfoModel.exists({ _id: req.params.id })
       return reply
         .code(exists ? 409 : 404)
-        .send({ error: exists ? 'cannot edit: item is not a "draft"' : "not found" })
+        .send({ error: exists ? "cannot edit: item was already sent" : "not found" })
     }
     return updated
   })
@@ -110,42 +108,64 @@ export async function registerCuratedInfoApi(app: FastifyInstance, deps: Curated
   app.delete<{ Params: { id: string } }>("/api/curated-infos/:id", async (req, reply) => {
     const deleted = await CuratedInfoModel.findOneAndDelete({
       _id: req.params.id,
-      status: "draft",
+      status: { $ne: "sent" },
     }).lean()
     if (!deleted) {
       const exists = await CuratedInfoModel.exists({ _id: req.params.id })
       return reply
         .code(exists ? 409 : 404)
-        .send({ error: exists ? 'cannot delete: item is not a "draft"' : "not found" })
+        .send({ error: exists ? "cannot delete: item was already sent" : "not found" })
     }
     return { ok: true }
   })
 
-  app.post<{ Params: { id: string } }>("/api/curated-infos/:id/approve", async (req, reply) => {
+  app.post<{
+    Params: { id: string }
+    Body?: { scheduledAt?: string }
+  }>("/api/curated-infos/:id/schedule", async (req, reply) => {
+    const scheduledAt = req.body?.scheduledAt ? new Date(req.body.scheduledAt) : null
+    if (!scheduledAt || Number.isNaN(scheduledAt.getTime())) {
+      return reply.code(400).send({ error: "body requires a valid { scheduledAt }" })
+    }
     const doc = await CuratedInfoModel.findOne({ _id: req.params.id, status: "draft" })
     if (!doc) {
       const exists = await CuratedInfoModel.exists({ _id: req.params.id })
       return reply
         .code(exists ? 409 : 404)
-        .send({ error: exists ? 'cannot approve: item is not a "draft"' : "not found" })
+        .send({ error: exists ? 'cannot schedule: item is not a "draft"' : "not found" })
     }
     if (doc.targets.length === 0) {
-      return reply.code(400).send({ error: "add at least one target group before approving" })
+      return reply.code(400).send({ error: "add at least one target before scheduling" })
     }
-    doc.status = "approved"
-    doc.approvedAt = new Date()
+    doc.status = "scheduled"
+    doc.scheduledAt = scheduledAt
     await doc.save()
-    log.info({ id: String(doc._id) }, "curated info approved")
+    log.info({ id: String(doc._id), scheduledAt }, "curated info scheduled")
     return doc
   })
 
-  app.post<{ Params: { id: string } }>("/api/curated-infos/:id/fan-out", async (req, reply) => {
+  app.post<{ Params: { id: string } }>("/api/curated-infos/:id/unschedule", async (req, reply) => {
+    const doc = await CuratedInfoModel.findOneAndUpdate(
+      { _id: req.params.id, status: "scheduled" },
+      { $set: { status: "draft", scheduledAt: null } },
+      { new: true },
+    ).lean()
+    if (!doc) {
+      const exists = await CuratedInfoModel.exists({ _id: req.params.id })
+      return reply
+        .code(exists ? 409 : 404)
+        .send({ error: exists ? 'cannot unschedule: item is not "scheduled"' : "not found" })
+    }
+    return doc
+  })
+
+  app.post<{ Params: { id: string } }>("/api/curated-infos/:id/send", async (req, reply) => {
     try {
       const result = await fanOutCuratedInfo(req.params.id, bridge, log)
       return { ok: true, ...result }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "fan-out failed"
-      const clientError = message.startsWith("cannot fan out") || message === "WA not connected"
+      const message = err instanceof Error ? err.message : "send failed"
+      const clientError = message.startsWith("cannot send") || message.startsWith("add at least") || message === "WA not connected"
       return reply.code(clientError ? 409 : 500).send({ error: message })
     }
   })
