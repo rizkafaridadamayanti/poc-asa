@@ -302,10 +302,6 @@ export function Summaries() {
               </button>
               {viewMode === "active" ? (
                 <>
-                  <button className="btn btn-outline-secondary btn-sm" onClick={() => toggle(s, "read")}>
-                    <i className={`bi ${s.read ? "bi-envelope" : "bi-envelope-open"} me-1`} />
-                    {s.read ? "Mark unread" : "Mark read"}
-                  </button>
                   <button
                     className={`btn btn-sm ${s.important ? "btn-warning" : "btn-outline-secondary"}`}
                     onClick={() => toggle(s, "important")}
