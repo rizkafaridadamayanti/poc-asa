@@ -1,9 +1,9 @@
 import { EventEmitter } from "events"
-import type { InboundMessage } from "./types.js"
+import type { InboundMessage, WaDevice } from "./types.js"
 
 export type BridgeEvent =
   | { type: "qr"; qr: string }
-  | { type: "connection"; connected: boolean; reason?: string }
+  | { type: "connection"; connected: boolean; reason?: string; device?: WaDevice | null }
   | { type: "inbound"; message: InboundMessage }
 
 class BridgeEventBus extends EventEmitter {

@@ -10,7 +10,7 @@ import pino from "pino"
 import { loadAuthState } from "./session.js"
 import { isGroupJid, isStatusBroadcast } from "./jid.js"
 import { bridgeEvents } from "./events.js"
-import type { InboundMessage, WaBridge } from "./types.js"
+import type { InboundMessage, WaBridge, WaDevice } from "./types.js"
 import type { Logger } from "./logger.js"
 
 export type BaileysBridgeOptions = {
@@ -74,6 +74,7 @@ export function createBaileysBridge(opts: BaileysBridgeOptions): WaBridge {
   const { authDir, log, sendMinDelayMs, sendMaxDelayMs } = opts
   let sock: WASocket | null = null
   let connected = false
+  let device: WaDevice | null = null
   let stopping = false
   const handlers: Array<(msg: InboundMessage) => void> = []
   let startPromise: Promise<void> | null = null
@@ -110,11 +111,13 @@ export function createBaileysBridge(opts: BaileysBridgeOptions): WaBridge {
       }
       if (connection === "open") {
         connected = true
+        device = socket.user ? { id: socket.user.id, name: socket.user.name ?? null } : null
         log.info("wa connected")
-        bridgeEvents.emitEvent({ type: "connection", connected: true })
+        bridgeEvents.emitEvent({ type: "connection", connected: true, device })
       }
       if (connection === "close") {
         connected = false
+        device = null
         const statusCode = (lastDisconnect?.error as Boom | undefined)?.output
           ?.statusCode
         const reason =
@@ -161,6 +164,7 @@ export function createBaileysBridge(opts: BaileysBridgeOptions): WaBridge {
     async stop() {
       stopping = true
       connected = false
+      device = null
       try {
         sock?.end(undefined)
       } catch {
@@ -182,6 +186,9 @@ export function createBaileysBridge(opts: BaileysBridgeOptions): WaBridge {
     },
     isConnected() {
       return connected
+    },
+    getDeviceInfo() {
+      return device
     },
     async getGroupMetadata(jid: string) {
       if (!sock || !connected) throw new Error("WA not connected")

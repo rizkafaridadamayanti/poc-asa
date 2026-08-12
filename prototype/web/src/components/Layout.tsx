@@ -10,7 +10,6 @@ type NavItem = { to: string; end?: boolean; icon: string; label: string; group: 
 
 const NAV_ITEMS: NavItem[] = [
   { to: "/", end: true, icon: "bi-speedometer2", label: "Dashboard", group: "Utama", color: NAV_COLORS.dashboard },
-  { to: "/login-to-bot", icon: "bi-qr-code", label: "Login to Bot", group: "Utama", color: NAV_COLORS.loginToBot },
   { to: "/messages", icon: "bi-chat-dots", label: "Messages", group: "Utama", color: NAV_COLORS.messages },
   { to: "/summaries", icon: "bi-journal-text", label: "Summaries", group: "Summary & Insights", color: NAV_COLORS.summaries },
   { to: "/groups", icon: "bi-people", label: "Groups", group: "Summary & Insights", color: NAV_COLORS.groups },
@@ -39,7 +38,7 @@ function initialsOf(name: string): string {
 export function Layout() {
   const navigate = useNavigate()
   const offcanvasRef = useRef<HTMLDivElement>(null)
-  const { connected, qr, disconnectReason, lastInbound, error } = useEvents()
+  const { connected, qr, disconnectReason, device, lastInbound, error } = useEvents()
   const { toasts, add, remove } = useToasts()
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_KEY) === "1")
   const username = getStoredUsername() || "Pengurus"
@@ -221,7 +220,7 @@ export function Layout() {
         </div>
 
         <main className="main-content flex-grow-1 p-4">
-          <Outlet context={{ connected, qr, disconnectReason, lastInbound }} />
+          <Outlet context={{ connected, qr, disconnectReason, device, lastInbound }} />
         </main>
       </div>
       <ToastContainer toasts={toasts} onRemove={remove} />

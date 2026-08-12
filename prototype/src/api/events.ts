@@ -28,7 +28,9 @@ export function registerEventsApi(app: FastifyInstance, bridge: WaBridge) {
     })
 
     // Send current connection state immediately so the UI can sync on open.
-    reply.raw.write(serialize({ type: "connection", connected: bridge.isConnected() }))
+    reply.raw.write(
+      serialize({ type: "connection", connected: bridge.isConnected(), device: bridge.getDeviceInfo() }),
+    )
 
     const handler = (event: BridgeEvent) => {
       try {

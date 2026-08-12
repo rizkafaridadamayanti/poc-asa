@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { Layout } from "./components/Layout.js"
 import { Dashboard } from "./pages/Dashboard.js"
-import { LoginToBot } from "./pages/LoginToBot.js"
 import { Messages } from "./pages/Messages.js"
 import { Summaries } from "./pages/Summaries.js"
 import { Groups } from "./pages/Groups.js"
@@ -40,7 +39,6 @@ function App() {
           }
         >
           <Route index element={<Dashboard />} />
-          <Route path="login-to-bot" element={<LoginToBot />} />
           <Route path="messages" element={<Messages />} />
           <Route path="summaries" element={<Summaries />} />
           <Route path="groups" element={<Groups />} />

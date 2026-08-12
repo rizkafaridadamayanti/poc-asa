@@ -1,8 +1,25 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useOutletContext } from "react-router-dom"
-import { api, type Status, type Sentiment } from "../api.js"
+import { QRCodeSVG } from "qrcode.react"
+import { api, type Status, type Sentiment, type WaDevice } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
 import { NAV_COLORS } from "../navColors.js"
+
+type OutletCtx = {
+  connected: boolean | null
+  qr: string | null
+  disconnectReason: string | null
+  device: WaDevice | null
+}
+
+const REASON_LABEL: Record<string, string> = {
+  loggedOut: "Logged out from phone — delete auth_session/ and scan a fresh QR to re-pair.",
+  disconnected: "Connection dropped — the bridge will retry automatically.",
+}
+
+function formatWaNumber(id: string): string {
+  return `+${id.split(":")[0].split("@")[0]}`
+}
 
 function StatCard({
   icon,
@@ -16,7 +33,7 @@ function StatCard({
   color: string
 }) {
   return (
-    <div className="col-sm-6 col-lg-3">
+    <div className="col-sm-6 col-lg-4">
       <div className="card h-100">
         <div className="card-body d-flex align-items-center gap-3">
           <div
@@ -41,10 +58,34 @@ function StatCard({
 }
 
 export function Dashboard() {
-  const { connected } = useOutletContext<{ connected: boolean | null }>()
+  const { connected, qr: liveQr, disconnectReason, device } = useOutletContext<OutletCtx>()
   const [status, setStatus] = useState<Status | null>(null)
   const [latestSentiment, setLatestSentiment] = useState<Sentiment | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [manualQr, setManualQr] = useState<string | null>(null)
+  const [qrLoading, setQrLoading] = useState(false)
+
+  const qr = liveQr || manualQr
+
+  const fetchQr = useCallback(async () => {
+    setQrLoading(true)
+    try {
+      const res = await api.qr()
+      if (res.qr) setManualQr(res.qr)
+    } catch {
+      // Live SSE connection covers most cases; a failed manual refresh isn't fatal.
+    } finally {
+      setQrLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (connected) {
+      setManualQr(null)
+    } else if (connected === false && !liveQr) {
+      fetchQr()
+    }
+  }, [connected, liveQr, fetchQr])
 
   useEffect(() => {
     let mounted = true
@@ -68,25 +109,75 @@ export function Dashboard() {
   }, [])
 
   const isConnected = connected ?? status?.connected ?? false
+  const deviceInfo = device ?? status?.device ?? null
 
   return (
     <div>
       <PageHeader eyebrow="Ringkasan" color={NAV_COLORS.dashboard} title="Dashboard" />
       {error && <div className="alert alert-danger">{error}</div>}
+
+      <div className="card mb-4">
+        <div className="card-body">
+          {isConnected ? (
+            <div className="d-flex align-items-center gap-3 flex-wrap">
+              <div
+                className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
+                style={{ width: 48, height: 48, backgroundColor: "color-mix(in srgb, #16a34a 15%, white)", color: "#16a34a" }}
+              >
+                <i className="bi bi-whatsapp fs-4" />
+              </div>
+              <div>
+                <h5 className="card-title mb-1">
+                  <span className="badge text-bg-success me-2">Connected</span>
+                  Bot terhubung ke WhatsApp
+                </h5>
+                <p className="text-muted mb-0 small">
+                  {deviceInfo ? (
+                    <>
+                      Perangkat: <strong>{formatWaNumber(deviceInfo.id)}</strong>
+                      {deviceInfo.name ? ` (${deviceInfo.name})` : ""}
+                    </>
+                  ) : (
+                    "Info perangkat belum tersedia."
+                  )}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <h5 className="card-title">Scan untuk login bot</h5>
+              <p className="text-muted small">
+                Buka WhatsApp di HP → Setelan → Perangkat Tertaut → Tautkan Perangkat → scan QR di
+                bawah.
+              </p>
+              {disconnectReason && (
+                <p className="text-danger small mb-3">
+                  {REASON_LABEL[disconnectReason] ?? disconnectReason}
+                </p>
+              )}
+              <div
+                className="d-flex justify-content-center align-items-center my-3"
+                style={{ minHeight: "220px" }}
+              >
+                {qr ? (
+                  <QRCodeSVG value={qr} size={220} />
+                ) : (
+                  <p className="text-muted">{qrLoading ? "Loading QR…" : "Menunggu QR…"}</p>
+                )}
+              </div>
+              <button className="btn btn-primary btn-sm" onClick={fetchQr} disabled={qrLoading}>
+                <i className="bi bi-arrow-clockwise me-1" />
+                {qrLoading ? "Refreshing…" : "Refresh QR"}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
       {!status && !error && <p className="text-muted">Loading status…</p>}
       {status && (
         <>
           <div className="row g-3 mb-4">
-            <StatCard
-              icon="bi-whatsapp"
-              label="WA Connection"
-              color="#16a34a"
-              value={
-                <span className={`badge ${isConnected ? "text-bg-success" : "text-bg-danger"}`}>
-                  {isConnected ? "Connected" : "Disconnected"}
-                </span>
-              }
-            />
             <StatCard icon="bi-chat-dots" label="Messages" value={status.messageCount} color="#0ea5e9" />
             <StatCard icon="bi-journal-text" label="Summaries" value={status.summaryCount} color="#9333ea" />
             <StatCard icon="bi-people" label="Participants" value={status.participantCount} color="#d97706" />

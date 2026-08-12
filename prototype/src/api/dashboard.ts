@@ -37,6 +37,7 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
     ])
     return {
       connected: bridge.isConnected(),
+      device: bridge.getDeviceInfo(),
       messageCount,
       summaryCount,
       participantCount,

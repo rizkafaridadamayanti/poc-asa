@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from "react"
 
+export type WaDevice = { id: string; name: string | null }
+
 export type SseEvent =
   | { type: "qr"; qr: string }
-  | { type: "connection"; connected: boolean; reason?: string }
+  | { type: "connection"; connected: boolean; reason?: string; device?: WaDevice | null }
   | { type: "inbound"; message: Record<string, unknown> }
 
 export function useEvents() {
   const [connected, setConnected] = useState<boolean | null>(null)
   const [qr, setQr] = useState<string | null>(null)
   const [disconnectReason, setDisconnectReason] = useState<string | null>(null)
+  const [device, setDevice] = useState<WaDevice | null>(null)
   const [lastInbound, setLastInbound] = useState<Record<string, unknown> | null>(null)
   const [error, setError] = useState<string | null>(null)
   const esRef = useRef<EventSource | null>(null)
@@ -25,8 +28,10 @@ export function useEvents() {
           if (data.connected) {
             setQr(null)
             setDisconnectReason(null)
+            setDevice(data.device ?? null)
           } else {
             setDisconnectReason(data.reason ?? null)
+            setDevice(null)
           }
         } else if (data.type === "qr") {
           setQr(data.qr)
@@ -50,5 +55,5 @@ export function useEvents() {
 
   const dismissQr = () => setQr(null)
 
-  return { connected, qr, disconnectReason, lastInbound, error, dismissQr }
+  return { connected, qr, disconnectReason, device, lastInbound, error, dismissQr }
 }

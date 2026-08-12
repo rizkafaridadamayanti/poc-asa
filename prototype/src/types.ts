@@ -8,12 +8,15 @@ export type InboundMessage = {
   isGroup: boolean
 }
 
+export type WaDevice = { id: string; name: string | null }
+
 export type WaBridge = {
   start(): Promise<void>
   stop(): Promise<void>
   sendText(toJid: string, text: string): Promise<{ id: string }>
   onMessage(handler: (msg: InboundMessage) => void): void
   isConnected(): boolean
+  getDeviceInfo(): WaDevice | null
   getGroupMetadata(jid: string): Promise<{ subject: string }>
   listParticipatingGroups(): Promise<Array<{ id: string; subject: string }>>
 }
