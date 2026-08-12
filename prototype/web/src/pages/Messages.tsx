@@ -142,14 +142,12 @@ export function Messages() {
         <>
           <div className="card">
             <div className="table-responsive">
-              <table className="table table-hover align-middle mb-0" style={{ tableLayout: "fixed", width: "100%" }}>
+              <table className="table table-hover align-middle mb-0" style={{ width: "auto", maxWidth: "100%" }}>
                 <thead>
                   <tr>
-                    <th className="text-nowrap" style={{ width: "16%" }}>
-                      Time
-                    </th>
-                    <th style={{ width: "14%" }}>From</th>
-                    <th style={{ width: "16%" }}>Chat</th>
+                    <th className="text-nowrap">Time</th>
+                    <th className="text-nowrap">From</th>
+                    <th className="text-nowrap">Chat</th>
                     <th>Text</th>
                   </tr>
                 </thead>
@@ -157,18 +155,14 @@ export function Messages() {
                   {messages.map((m) => (
                     <tr key={m._id}>
                       <td className="text-nowrap text-muted small">{formatDate(m.timestamp)}</td>
-                      <td>
-                        <span className="text-nowrap" title={m.fromJid}>
-                          {shortJid(m.fromJid)}
-                        </span>
+                      <td className="text-nowrap" title={m.fromJid}>
+                        {shortJid(m.fromJid)}
                       </td>
-                      <td>
+                      <td className="text-nowrap">
                         {m.isGroup ? (
-                          <span className="text-nowrap" title={m.chatJid}>
-                            {m.chatName || shortJid(m.chatJid)}
-                          </span>
+                          <span title={m.chatJid}>{m.chatName || shortJid(m.chatJid)}</span>
                         ) : (
-                          <span className="text-nowrap">
+                          <span>
                             <span className="badge text-bg-secondary me-1">Personal</span>
                             <span className="text-muted small" title={m.chatJid}>
                               {shortJid(m.chatJid)}
@@ -176,11 +170,7 @@ export function Messages() {
                           </span>
                         )}
                       </td>
-                      <td
-                        className="text-truncate"
-                        style={{ maxWidth: "1px" }}
-                        title={m.text}
-                      >
+                      <td className="text-truncate" style={{ maxWidth: "480px" }} title={m.text}>
                         {m.text}
                       </td>
                     </tr>
