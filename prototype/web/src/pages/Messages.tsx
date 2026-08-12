@@ -142,7 +142,7 @@ export function Messages() {
         <>
           <div className="card">
             <div className="table-responsive">
-              <table className="table table-hover align-middle mb-0" style={{ width: "auto", maxWidth: "100%" }}>
+              <table className="table table-hover align-middle mb-0">
                 <thead>
                   <tr>
                     <th className="text-nowrap">Time</th>
