@@ -14,7 +14,7 @@ export function PageHeader({
   action?: ReactNode
 }) {
   return (
-    <div className="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4">
+    <div className="page-header d-flex align-items-start justify-content-between flex-wrap gap-3">
       <div className="d-flex align-items-center gap-3">
         <div
           className="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0"

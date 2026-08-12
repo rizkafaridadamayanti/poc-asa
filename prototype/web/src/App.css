@@ -17,7 +17,7 @@ body {
 @media (min-width: 992px) {
   .sidebar {
     width: var(--sidebar-width);
-    min-height: 100vh;
+    height: 100vh;
     flex-shrink: 0;
     transition: width 180ms ease;
   }
@@ -127,8 +127,18 @@ body {
 }
 
 .main-content {
-  min-height: 100vh;
   min-width: 0;
+  height: 100vh;
+  overflow-y: auto;
+  background-color: #f1f3f7;
+}
+
+.page-header {
+  position: sticky;
+  top: -1.5rem;
+  z-index: 10;
+  margin: -1.5rem -1.5rem 1.5rem;
+  padding: 1.5rem 1.5rem 1rem;
   background-color: #f1f3f7;
 }
 

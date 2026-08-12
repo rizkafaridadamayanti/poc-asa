@@ -86,7 +86,7 @@ export function Layout() {
     )
 
   return (
-    <div className="d-flex flex-column flex-lg-row min-vh-100">
+    <div className="d-flex flex-column flex-lg-row vh-100 overflow-hidden">
       <nav className="navbar navbar-light bg-white border-bottom d-lg-none px-3">
         <button
           className="btn btn-outline-secondary"
