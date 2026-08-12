@@ -11,7 +11,6 @@ type NavItem = { to: string; end?: boolean; icon: string; label: string; group: 
 const NAV_ITEMS: NavItem[] = [
   { to: "/", end: true, icon: "bi-speedometer2", label: "Dashboard", group: "Utama", color: NAV_COLORS.dashboard },
   { to: "/messages", icon: "bi-chat-dots", label: "Messages", group: "Utama", color: NAV_COLORS.messages },
-  { to: "/riwayat", icon: "bi-clock-history", label: "Riwayat", group: "Utama", color: NAV_COLORS.riwayat },
   { to: "/summaries", icon: "bi-journal-text", label: "Summaries", group: "Summary & Insights", color: NAV_COLORS.summaries },
   { to: "/groups", icon: "bi-people", label: "Groups", group: "Summary & Insights", color: NAV_COLORS.groups },
   { to: "/infografis", icon: "bi-bar-chart", label: "Infografis", group: "Summary & Insights", color: NAV_COLORS.infografis },

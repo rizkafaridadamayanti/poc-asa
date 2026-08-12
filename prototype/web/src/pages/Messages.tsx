@@ -7,8 +7,11 @@ import { MediaPreview } from "../components/MediaPreview.js"
 import { MEDIA_TYPE_INFO, MediaTypeBadge, truncateWords } from "../messageUtils.js"
 import { NAV_COLORS } from "../navColors.js"
 
+type ViewMode = "active" | "trash"
+
 export function Messages() {
   const { lastInbound } = useOutletContext<{ lastInbound: Record<string, unknown> | null }>()
+  const [viewMode, setViewMode] = useState<ViewMode>("active")
   const [messages, setMessages] = useState<Message[]>([])
   const [total, setTotal] = useState(0)
   const [offset, setOffset] = useState(0)
@@ -31,7 +34,13 @@ export function Messages() {
     setLoading(true)
     setError(null)
     try {
-      const res = await api.messages(limit, newOffset, chatFilter || undefined, debouncedSearch || undefined)
+      const res = await api.messages(
+        limit,
+        newOffset,
+        chatFilter || undefined,
+        debouncedSearch || undefined,
+        viewMode === "trash",
+      )
       setMessages(res.messages)
       setTotal(res.total)
       setOffset(res.offset)
@@ -50,7 +59,7 @@ export function Messages() {
   useEffect(() => {
     load(0)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chatFilter, debouncedSearch])
+  }, [chatFilter, debouncedSearch, viewMode])
 
   useEffect(() => {
     api
@@ -60,7 +69,7 @@ export function Messages() {
   }, [])
 
   useEffect(() => {
-    if (!lastInbound) return
+    if (!lastInbound || viewMode !== "active") return
     const msg = lastInbound as unknown as Message
     if (chatFilter && msg.chatJid !== chatFilter) return
     setMessages((prev) => {
@@ -79,6 +88,12 @@ export function Messages() {
     setSearch("")
   }
 
+  const switchView = (mode: ViewMode) => {
+    setViewMode(mode)
+    setInfo(null)
+    setError(null)
+  }
+
   const handleTrash = async (id: string) => {
     setBusyId(id)
     setError(null)
@@ -87,6 +102,37 @@ export function Messages() {
       setMessages((prev) => prev.filter((m) => m._id !== id))
       setTotal((t) => Math.max(t - 1, 0))
       setInfo("Pesan dipindahkan ke Riwayat.")
+      setConfirmingDeleteId(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const handleRestore = async (id: string) => {
+    setBusyId(id)
+    setError(null)
+    try {
+      await api.restoreMessage(id)
+      setMessages((prev) => prev.filter((m) => m._id !== id))
+      setTotal((t) => Math.max(t - 1, 0))
+      setInfo("Pesan dipulihkan ke Messages.")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setBusyId(null)
+    }
+  }
+
+  const handleDeletePermanent = async (id: string) => {
+    setBusyId(id)
+    setError(null)
+    try {
+      await api.deleteMessagePermanent(id)
+      setMessages((prev) => prev.filter((m) => m._id !== id))
+      setTotal((t) => Math.max(t - 1, 0))
+      setInfo("Pesan dihapus permanen.")
       setConfirmingDeleteId(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -111,11 +157,57 @@ export function Messages() {
     }
   }
 
+  const themeColor = viewMode === "trash" ? NAV_COLORS.riwayat : NAV_COLORS.messages
+  const emptyText =
+    viewMode === "trash"
+      ? hasFilters
+        ? "Tidak ada pesan di riwayat yang cocok dengan filter."
+        : "Riwayat kosong."
+      : hasFilters
+        ? "Tidak ada pesan yang cocok dengan filter."
+        : "No messages yet."
+
   return (
     <div>
-      <PageHeader eyebrow="Pesan Masuk" color={NAV_COLORS.messages} title="Messages" />
+      <PageHeader
+        eyebrow={viewMode === "trash" ? "Riwayat" : "Pesan Masuk"}
+        color={themeColor}
+        title={viewMode === "trash" ? "Riwayat Pesan" : "Messages"}
+        subtitle={
+          viewMode === "trash"
+            ? "Pesan yang dihapus dari Messages singgah di sini. Pulihkan, hapus permanen satu per satu, atau Reset semuanya."
+            : undefined
+        }
+      />
       {error && <div className="alert alert-danger">{error}</div>}
       {info && <div className="alert alert-success">{info}</div>}
+
+      <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div className="btn-group">
+          <button
+            className={`btn btn-sm ${viewMode === "active" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => switchView("active")}
+          >
+            <i className="bi bi-inbox me-1" />
+            Pesan Aktif
+          </button>
+          <button
+            className={`btn btn-sm ${viewMode === "trash" ? "btn-primary" : "btn-outline-primary"}`}
+            onClick={() => switchView("trash")}
+          >
+            <i className="bi bi-clock-history me-1" />
+            Riwayat
+          </button>
+        </div>
+        <button
+          className="btn btn-outline-danger btn-sm"
+          onClick={() => setConfirmingReset(true)}
+          disabled={total === 0 && messages.length === 0}
+        >
+          <i className="bi bi-exclamation-triangle me-1" />
+          Reset Semua Pesan
+        </button>
+      </div>
 
       <div className="card mb-3">
         <div className="card-body">
@@ -170,35 +262,16 @@ export function Messages() {
         </div>
       </div>
 
-      <div className="d-flex justify-content-end mb-2">
-        <button
-          className="btn btn-outline-danger btn-sm"
-          onClick={() => setConfirmingReset(true)}
-          disabled={total === 0}
-        >
-          <i className="bi bi-exclamation-triangle me-1" />
-          Reset Semua Pesan
-        </button>
-      </div>
-
-      {loading && <p className="text-muted">Loading messages…</p>}
-      {!loading && messages.length === 0 && (
-        <p className="text-muted fst-italic">
-          {hasFilters ? "Tidak ada pesan yang cocok dengan filter." : "No messages yet."}
-        </p>
-      )}
+      {loading && <p className="text-muted">Loading…</p>}
+      {!loading && messages.length === 0 && <p className="text-muted fst-italic">{emptyText}</p>}
       {messages.length > 0 && (
         <>
           <div className="card">
             <div className="table-responsive">
               <table className="table table-hover align-middle mb-0">
                 <thead>
-                  <tr
-                    style={
-                      { "--bs-table-bg": `color-mix(in srgb, ${NAV_COLORS.messages} 12%, white)` } as React.CSSProperties
-                    }
-                  >
-                    <th className="text-nowrap text-center">Time</th>
+                  <tr style={{ "--bs-table-bg": `color-mix(in srgb, ${themeColor} 12%, white)` } as React.CSSProperties}>
+                    <th className="text-nowrap text-center">{viewMode === "trash" ? "Dihapus" : "Time"}</th>
                     <th className="text-nowrap text-center">From</th>
                     <th className="text-nowrap text-center">Chat</th>
                     <th className="text-center">Text</th>
@@ -208,7 +281,13 @@ export function Messages() {
                 <tbody>
                   {messages.map((m) => (
                     <tr key={m._id}>
-                      <td className="text-nowrap text-center text-muted small">{formatDate(m.timestamp)}</td>
+                      <td className="text-nowrap text-center text-muted small">
+                        {viewMode === "trash"
+                          ? m.trashedAt
+                            ? new Date(m.trashedAt).toLocaleString()
+                            : "—"
+                          : formatDate(m.timestamp)}
+                      </td>
                       <td className="text-center">{m.fromJid}</td>
                       <td className="text-center">
                         {m.isGroup ? (
@@ -232,14 +311,35 @@ export function Messages() {
                         >
                           <i className="bi bi-eye" />
                         </button>
-                        <button
-                          className="btn btn-outline-danger btn-sm"
-                          onClick={() => setConfirmingDeleteId(m._id)}
-                          disabled={busyId === m._id}
-                          title="Hapus"
-                        >
-                          <i className="bi bi-trash" />
-                        </button>
+                        {viewMode === "active" ? (
+                          <button
+                            className="btn btn-outline-danger btn-sm"
+                            onClick={() => setConfirmingDeleteId(m._id)}
+                            disabled={busyId === m._id}
+                            title="Hapus"
+                          >
+                            <i className="bi bi-trash" />
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              className="btn btn-outline-success btn-sm me-1"
+                              onClick={() => handleRestore(m._id)}
+                              disabled={busyId === m._id}
+                              title="Pulihkan"
+                            >
+                              <i className="bi bi-arrow-counterclockwise" />
+                            </button>
+                            <button
+                              className="btn btn-outline-danger btn-sm"
+                              onClick={() => setConfirmingDeleteId(m._id)}
+                              disabled={busyId === m._id}
+                              title="Hapus permanen"
+                            >
+                              <i className="bi bi-trash3" />
+                            </button>
+                          </>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -282,6 +382,14 @@ export function Messages() {
             </dd>
             <dt className="col-4">Tipe</dt>
             <dd className="col-8">{MEDIA_TYPE_INFO[viewingMessage.type]?.label ?? "Teks"}</dd>
+            {viewMode === "trash" && (
+              <>
+                <dt className="col-4">Dihapus</dt>
+                <dd className="col-8">
+                  {viewingMessage.trashedAt ? new Date(viewingMessage.trashedAt).toLocaleString() : "—"}
+                </dd>
+              </>
+            )}
           </dl>
           {viewingMessage.type !== "text" && viewingMessage.mediaFilename && (
             <div className="mt-3">
@@ -305,31 +413,57 @@ export function Messages() {
         </Modal>
       )}
 
-      {confirmingDeleteId && (
-        <Modal
-          title="Hapus pesan?"
-          onClose={() => setConfirmingDeleteId(null)}
-          footer={
-            <>
-              <button className="btn btn-outline-secondary" onClick={() => setConfirmingDeleteId(null)}>
-                Batal
-              </button>
-              <button
-                className="btn btn-danger"
-                onClick={() => handleTrash(confirmingDeleteId)}
-                disabled={busyId === confirmingDeleteId}
-              >
-                {busyId === confirmingDeleteId ? "Menghapus…" : "Ya, hapus"}
-              </button>
-            </>
-          }
-        >
-          <p className="mb-0">
-            Pesan ini akan dipindahkan ke <strong>Riwayat</strong>. Kamu masih bisa menghapusnya permanen dari
-            sana nanti.
-          </p>
-        </Modal>
-      )}
+      {confirmingDeleteId &&
+        (viewMode === "active" ? (
+          <Modal
+            title="Hapus pesan?"
+            onClose={() => setConfirmingDeleteId(null)}
+            footer={
+              <>
+                <button className="btn btn-outline-secondary" onClick={() => setConfirmingDeleteId(null)}>
+                  Batal
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={() => handleTrash(confirmingDeleteId)}
+                  disabled={busyId === confirmingDeleteId}
+                >
+                  {busyId === confirmingDeleteId ? "Menghapus…" : "Ya, hapus"}
+                </button>
+              </>
+            }
+          >
+            <p className="mb-0">
+              Pesan ini akan dipindahkan ke <strong>Riwayat</strong>. Kamu masih bisa menghapusnya permanen
+              dari sana nanti.
+            </p>
+          </Modal>
+        ) : (
+          <Modal
+            title="Hapus permanen?"
+            onClose={() => setConfirmingDeleteId(null)}
+            footer={
+              <>
+                <button className="btn btn-outline-secondary" onClick={() => setConfirmingDeleteId(null)}>
+                  Batal
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={() => handleDeletePermanent(confirmingDeleteId)}
+                  disabled={busyId === confirmingDeleteId}
+                >
+                  {busyId === confirmingDeleteId ? "Menghapus…" : "Ya, hapus permanen"}
+                </button>
+              </>
+            }
+          >
+            <p className="mb-0 text-danger">
+              <i className="bi bi-exclamation-triangle-fill me-2" />
+              Pesan ini (dan berkas media-nya, jika ada) akan dihapus permanen. Tindakan ini tidak bisa
+              dibatalkan.
+            </p>
+          </Modal>
+        ))}
 
       {confirmingReset && (
         <Modal
