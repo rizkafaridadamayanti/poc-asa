@@ -12,15 +12,15 @@ const SCOPE_LABEL: Record<GroupScope, string> = {
 }
 
 const SCOPE_BADGE: Record<GroupScope, string> = {
-  pusat: "text-bg-danger",
-  dusun: "text-bg-warning",
+  pusat: "text-bg-primary",
+  dusun: "badge-tint-primary",
   anggota: "text-bg-secondary",
 }
 
 const SCOPE_DOT: Record<GroupScope, string> = {
-  pusat: "#ef4444",
-  dusun: "#f59e0b",
-  anggota: "#6b7280",
+  pusat: "#4f46e5",
+  dusun: "#818cf8",
+  anggota: "#9ca3af",
 }
 
 type ScopeFilter = GroupScope | "unreviewed" | "all"
@@ -37,7 +37,7 @@ const FILTER_DOT: Partial<Record<ScopeFilter, string>> = {
   pusat: SCOPE_DOT.pusat,
   dusun: SCOPE_DOT.dusun,
   anggota: SCOPE_DOT.anggota,
-  unreviewed: "#f59e0b",
+  unreviewed: "#9ca3af",
 }
 
 export function Groups() {
@@ -335,7 +335,7 @@ export function Groups() {
         <p className="text-muted fst-italic">No groups match this filter.</p>
       )}
       {filteredGroups.map((g) => (
-        <div key={g._id} className={`card mb-2 groups-row ${g.scope === null ? "border-warning-subtle" : ""}`}>
+        <div key={g._id} className={`card mb-2 groups-row ${g.scope === null ? "border-secondary-subtle" : ""}`}>
           <div className="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
               <strong>{g.name || g.waJid}</strong>
@@ -391,7 +391,7 @@ export function Groups() {
             </div>
             <div className="d-flex align-items-center gap-2">
               {g.scope === null ? (
-                <span className="badge rounded-pill text-bg-warning">Belum diatur</span>
+                <span className="badge rounded-pill text-bg-secondary">Belum diatur</span>
               ) : (
                 <span className={`badge rounded-pill ${SCOPE_BADGE[g.scope]}`}>{SCOPE_LABEL[g.scope]}</span>
               )}

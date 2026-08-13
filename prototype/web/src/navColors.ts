@@ -1,12 +1,18 @@
-/** Single source of truth for each section's accent color — used by the sidebar nav and each page's header so the two stay visually tied together. */
+/** Single source of truth for the app's brand accent — used by the sidebar nav
+ * and each page's header. The site sticks to a 3-color theme (indigo primary,
+ * green success, red danger) plus neutral grays, so every section shares the
+ * same indigo instead of each page carrying its own signature hue. */
+const PRIMARY = "#4f46e5"
+const NEUTRAL = "#64748b"
+
 export const NAV_COLORS = {
-  dashboard: "#4f46e5",
-  messages: "#0ea5e9",
-  riwayat: "#64748b",
-  summaries: "#9333ea",
-  groups: "#d97706",
-  infografis: "#0d9488",
-  digest: "#db2777",
-  informasiBaru: "#ea580c",
-  qa: "#7c3aed",
+  dashboard: PRIMARY,
+  messages: PRIMARY,
+  riwayat: NEUTRAL,
+  summaries: PRIMARY,
+  groups: PRIMARY,
+  infografis: PRIMARY,
+  digest: PRIMARY,
+  informasiBaru: PRIMARY,
+  qa: PRIMARY,
 } as const

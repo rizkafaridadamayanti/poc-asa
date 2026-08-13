@@ -201,9 +201,9 @@ export function Dashboard() {
       {status && (
         <>
           <div className="row g-3 mb-4">
-            <StatCard icon="bi-chat-dots" label="Messages" value={status.messageCount} color="#0ea5e9" />
-            <StatCard icon="bi-journal-text" label="Summaries" value={status.summaryCount} color="#9333ea" />
-            <StatCard icon="bi-people" label="Participants" value={status.participantCount} color="#d97706" />
+            <StatCard icon="bi-chat-dots" label="Messages" value={status.messageCount} color="#4f46e5" />
+            <StatCard icon="bi-journal-text" label="Summaries" value={status.summaryCount} color="#4f46e5" />
+            <StatCard icon="bi-people" label="Participants" value={status.participantCount} color="#4f46e5" />
           </div>
 
           {latestSentiment && (

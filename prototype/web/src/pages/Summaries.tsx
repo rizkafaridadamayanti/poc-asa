@@ -305,7 +305,7 @@ export function Summaries() {
               {viewMode === "active" ? (
                 <>
                   <button
-                    className={`btn btn-sm ${s.important ? "btn-warning" : "btn-outline-secondary"}`}
+                    className={`btn btn-sm ${s.important ? "btn-primary" : "btn-outline-secondary"}`}
                     onClick={() => toggle(s, "important")}
                   >
                     <i className="bi bi-star me-1" />
@@ -377,7 +377,7 @@ export function Summaries() {
             <dt className="col-3">Status</dt>
             <dd className="col-9">
               {viewingSummary.read && <span className="badge text-bg-secondary me-1">Read</span>}
-              {viewingSummary.important && <span className="badge text-bg-warning me-1">Important</span>}
+              {viewingSummary.important && <span className="badge text-bg-primary me-1">Important</span>}
               {!viewingSummary.read && !viewingSummary.important && <span className="text-muted">—</span>}
             </dd>
           </dl>

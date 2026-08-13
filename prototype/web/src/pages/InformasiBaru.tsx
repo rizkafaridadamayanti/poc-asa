@@ -18,8 +18,8 @@ const TYPE_LABEL: Record<CuratedInfoType, string> = {
 }
 
 const STATUS_BADGE: Record<CuratedInfoStatus, string> = {
-  draft: "text-bg-warning",
-  scheduled: "text-bg-info",
+  draft: "text-bg-secondary",
+  scheduled: "text-bg-primary",
   sent: "text-bg-success",
 }
 
@@ -296,39 +296,38 @@ export function InformasiBaru() {
       {error && <div className="alert alert-danger">{error}</div>}
       {info && <div className="alert alert-success">{info}</div>}
 
-      <div className="mb-3">
-        <div className="segmented-tabs">
-          <button
-            type="button"
-            className={`segmented-tab${viewMode === "active" ? " active" : ""}`}
-            onClick={() => switchView("active")}
-          >
-            <i className="bi bi-megaphone" />
-            Aktif
-          </button>
-          <button
-            type="button"
-            className={`segmented-tab${viewMode === "trash" ? " active" : ""}`}
-            onClick={() => switchView("trash")}
-          >
-            <i className="bi bi-clock-history" />
-            Riwayat
-          </button>
-        </div>
-      </div>
-
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <div className="segmented-tabs segmented-tabs-sm">
-          {STATUS_FILTERS.map((f) => (
+        <div className="d-flex flex-wrap align-items-center gap-2">
+          <div className="segmented-tabs">
             <button
-              key={f.value}
               type="button"
-              className={`segmented-tab${f.value === filter ? " active" : ""}`}
-              onClick={() => setFilter(f.value)}
+              className={`segmented-tab${viewMode === "active" ? " active" : ""}`}
+              onClick={() => switchView("active")}
             >
-              {f.label}
+              <i className="bi bi-megaphone" />
+              Aktif
             </button>
-          ))}
+            <button
+              type="button"
+              className={`segmented-tab${viewMode === "trash" ? " active" : ""}`}
+              onClick={() => switchView("trash")}
+            >
+              <i className="bi bi-clock-history" />
+              Riwayat
+            </button>
+          </div>
+          <div className="segmented-tabs segmented-tabs-sm">
+            {STATUS_FILTERS.map((f) => (
+              <button
+                key={f.value}
+                type="button"
+                className={`segmented-tab${f.value === filter ? " active" : ""}`}
+                onClick={() => setFilter(f.value)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
         {!showForm && (
           <button className="btn btn-primary" onClick={startCreate}>
@@ -430,7 +429,7 @@ export function InformasiBaru() {
               Targets ({item.targets.length}): {item.targets.length > 0 ? item.targets.join(", ") : "—"}
             </p>
             {item.status === "scheduled" && (
-              <p className="text-info small mb-3">
+              <p className="text-primary small mb-3">
                 <i className="bi bi-clock me-1" />
                 Terjadwal: {item.scheduledAt ? new Date(item.scheduledAt).toLocaleString() : "—"}
               </p>
@@ -540,7 +539,7 @@ export function InformasiBaru() {
         >
           {actionResult ? (
             <div>
-              <div className={`alert ${actionResult.failed.length === 0 ? "alert-success" : "alert-warning"}`}>
+              <div className={`alert ${actionResult.failed.length === 0 ? "alert-success" : "alert-secondary"}`}>
                 Terkirim ke {actionResult.sent} penerima
                 {actionResult.failed.length > 0 && `, gagal ke ${actionResult.failed.length}`}.
               </div>

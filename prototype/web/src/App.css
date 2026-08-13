@@ -3,8 +3,64 @@
   --topbar-height: 60px;
 }
 
+/*
+ * Site-wide color theme: 3 colors max — indigo (primary/brand), green
+ * (success/connected), red (danger/destructive) — plus neutral grays for
+ * everything else. Bootstrap's compiled CSS hardcodes its own default
+ * blue (#0d6efd) per-component rather than deriving it from a shared
+ * variable everywhere, so each of those components needs an explicit
+ * override here to actually pick up the indigo brand color.
+ */
 body {
   background-color: #f1f3f7;
+}
+
+:root {
+  --bs-primary-rgb: 79, 70, 229;
+}
+
+.btn-primary {
+  --bs-btn-bg: #4f46e5;
+  --bs-btn-border-color: #4f46e5;
+  --bs-btn-hover-bg: #4338ca;
+  --bs-btn-hover-border-color: #4338ca;
+  --bs-btn-focus-shadow-rgb: 79, 70, 229;
+  --bs-btn-active-bg: #3730a3;
+  --bs-btn-active-border-color: #3730a3;
+  --bs-btn-disabled-bg: #4f46e5;
+  --bs-btn-disabled-border-color: #4f46e5;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: #4f46e5;
+  --bs-btn-border-color: #4f46e5;
+  --bs-btn-hover-bg: #4f46e5;
+  --bs-btn-hover-border-color: #4f46e5;
+  --bs-btn-focus-shadow-rgb: 79, 70, 229;
+  --bs-btn-active-bg: #4f46e5;
+  --bs-btn-active-border-color: #4f46e5;
+  --bs-btn-disabled-color: #4f46e5;
+  --bs-btn-disabled-border-color: #4f46e5;
+}
+
+.dropdown-menu {
+  --bs-dropdown-link-active-bg: #4f46e5;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #a5b4fc;
+  box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.2);
+}
+
+.form-check-input:checked {
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+}
+
+.form-check-input:focus {
+  border-color: #a5b4fc;
+  box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.2);
 }
 
 .app-topbar {
@@ -209,7 +265,7 @@ body {
   position: sticky;
   top: -1.5rem;
   z-index: 10;
-  margin: -1.5rem -1.5rem 1.5rem;
+  margin: -1.5rem -1.5rem 1rem;
   padding: 1.5rem 1.5rem 1rem;
   background-color: #f1f3f7;
 }
@@ -288,8 +344,8 @@ body {
   height: 28px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: color-mix(in srgb, #7c3aed 15%, white);
-  color: #7c3aed;
+  background: color-mix(in srgb, #4f46e5 15%, white);
+  color: #4f46e5;
   font-size: 0.85rem;
 }
 
@@ -409,7 +465,7 @@ body {
 }
 
 .ai-chat-scope-menu .dropdown-item i {
-  color: #7c3aed;
+  color: #4f46e5;
   font-size: 0.9rem;
   width: 1.1rem;
   text-align: center;
@@ -561,8 +617,8 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(13, 148, 136, 0.12);
-  color: #0d9488;
+  background: rgba(79, 70, 229, 0.12);
+  color: #4f46e5;
   flex-shrink: 0;
   font-size: 0.9rem;
 }
@@ -581,8 +637,13 @@ body {
 }
 
 .stat-pill-idea {
-  background: rgba(124, 58, 237, 0.12);
-  color: #7c3aed;
+  background: rgba(79, 70, 229, 0.12);
+  color: #4f46e5;
+}
+
+.badge-tint-primary {
+  background: rgba(79, 70, 229, 0.12);
+  color: #4f46e5;
 }
 
 .segmented-tabs {

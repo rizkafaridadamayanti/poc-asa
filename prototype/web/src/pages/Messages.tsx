@@ -493,7 +493,7 @@ export function Messages() {
                 <button className="btn btn-outline-secondary" onClick={() => setConfirmingReset(false)}>
                   Batal
                 </button>
-                <button className="btn btn-warning" onClick={handleReset} disabled={resetting}>
+                <button className="btn btn-primary" onClick={handleReset} disabled={resetting}>
                   {resetting ? "Memindahkan…" : "Ya, pindahkan ke Riwayat"}
                 </button>
               </>
