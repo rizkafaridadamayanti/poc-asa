@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { api, type Agenda, type Group, type Participant } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
 import { Modal } from "../components/Modal.js"
+import { Drawer } from "../components/Drawer.js"
 import { RecipientPicker } from "../components/RecipientPicker.js"
 import { EmptyState } from "../components/EmptyState.js"
 import { NAV_COLORS } from "../navColors.js"
@@ -133,8 +134,7 @@ export function PengingatAgenda() {
     setReminders((prev) => prev.filter((_, i) => i !== idx))
   }
 
-  const submitForm = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const submitForm = async () => {
     if (!form.dueAt) {
       setError("Jatuh tempo wajib diisi.")
       return
@@ -253,114 +253,115 @@ export function PengingatAgenda() {
       </div>
 
       {showForm && (
-        <form onSubmit={submitForm} className="card mb-4">
-          <div className="card-body">
-            <h5 className="card-title">{editingId ? "Edit agenda" : "Agenda baru"}</h5>
-            <div className="mb-3">
-              <label htmlFor="title" className="form-label">
-                Judul
-              </label>
-              <input
-                id="title"
-                className="form-control"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="Rapat Rutin Bulanan"
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="description" className="form-label">
-                Deskripsi
-              </label>
-              <textarea
-                id="description"
-                className="form-control"
-                rows={2}
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Agenda, lokasi, catatan…"
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="dueAt" className="form-label">
-                Jatuh tempo
-              </label>
-              <input
-                id="dueAt"
-                type="datetime-local"
-                className="form-control"
-                style={{ maxWidth: "280px" }}
-                value={form.dueAt}
-                onChange={(e) => setForm({ ...form, dueAt: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label d-block">Pengingat</label>
-              <div className="d-flex flex-wrap gap-2 mb-2">
-                {REMINDER_PRESETS.map((preset) => (
-                  <button
-                    key={preset.label}
-                    type="button"
-                    className="btn btn-outline-secondary btn-sm"
-                    onClick={() => addPresetReminder(preset)}
-                  >
-                    <i className="bi bi-plus-lg me-1" />
-                    {preset.label}
-                  </button>
-                ))}
-                <input
-                  type="datetime-local"
-                  className="form-control form-control-sm"
-                  style={{ width: "200px" }}
-                  value={customReminderAt}
-                  onChange={(e) => setCustomReminderAt(e.target.value)}
-                />
-                <button type="button" className="btn btn-outline-secondary btn-sm" onClick={addCustomReminder}>
-                  <i className="bi bi-plus-lg me-1" />
-                  Custom
-                </button>
-              </div>
-              {reminders.length === 0 ? (
-                <p className="text-muted small fst-italic mb-0">
-                  Belum ada pengingat — agenda tetap tersimpan, tapi tidak akan otomatis mengirim apa pun.
-                </p>
-              ) : (
-                <div className="d-flex flex-wrap gap-2">
-                  {reminders.map((r, idx) => (
-                    <span key={idx} className="stat-pill">
-                      {r.label}: {new Date(r.at).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}
-                      <button
-                        type="button"
-                        className="btn btn-link btn-sm p-0 ms-1 text-danger"
-                        onClick={() => removeReminder(idx)}
-                        title="Hapus pengingat ini"
-                      >
-                        <i className="bi bi-x-lg" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label d-block">Penerima ({audience.size} dipilih)</label>
-              <RecipientPicker selected={audience} onChange={setAudience} />
-            </div>
-
-            <div className="d-flex gap-2">
-              <button className="btn btn-primary" disabled={saving}>
-                {saving ? "Menyimpan…" : editingId ? "Simpan perubahan" : "Buat agenda"}
-              </button>
+        <Drawer
+          title={editingId ? "Edit agenda" : "Agenda baru"}
+          onClose={cancelForm}
+          footer={
+            <>
               <button type="button" className="btn btn-outline-secondary" onClick={cancelForm} disabled={saving}>
                 Batal
               </button>
-            </div>
+              <button type="button" className="btn btn-primary" onClick={submitForm} disabled={saving}>
+                {saving ? "Menyimpan…" : editingId ? "Simpan perubahan" : "Buat agenda"}
+              </button>
+            </>
+          }
+        >
+          <div className="mb-3">
+            <label htmlFor="title" className="form-label">
+              Judul
+            </label>
+            <input
+              id="title"
+              className="form-control"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="Rapat Rutin Bulanan"
+              required
+            />
           </div>
-        </form>
+          <div className="mb-3">
+            <label htmlFor="description" className="form-label">
+              Deskripsi
+            </label>
+            <textarea
+              id="description"
+              className="form-control"
+              rows={2}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Agenda, lokasi, catatan…"
+            />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="dueAt" className="form-label">
+              Jatuh tempo
+            </label>
+            <input
+              id="dueAt"
+              type="datetime-local"
+              className="form-control"
+              style={{ maxWidth: "280px" }}
+              value={form.dueAt}
+              onChange={(e) => setForm({ ...form, dueAt: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label d-block">Pengingat</label>
+            <div className="d-flex flex-wrap gap-2 mb-2">
+              {REMINDER_PRESETS.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => addPresetReminder(preset)}
+                >
+                  <i className="bi bi-plus-lg me-1" />
+                  {preset.label}
+                </button>
+              ))}
+              <input
+                type="datetime-local"
+                className="form-control form-control-sm"
+                style={{ width: "200px" }}
+                value={customReminderAt}
+                onChange={(e) => setCustomReminderAt(e.target.value)}
+              />
+              <button type="button" className="btn btn-outline-secondary btn-sm" onClick={addCustomReminder}>
+                <i className="bi bi-plus-lg me-1" />
+                Custom
+              </button>
+            </div>
+            {reminders.length === 0 ? (
+              <p className="text-muted small fst-italic mb-0">
+                Belum ada pengingat — agenda tetap tersimpan, tapi tidak akan otomatis mengirim apa pun.
+              </p>
+            ) : (
+              <div className="d-flex flex-wrap gap-2">
+                {reminders.map((r, idx) => (
+                  <span key={idx} className="stat-pill">
+                    {r.label}: {new Date(r.at).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}
+                    <button
+                      type="button"
+                      className="btn btn-link btn-sm p-0 ms-1 text-danger"
+                      onClick={() => removeReminder(idx)}
+                      title="Hapus pengingat ini"
+                    >
+                      <i className="bi bi-x-lg" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label d-block">Penerima ({audience.size} dipilih)</label>
+            <RecipientPicker selected={audience} onChange={setAudience} />
+          </div>
+        </Drawer>
       )}
 
       {loading && <p className="text-muted">Memuat…</p>}

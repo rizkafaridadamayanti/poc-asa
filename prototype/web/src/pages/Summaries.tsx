@@ -159,210 +159,216 @@ export function Summaries() {
       {error && <div className="alert alert-danger">{error}</div>}
       {info && <div className="alert alert-success">{info}</div>}
 
-      <AiChatPanel groups={groups} />
-
-      <div className="card mb-4">
-        <div className="card-body">
-          <h5 className="card-title d-flex align-items-center gap-2">
-            <i className="bi bi-envelope-paper" style={{ color: NAV_COLORS.digest }} />
-            Run Digest
-          </h5>
-          <p className="text-muted small">
-            Summarize yesterday's messages from <code>TEST_GROUP_JID</code> and send the result to{" "}
-            <code>REPORT_TO_JID</code>. The result is added to the list below.
-          </p>
-          {digestResult && (
-            <div className="alert alert-success">
-              Digest created ({digestResult.messageCount} messages). WA message ID:{" "}
-              {digestResult.waMessageId ?? "n/a"}
+      <div className="layout-split">
+        <div className="layout-split-main" style={{ flex: "1 1 65%" }}>
+          <div className="mb-3">
+            <div className="segmented-tabs">
+              <button
+                type="button"
+                className={`segmented-tab${viewMode === "active" ? " active" : ""}`}
+                onClick={() => switchView("active")}
+              >
+                <i className="bi bi-journal-text" />
+                Ringkasan Aktif
+              </button>
+              <button
+                type="button"
+                className={`segmented-tab${viewMode === "trash" ? " active" : ""}`}
+                onClick={() => switchView("trash")}
+              >
+                <i className="bi bi-clock-history" />
+                Riwayat
+              </button>
             </div>
+          </div>
+
+          <form onSubmit={applyFilters} className="card mb-4">
+            <div className="card-body row g-3 align-items-end">
+              <div className="col-sm-3">
+                <label htmlFor="groupFilter" className="form-label">
+                  Group
+                </label>
+                <select
+                  id="groupFilter"
+                  className="form-select"
+                  value={groupFilter}
+                  onChange={(e) => setGroupFilter(e.target.value)}
+                >
+                  <option value="">All groups</option>
+                  {groups.map((g) => (
+                    <option key={g._id} value={g.waJid}>
+                      {g.name || g.waJid}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-sm-2">
+                <label htmlFor="fromFilter" className="form-label">
+                  From
+                </label>
+                <input
+                  id="fromFilter"
+                  type="date"
+                  className="form-control"
+                  value={fromFilter}
+                  onChange={(e) => setFromFilter(e.target.value)}
+                />
+              </div>
+              <div className="col-sm-2">
+                <label htmlFor="toFilter" className="form-label">
+                  To
+                </label>
+                <input
+                  id="toFilter"
+                  type="date"
+                  className="form-control"
+                  value={toFilter}
+                  onChange={(e) => setToFilter(e.target.value)}
+                />
+              </div>
+              <div className="col-sm-3">
+                <label htmlFor="keywordFilter" className="form-label">
+                  Keyword
+                </label>
+                <input
+                  id="keywordFilter"
+                  className="form-control"
+                  placeholder="search body…"
+                  value={keywordFilter}
+                  onChange={(e) => setKeywordFilter(e.target.value)}
+                />
+              </div>
+              <div className="col-sm-2">
+                <button className="btn btn-primary w-100" disabled={loading}>
+                  Apply filters
+                </button>
+              </div>
+            </div>
+          </form>
+
+          {loading && <p className="text-muted">Loading summaries…</p>}
+          {!loading && summaries.length === 0 && (
+            <EmptyState
+              icon="bi-journal-text"
+              text={viewMode === "trash" ? "Riwayat kosong." : "No summaries yet."}
+            />
           )}
-          <div className="d-flex gap-2">
-            <button className="btn btn-primary" disabled={digestLoading} onClick={() => runDigest(false)}>
-              <i className="bi bi-play-fill me-1" />
-              {digestLoading ? "Running…" : "Run Yesterday"}
-            </button>
-            <button
-              className="btn btn-outline-secondary"
-              disabled={digestLoading}
-              onClick={() => runDigest(true)}
-            >
-              Run Last 24h
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="mb-3">
-        <div className="segmented-tabs">
-          <button
-            type="button"
-            className={`segmented-tab${viewMode === "active" ? " active" : ""}`}
-            onClick={() => switchView("active")}
-          >
-            <i className="bi bi-journal-text" />
-            Ringkasan Aktif
-          </button>
-          <button
-            type="button"
-            className={`segmented-tab${viewMode === "trash" ? " active" : ""}`}
-            onClick={() => switchView("trash")}
-          >
-            <i className="bi bi-clock-history" />
-            Riwayat
-          </button>
-        </div>
-      </div>
-
-      <form onSubmit={applyFilters} className="card mb-4">
-        <div className="card-body row g-3 align-items-end">
-          <div className="col-sm-3">
-            <label htmlFor="groupFilter" className="form-label">
-              Group
-            </label>
-            <select
-              id="groupFilter"
-              className="form-select"
-              value={groupFilter}
-              onChange={(e) => setGroupFilter(e.target.value)}
-            >
-              <option value="">All groups</option>
-              {groups.map((g) => (
-                <option key={g._id} value={g.waJid}>
-                  {g.name || g.waJid}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-sm-2">
-            <label htmlFor="fromFilter" className="form-label">
-              From
-            </label>
-            <input
-              id="fromFilter"
-              type="date"
-              className="form-control"
-              value={fromFilter}
-              onChange={(e) => setFromFilter(e.target.value)}
-            />
-          </div>
-          <div className="col-sm-2">
-            <label htmlFor="toFilter" className="form-label">
-              To
-            </label>
-            <input
-              id="toFilter"
-              type="date"
-              className="form-control"
-              value={toFilter}
-              onChange={(e) => setToFilter(e.target.value)}
-            />
-          </div>
-          <div className="col-sm-3">
-            <label htmlFor="keywordFilter" className="form-label">
-              Keyword
-            </label>
-            <input
-              id="keywordFilter"
-              className="form-control"
-              placeholder="search body…"
-              value={keywordFilter}
-              onChange={(e) => setKeywordFilter(e.target.value)}
-            />
-          </div>
-          <div className="col-sm-2">
-            <button className="btn btn-primary w-100" disabled={loading}>
-              Apply filters
-            </button>
-          </div>
-        </div>
-      </form>
-
-      {loading && <p className="text-muted">Loading summaries…</p>}
-      {!loading && summaries.length === 0 && (
-        <EmptyState
-          icon="bi-journal-text"
-          text={viewMode === "trash" ? "Riwayat kosong." : "No summaries yet."}
-        />
-      )}
-      {summaries.map((s) => (
-        <div key={s._id} className="card mb-3">
-          <div className="card-body">
-            <div className="d-flex justify-content-between mb-2">
-              <strong>
-                {new Date(s.periodStart).toLocaleDateString()} —{" "}
-                {new Date(s.periodEnd).toLocaleDateString()}
-              </strong>
-              <span className="text-muted small">{s.sourceMessageIds.length} messages</span>
+          {summaries.map((s) => (
+            <div key={s._id} className="card mb-3">
+              <div className="card-body">
+                <div className="d-flex justify-content-between mb-2">
+                  <strong>
+                    {new Date(s.periodStart).toLocaleDateString()} —{" "}
+                    {new Date(s.periodEnd).toLocaleDateString()}
+                  </strong>
+                  <span className="text-muted small">{s.sourceMessageIds.length} messages</span>
+                </div>
+                <p className="text-muted mb-3">{truncateWords(s.bodyMd, 40, 320)}</p>
+                <div className="d-flex gap-2 flex-wrap">
+                  <button
+                    className="btn btn-outline-secondary btn-sm"
+                    onClick={() => setViewingSummary(s)}
+                  >
+                    <i className="bi bi-eye me-1" />
+                    Lihat Detail
+                  </button>
+                  {viewMode === "active" ? (
+                    <>
+                      <button
+                        className={`btn btn-sm ${s.important ? "btn-primary" : "btn-outline-secondary"}`}
+                        onClick={() => toggle(s, "important")}
+                      >
+                        <i className="bi bi-star me-1" />
+                        {s.important ? "Unmark important" : "Mark important"}
+                      </button>
+                      <button className="btn btn-outline-danger btn-sm" onClick={() => toggle(s, "trash")}>
+                        <i className="bi bi-trash me-1" />
+                        Hapus
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button className="btn btn-outline-success btn-sm" onClick={() => toggle(s, "trash")}>
+                        <i className="bi bi-arrow-counterclockwise me-1" />
+                        Pulihkan
+                      </button>
+                      <button
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={() => setConfirmingDeleteId(s._id)}
+                        disabled={busyId === s._id}
+                      >
+                        <i className="bi bi-trash3 me-1" />
+                        Hapus Permanen
+                      </button>
+                    </>
+                  )}
+                  <button className="btn btn-outline-secondary btn-sm" onClick={() => exportDocx(s)}>
+                    <i className="bi bi-file-earmark-word me-1" />
+                    Export .docx
+                  </button>
+                </div>
+              </div>
             </div>
-            <p className="text-muted mb-3">{truncateWords(s.bodyMd, 40, 320)}</p>
-            <div className="d-flex gap-2 flex-wrap">
+          ))}
+          {summaries.length > 0 && (
+            <div className="d-flex align-items-center gap-3 mt-3">
               <button
                 className="btn btn-outline-secondary btn-sm"
-                onClick={() => setViewingSummary(s)}
+                disabled={offset === 0 || loading}
+                onClick={() => load(Math.max(offset - limit, 0))}
               >
-                <i className="bi bi-eye me-1" />
-                Lihat Detail
+                <i className="bi bi-chevron-left" /> Previous
               </button>
-              {viewMode === "active" ? (
-                <>
-                  <button
-                    className={`btn btn-sm ${s.important ? "btn-primary" : "btn-outline-secondary"}`}
-                    onClick={() => toggle(s, "important")}
-                  >
-                    <i className="bi bi-star me-1" />
-                    {s.important ? "Unmark important" : "Mark important"}
-                  </button>
-                  <button className="btn btn-outline-danger btn-sm" onClick={() => toggle(s, "trash")}>
-                    <i className="bi bi-trash me-1" />
-                    Hapus
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button className="btn btn-outline-success btn-sm" onClick={() => toggle(s, "trash")}>
-                    <i className="bi bi-arrow-counterclockwise me-1" />
-                    Pulihkan
-                  </button>
-                  <button
-                    className="btn btn-outline-danger btn-sm"
-                    onClick={() => setConfirmingDeleteId(s._id)}
-                    disabled={busyId === s._id}
-                  >
-                    <i className="bi bi-trash3 me-1" />
-                    Hapus Permanen
-                  </button>
-                </>
+              <span className="text-muted small">
+                {offset + 1}–{Math.min(offset + summaries.length, total)} of {total}
+              </span>
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                disabled={offset + summaries.length >= total || loading}
+                onClick={() => load(offset + limit)}
+              >
+                Next <i className="bi bi-chevron-right" />
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="layout-split-side" style={{ flex: "1 1 35%", maxWidth: "440px" }}>
+          <AiChatPanel groups={groups} />
+
+          <div className="card">
+            <div className="card-body">
+              <h5 className="card-title d-flex align-items-center gap-2">
+                <i className="bi bi-envelope-paper" style={{ color: NAV_COLORS.digest }} />
+                Run Digest
+              </h5>
+              <p className="text-muted small">
+                Summarize yesterday's messages from <code>TEST_GROUP_JID</code> and send the result to{" "}
+                <code>REPORT_TO_JID</code>. The result is added to the list below.
+              </p>
+              {digestResult && (
+                <div className="alert alert-success">
+                  Digest created ({digestResult.messageCount} messages). WA message ID:{" "}
+                  {digestResult.waMessageId ?? "n/a"}
+                </div>
               )}
-              <button className="btn btn-outline-secondary btn-sm" onClick={() => exportDocx(s)}>
-                <i className="bi bi-file-earmark-word me-1" />
-                Export .docx
-              </button>
+              <div className="d-flex gap-2 flex-wrap">
+                <button className="btn btn-primary" disabled={digestLoading} onClick={() => runDigest(false)}>
+                  <i className="bi bi-play-fill me-1" />
+                  {digestLoading ? "Running…" : "Run Yesterday"}
+                </button>
+                <button
+                  className="btn btn-outline-secondary"
+                  disabled={digestLoading}
+                  onClick={() => runDigest(true)}
+                >
+                  Run Last 24h
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      ))}
-      {summaries.length > 0 && (
-        <div className="d-flex align-items-center gap-3 mt-3">
-          <button
-            className="btn btn-outline-secondary btn-sm"
-            disabled={offset === 0 || loading}
-            onClick={() => load(Math.max(offset - limit, 0))}
-          >
-            <i className="bi bi-chevron-left" /> Previous
-          </button>
-          <span className="text-muted small">
-            {offset + 1}–{Math.min(offset + summaries.length, total)} of {total}
-          </span>
-          <button
-            className="btn btn-outline-secondary btn-sm"
-            disabled={offset + summaries.length >= total || loading}
-            onClick={() => load(offset + limit)}
-          >
-            Next <i className="bi bi-chevron-right" />
-          </button>
-        </div>
-      )}
+      </div>
 
       {viewingSummary && (
         <Modal title="Detail Ringkasan" onClose={() => setViewingSummary(null)} size="lg">

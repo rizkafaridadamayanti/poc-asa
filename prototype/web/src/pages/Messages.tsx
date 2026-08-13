@@ -23,6 +23,7 @@ export function Messages() {
   const [chatFilter, setChatFilter] = useState("")
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [filterPanelOpen, setFilterPanelOpen] = useState(true)
   const limit = 20
 
   const [viewingMessage, setViewingMessage] = useState<Message | null>(null)
@@ -199,77 +200,59 @@ export function Messages() {
       {error && <div className="alert alert-danger">{error}</div>}
       {info && <div className="alert alert-success">{info}</div>}
 
-      <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <div className="segmented-tabs">
-          <button
-            type="button"
-            className={`segmented-tab${viewMode === "active" ? " active" : ""}`}
-            onClick={() => switchView("active")}
-          >
-            <i className="bi bi-inbox" />
-            Pesan Aktif
-          </button>
-          <button
-            type="button"
-            className={`segmented-tab${viewMode === "trash" ? " active" : ""}`}
-            onClick={() => switchView("trash")}
-          >
-            <i className="bi bi-clock-history" />
-            Riwayat
-          </button>
-        </div>
-        <button
-          className="btn btn-outline-danger btn-sm"
-          onClick={() => setConfirmingReset(true)}
-          disabled={total === 0 && messages.length === 0}
-        >
-          <i className="bi bi-exclamation-triangle me-1" />
-          Reset Semua Pesan
-        </button>
-      </div>
-
-      <div className="card mb-3">
-        <div className="card-body">
-          <div className="row g-3 align-items-end">
-            <div className="col-md-4">
-              <label htmlFor="chatFilter" className="form-label">
-                Chat / Group
-              </label>
-              <select
-                id="chatFilter"
-                className="form-select"
-                value={chatFilter}
-                onChange={(e) => setChatFilter(e.target.value)}
-              >
-                <option value="">All chats</option>
-                {groups.map((g) => (
-                  <option key={g._id} value={g.waJid}>
-                    {g.name || g.waJid}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-md-6">
-              <label htmlFor="search" className="form-label">
-                Cari pesan
-              </label>
-              <div className="input-group">
-                <span className="input-group-text bg-white">
-                  <i className="bi bi-search text-muted" />
-                </span>
-                <input
-                  id="search"
-                  type="search"
-                  className="form-control"
-                  placeholder="Cari isi pesan atau pengirim…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
+      <div className="layout-split">
+        <div className={`layout-split-side filter-panel${filterPanelOpen ? "" : " filter-panel-collapsed"}`}>
+          <div className="card">
+            <div className="card-body">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h6 className="mb-0 text-uppercase text-muted small fw-bold">Filter</h6>
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary filter-panel-toggle"
+                  onClick={() => setFilterPanelOpen(false)}
+                  title="Sembunyikan filter"
+                >
+                  <i className="bi bi-chevron-left" />
+                </button>
               </div>
-            </div>
-            <div className="col-md-2">
+              <div className="mb-3">
+                <label htmlFor="chatFilter" className="form-label small">
+                  Chat / Group
+                </label>
+                <select
+                  id="chatFilter"
+                  className="form-select form-select-sm"
+                  value={chatFilter}
+                  onChange={(e) => setChatFilter(e.target.value)}
+                >
+                  <option value="">All chats</option>
+                  {groups.map((g) => (
+                    <option key={g._id} value={g.waJid}>
+                      {g.name || g.waJid}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-3">
+                <label htmlFor="search" className="form-label small">
+                  Cari pesan
+                </label>
+                <div className="input-group input-group-sm">
+                  <span className="input-group-text bg-white">
+                    <i className="bi bi-search text-muted" />
+                  </span>
+                  <input
+                    id="search"
+                    type="search"
+                    className="form-control"
+                    placeholder="Cari isi pesan atau pengirim…"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+              </div>
               <button
-                className="btn btn-outline-secondary w-100"
+                className="btn btn-outline-secondary btn-sm w-100"
                 onClick={clearFilters}
                 disabled={!hasFilters}
               >
@@ -279,114 +262,158 @@ export function Messages() {
             </div>
           </div>
         </div>
-      </div>
 
-      {loading && <p className="text-muted">Loading…</p>}
-      {!loading && messages.length === 0 && <EmptyState icon="bi-inbox" text={emptyText} />}
-      {messages.length > 0 && (
-        <>
-          <div className="card">
-            <div className="table-responsive">
-              <table className="table table-hover align-middle mb-0">
-                <thead>
-                  <tr style={{ "--bs-table-bg": `color-mix(in srgb, ${themeColor} 12%, white)` } as React.CSSProperties}>
-                    <th className="text-nowrap text-center">{viewMode === "trash" ? "Dihapus" : "Time"}</th>
-                    <th className="text-nowrap text-center">From</th>
-                    <th className="text-nowrap text-center">Chat</th>
-                    <th className="text-center">Text</th>
-                    <th className="text-nowrap text-center">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {messages.map((m) => (
-                    <tr key={m._id}>
-                      <td className="text-nowrap text-center text-muted small">
-                        {viewMode === "trash"
-                          ? m.trashedAt
-                            ? new Date(m.trashedAt).toLocaleString()
-                            : "—"
-                          : formatDate(m.timestamp)}
-                      </td>
-                      <td className="text-center">{m.fromJid}</td>
-                      <td className="text-center">
-                        {m.isGroup ? (
-                          <span>{m.chatName || m.chatJid}</span>
-                        ) : (
-                          <span>
-                            <span className="badge badge-soft-slate me-1">Personal</span>
-                            <span className="text-muted small">{m.chatJid}</span>
-                          </span>
-                        )}
-                      </td>
-                      <td className="text-center" style={{ wordBreak: "break-word" }}>
-                        {m.type !== "text" && <MediaTypeBadge type={m.type} />}
-                        {m.text ? truncateWords(m.text, 8) : null}
-                      </td>
-                      <td className="text-center text-nowrap">
-                        <button
-                          className="btn btn-outline-secondary btn-sm me-1"
-                          onClick={() => setViewingMessage(m)}
-                          title="Lihat detail"
-                        >
-                          <i className="bi bi-eye" />
-                        </button>
-                        {viewMode === "active" ? (
-                          <button
-                            className="btn btn-outline-danger btn-sm"
-                            onClick={() => setConfirmingDeleteId(m._id)}
-                            disabled={busyId === m._id}
-                            title="Hapus"
-                          >
-                            <i className="bi bi-trash" />
-                          </button>
-                        ) : (
-                          <>
-                            <button
-                              className="btn btn-outline-success btn-sm me-1"
-                              onClick={() => handleRestore(m._id)}
-                              disabled={busyId === m._id}
-                              title="Pulihkan"
-                            >
-                              <i className="bi bi-arrow-counterclockwise" />
-                            </button>
-                            <button
-                              className="btn btn-outline-danger btn-sm"
-                              onClick={() => setConfirmingDeleteId(m._id)}
-                              disabled={busyId === m._id}
-                              title="Hapus permanen"
-                            >
-                              <i className="bi bi-trash3" />
-                            </button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        <div className="layout-split-main">
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <div className="d-flex align-items-center gap-2 flex-wrap">
+              {!filterPanelOpen && (
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary btn-sm filter-panel-toggle"
+                  onClick={() => setFilterPanelOpen(true)}
+                  title="Tampilkan filter"
+                >
+                  <i className="bi bi-funnel me-1" />
+                  Filter
+                </button>
+              )}
+              <div className="segmented-tabs">
+                <button
+                  type="button"
+                  className={`segmented-tab${viewMode === "active" ? " active" : ""}`}
+                  onClick={() => switchView("active")}
+                >
+                  <i className="bi bi-inbox" />
+                  Pesan Aktif
+                </button>
+                <button
+                  type="button"
+                  className={`segmented-tab${viewMode === "trash" ? " active" : ""}`}
+                  onClick={() => switchView("trash")}
+                >
+                  <i className="bi bi-clock-history" />
+                  Riwayat
+                </button>
+              </div>
             </div>
-          </div>
-          <div className="d-flex align-items-center justify-content-center gap-3 mt-3">
             <button
-              className="btn btn-outline-secondary btn-sm"
-              disabled={offset === 0 || loading}
-              onClick={() => load(Math.max(offset - limit, 0))}
+              className="btn btn-outline-danger btn-sm"
+              onClick={() => setConfirmingReset(true)}
+              disabled={total === 0 && messages.length === 0}
             >
-              <i className="bi bi-chevron-left" /> Previous
-            </button>
-            <span className="text-muted small">
-              {offset + 1}–{Math.min(offset + messages.length, total)} of {total}
-            </span>
-            <button
-              className="btn btn-outline-secondary btn-sm"
-              disabled={offset + messages.length >= total || loading}
-              onClick={() => load(offset + limit)}
-            >
-              Next <i className="bi bi-chevron-right" />
+              <i className="bi bi-exclamation-triangle me-1" />
+              Reset Semua Pesan
             </button>
           </div>
-        </>
-      )}
+
+          {loading && <p className="text-muted">Loading…</p>}
+          {!loading && messages.length === 0 && <EmptyState icon="bi-inbox" text={emptyText} />}
+          {messages.length > 0 && (
+            <>
+              <div className="card">
+                <div className="table-responsive">
+                  <table className="table table-hover align-middle mb-0">
+                    <thead>
+                      <tr style={{ "--bs-table-bg": `color-mix(in srgb, ${themeColor} 12%, white)` } as React.CSSProperties}>
+                        <th className="text-nowrap text-center">{viewMode === "trash" ? "Dihapus" : "Time"}</th>
+                        <th className="text-nowrap text-center">From</th>
+                        <th className="text-nowrap text-center">Chat</th>
+                        <th className="text-center">Text</th>
+                        <th className="text-nowrap text-center">Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {messages.map((m) => (
+                        <tr key={m._id}>
+                          <td className="text-nowrap text-center text-muted small">
+                            {viewMode === "trash"
+                              ? m.trashedAt
+                                ? new Date(m.trashedAt).toLocaleString()
+                                : "—"
+                              : formatDate(m.timestamp)}
+                          </td>
+                          <td className="text-center">{m.fromJid}</td>
+                          <td className="text-center">
+                            {m.isGroup ? (
+                              <span>{m.chatName || m.chatJid}</span>
+                            ) : (
+                              <span>
+                                <span className="badge badge-soft-slate me-1">Personal</span>
+                                <span className="text-muted small">{m.chatJid}</span>
+                              </span>
+                            )}
+                          </td>
+                          <td className="text-center" style={{ wordBreak: "break-word" }}>
+                            {m.type !== "text" && <MediaTypeBadge type={m.type} />}
+                            {m.text ? truncateWords(m.text, 8) : null}
+                          </td>
+                          <td className="text-center text-nowrap">
+                            <button
+                              className="btn btn-outline-secondary btn-sm me-1"
+                              onClick={() => setViewingMessage(m)}
+                              title="Lihat detail"
+                            >
+                              <i className="bi bi-eye" />
+                            </button>
+                            {viewMode === "active" ? (
+                              <button
+                                className="btn btn-outline-danger btn-sm"
+                                onClick={() => setConfirmingDeleteId(m._id)}
+                                disabled={busyId === m._id}
+                                title="Hapus"
+                              >
+                                <i className="bi bi-trash" />
+                              </button>
+                            ) : (
+                              <>
+                                <button
+                                  className="btn btn-outline-success btn-sm me-1"
+                                  onClick={() => handleRestore(m._id)}
+                                  disabled={busyId === m._id}
+                                  title="Pulihkan"
+                                >
+                                  <i className="bi bi-arrow-counterclockwise" />
+                                </button>
+                                <button
+                                  className="btn btn-outline-danger btn-sm"
+                                  onClick={() => setConfirmingDeleteId(m._id)}
+                                  disabled={busyId === m._id}
+                                  title="Hapus permanen"
+                                >
+                                  <i className="bi bi-trash3" />
+                                </button>
+                              </>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div className="d-flex align-items-center justify-content-center gap-3 mt-3">
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  disabled={offset === 0 || loading}
+                  onClick={() => load(Math.max(offset - limit, 0))}
+                >
+                  <i className="bi bi-chevron-left" /> Previous
+                </button>
+                <span className="text-muted small">
+                  {offset + 1}–{Math.min(offset + messages.length, total)} of {total}
+                </span>
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  disabled={offset + messages.length >= total || loading}
+                  onClick={() => load(offset + limit)}
+                >
+                  Next <i className="bi bi-chevron-right" />
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
 
       {viewingMessage && (
         <Modal title="Detail Pesan" onClose={() => setViewingMessage(null)}>

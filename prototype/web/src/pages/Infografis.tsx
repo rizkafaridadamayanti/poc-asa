@@ -32,67 +32,73 @@ export function Infografis() {
 
       {!loading && (
         <>
-          <div className="card mb-4">
-            <div className="card-body">
-              <h5 className="card-title">Peak chat hours</h5>
-              <div className="d-flex align-items-end gap-1" style={{ height: "120px" }}>
-                {Array.from({ length: 24 }, (_, hour) => {
-                  const row = peakHours.find((r) => r.hour === hour)
-                  const count = row?.count ?? 0
-                  return (
-                    <div key={hour} className="flex-fill text-center chat-hour-bar-wrap">
-                      <span className="chat-hour-tooltip">
-                        {hour}:00 — {count} pesan
-                      </span>
-                      <div
-                        className="chat-hour-bar mx-auto"
-                        style={{ height: `${Math.max((count / maxHourCount) * 100, 2)}px`, width: "70%" }}
-                      />
-                      <span className="text-muted" style={{ fontSize: "0.65rem" }}>
-                        {hour}
-                      </span>
-                    </div>
-                  )
-                })}
+          <div className="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-stretch">
+            <div className="flex-fill" style={{ minWidth: 0 }}>
+              <div className="card h-100">
+                <div className="card-body">
+                  <h5 className="card-title">Peak chat hours</h5>
+                  <div className="d-flex align-items-end gap-1" style={{ height: "120px" }}>
+                    {Array.from({ length: 24 }, (_, hour) => {
+                      const row = peakHours.find((r) => r.hour === hour)
+                      const count = row?.count ?? 0
+                      return (
+                        <div key={hour} className="flex-fill text-center chat-hour-bar-wrap">
+                          <span className="chat-hour-tooltip">
+                            {hour}:00 — {count} pesan
+                          </span>
+                          <div
+                            className="chat-hour-bar mx-auto"
+                            style={{ height: `${Math.max((count / maxHourCount) * 100, 2)}px`, width: "70%" }}
+                          />
+                          <span className="text-muted" style={{ fontSize: "0.65rem" }}>
+                            {hour}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="card mb-4">
-            <div className="card-body">
-              <h5 className="card-title">Active vs contributive</h5>
-              {contributive.length === 0 && <EmptyState icon="bi-people" text="Belum ada pesan." />}
-              {contributive.length > 0 && (
-                <div className="stat-table">
-                  <div className="stat-row-header">
-                    <span>Participant</span>
-                    <span>Aktivitas</span>
-                  </div>
-                  {contributive.map((r) => (
-                    <div key={r.waJid} className="stat-row">
-                      <span className="stat-row-label">
-                        <span className="stat-row-icon">
-                          <i className="bi bi-person" />
-                        </span>
-                        {r.waJid.split("@")[0]}
-                      </span>
-                      <span className="d-flex gap-2">
-                        <span className="stat-pill" title="Total pesan">
-                          <i className="bi bi-chat-dots" />
-                          {r.messageCount}
-                        </span>
-                        <span
-                          className={`stat-pill${r.ideaCount > 0 ? " stat-pill-idea" : ""}`}
-                          title="Pesan bertanda ide"
-                        >
-                          <i className="bi bi-lightbulb" />
-                          {r.ideaCount}
-                        </span>
-                      </span>
+            <div className="flex-fill" style={{ minWidth: 0 }}>
+              <div className="card h-100">
+                <div className="card-body">
+                  <h5 className="card-title">Active vs contributive</h5>
+                  {contributive.length === 0 && <EmptyState icon="bi-people" text="Belum ada pesan." />}
+                  {contributive.length > 0 && (
+                    <div className="stat-table">
+                      <div className="stat-row-header">
+                        <span>Participant</span>
+                        <span>Aktivitas</span>
+                      </div>
+                      {contributive.map((r) => (
+                        <div key={r.waJid} className="stat-row">
+                          <span className="stat-row-label">
+                            <span className="stat-row-icon">
+                              <i className="bi bi-person" />
+                            </span>
+                            {r.waJid.split("@")[0]}
+                          </span>
+                          <span className="d-flex gap-2">
+                            <span className="stat-pill" title="Total pesan">
+                              <i className="bi bi-chat-dots" />
+                              {r.messageCount}
+                            </span>
+                            <span
+                              className={`stat-pill${r.ideaCount > 0 ? " stat-pill-idea" : ""}`}
+                              title="Pesan bertanda ide"
+                            >
+                              <i className="bi bi-lightbulb" />
+                              {r.ideaCount}
+                            </span>
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
 

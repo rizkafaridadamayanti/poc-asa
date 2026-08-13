@@ -8,6 +8,7 @@ import {
 } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
 import { Modal } from "../components/Modal.js"
+import { Drawer } from "../components/Drawer.js"
 import { RecipientPicker } from "../components/RecipientPicker.js"
 import { EmptyState } from "../components/EmptyState.js"
 import { NAV_COLORS } from "../navColors.js"
@@ -339,52 +340,14 @@ export function InformasiBaru() {
       </div>
 
       {showForm && (
-        <div className="card mb-4 mx-auto" style={{ maxWidth: "560px" }}>
-          <div className="card-body">
-            <h5 className="card-title">{editingId ? "Edit info" : "Info baru"}</h5>
-            <div className="mb-3">
-              <label htmlFor="type" className="form-label">
-                Type
-              </label>
-              <select
-                id="type"
-                className="form-select"
-                value={form.type}
-                onChange={(e) => setForm({ ...form, type: e.target.value as CuratedInfoType })}
-              >
-                {Object.entries(TYPE_LABEL).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="mb-3">
-              <label htmlFor="title" className="form-label">
-                Title
-              </label>
-              <input
-                id="title"
-                className="form-control"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="Beasiswa Unggulan 2026"
-              />
-            </div>
-            <div className="mb-3">
-              <label htmlFor="body" className="form-label">
-                Body
-              </label>
-              <textarea
-                id="body"
-                className="form-control"
-                rows={4}
-                value={form.body}
-                onChange={(e) => setForm({ ...form, body: e.target.value })}
-                placeholder="Detail info, syarat, link pendaftaran…"
-              />
-            </div>
-            <div className="d-flex gap-2 flex-wrap">
+        <Drawer
+          title={editingId ? "Edit info" : "Info baru"}
+          onClose={cancelForm}
+          footer={
+            <>
+              <button type="button" className="btn btn-link text-muted" onClick={cancelForm} disabled={saving}>
+                Batal
+              </button>
               <button type="button" className="btn btn-outline-secondary" onClick={saveDraft} disabled={saving}>
                 <i className="bi bi-save me-1" />
                 {saving ? "Menyimpan…" : "Simpan Draft"}
@@ -397,12 +360,52 @@ export function InformasiBaru() {
                 <i className="bi bi-clock me-1" />
                 Jadwalkan
               </button>
-              <button type="button" className="btn btn-link text-muted" onClick={cancelForm} disabled={saving}>
-                Batal
-              </button>
-            </div>
+            </>
+          }
+        >
+          <div className="mb-3">
+            <label htmlFor="type" className="form-label">
+              Type
+            </label>
+            <select
+              id="type"
+              className="form-select"
+              value={form.type}
+              onChange={(e) => setForm({ ...form, type: e.target.value as CuratedInfoType })}
+            >
+              {Object.entries(TYPE_LABEL).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
+          <div className="mb-3">
+            <label htmlFor="title" className="form-label">
+              Title
+            </label>
+            <input
+              id="title"
+              className="form-control"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="Beasiswa Unggulan 2026"
+            />
+          </div>
+          <div className="mb-3">
+            <label htmlFor="body" className="form-label">
+              Body
+            </label>
+            <textarea
+              id="body"
+              className="form-control"
+              rows={6}
+              value={form.body}
+              onChange={(e) => setForm({ ...form, body: e.target.value })}
+              placeholder="Detail info, syarat, link pendaftaran…"
+            />
+          </div>
+        </Drawer>
       )}
 
       {loading && <p className="text-muted">Loading…</p>}
