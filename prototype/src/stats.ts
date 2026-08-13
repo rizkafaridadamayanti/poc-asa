@@ -5,8 +5,11 @@ export type ContributiveRow = { waJid: string; messageCount: number; ideaCount: 
 export type PeakHourRow = { hour: number; count: number }
 export type DusunRow = { dusunId: string; groupCount: number }
 
+const JAKARTA_TZ = "Asia/Jakarta"
+
 export async function getContributiveStats(): Promise<ContributiveRow[]> {
   const rows = await MessageModel.aggregate([
+    { $match: { trash: { $ne: true } } },
     {
       $group: {
         _id: "$fromJid",
@@ -21,7 +24,12 @@ export async function getContributiveStats(): Promise<ContributiveRow[]> {
 
 export async function getPeakHours(): Promise<PeakHourRow[]> {
   const rows = await MessageModel.aggregate([
-    { $addFields: { hour: { $hour: { $toDate: { $multiply: ["$timestamp", 1000] } } } } },
+    { $match: { trash: { $ne: true } } },
+    {
+      $addFields: {
+        hour: { $hour: { date: { $toDate: { $multiply: ["$timestamp", 1000] } }, timezone: JAKARTA_TZ } },
+      },
+    },
     { $group: { _id: "$hour", count: { $sum: 1 } } },
     { $sort: { _id: 1 } },
   ])
