@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
+import { Dropdown } from "bootstrap"
 import { api, type Group, type GroupScope } from "../api.js"
 import { NAV_COLORS } from "../navColors.js"
 
@@ -24,6 +25,12 @@ export function AiChatPanel({ groups }: { groups: Group[] }) {
   const [scopeGroupJid, setScopeGroupJid] = useState("")
   const [sending, setSending] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const scopeToggleRef = useRef<HTMLButtonElement>(null)
+
+  const pickScope = (jid: string) => {
+    setScopeGroupJid(jid)
+    if (scopeToggleRef.current) Dropdown.getOrCreateInstance(scopeToggleRef.current).hide()
+  }
 
   const groupsByScope = useMemo(() => {
     const map = new Map<GroupScope | "unset", Group[]>()
@@ -121,24 +128,43 @@ export function AiChatPanel({ groups }: { groups: Group[] }) {
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="d-flex flex-wrap gap-2 mb-2">
-            <div className="dropdown">
+          <div className="ai-chat-composer">
+            <div className={`dropup${scopeGroupJid ? " ai-chat-scope-chip" : ""}`}>
               <button
+                ref={scopeToggleRef}
                 type="button"
-                className="btn btn-outline-secondary btn-sm dropdown-toggle d-inline-flex align-items-center gap-2"
+                className={scopeGroupJid ? "ai-chat-scope-chip-toggle" : "ai-chat-scope-btn"}
                 data-bs-toggle="dropdown"
                 aria-expanded="false"
+                title={scopeGroupJid ? "Ganti grup" : "Pilih grup"}
               >
-                <i className="bi bi-people" />
-                {scopeGroupJid ? groups.find((g) => g.waJid === scopeGroupJid)?.name || scopeGroupJid : "Semua grup"}
+                {scopeGroupJid ? (
+                  <>
+                    <i className="bi bi-people" />
+                    <span>{groups.find((g) => g.waJid === scopeGroupJid)?.name || scopeGroupJid}</span>
+                  </>
+                ) : (
+                  <i className="bi bi-plus-lg" />
+                )}
               </button>
-              <ul className="dropdown-menu shadow-sm" style={{ maxHeight: "280px", overflowY: "auto" }}>
+              {scopeGroupJid ? (
+                <button
+                  type="button"
+                  className="ai-chat-scope-chip-clear"
+                  title="Hapus filter grup"
+                  onClick={() => setScopeGroupJid("")}
+                >
+                  <i className="bi bi-x-lg" />
+                </button>
+              ) : null}
+              <ul className="dropdown-menu ai-chat-scope-menu" style={{ maxHeight: "280px", overflowY: "auto" }}>
                 <li>
                   <button
                     type="button"
                     className={`dropdown-item${scopeGroupJid === "" ? " active" : ""}`}
-                    onClick={() => setScopeGroupJid("")}
+                    onClick={() => pickScope("")}
                   >
+                    <i className="bi bi-globe2" />
                     Semua grup
                   </button>
                 </li>
@@ -155,8 +181,9 @@ export function AiChatPanel({ groups }: { groups: Group[] }) {
                             <button
                               type="button"
                               className={`dropdown-item${scopeGroupJid === g.waJid ? " active" : ""}`}
-                              onClick={() => setScopeGroupJid(g.waJid)}
+                              onClick={() => pickScope(g.waJid)}
                             >
+                              <i className="bi bi-people" />
                               {g.name || g.waJid}
                             </button>
                           </li>
@@ -175,8 +202,9 @@ export function AiChatPanel({ groups }: { groups: Group[] }) {
                           <button
                             type="button"
                             className={`dropdown-item${scopeGroupJid === g.waJid ? " active" : ""}`}
-                            onClick={() => setScopeGroupJid(g.waJid)}
+                            onClick={() => pickScope(g.waJid)}
                           >
+                            <i className="bi bi-people" />
                             {g.name || g.waJid}
                           </button>
                         </li>
@@ -186,8 +214,6 @@ export function AiChatPanel({ groups }: { groups: Group[] }) {
                 ) : null}
               </ul>
             </div>
-          </div>
-          <div className="input-group">
             <input
               className="form-control"
               placeholder="Tanya sesuatu, misal: apa keputusan rapat kemarin soal dana kegiatan?"
@@ -195,7 +221,7 @@ export function AiChatPanel({ groups }: { groups: Group[] }) {
               onChange={(e) => setQuestion(e.target.value)}
               disabled={sending}
             />
-            <button className="btn btn-primary" disabled={sending || !question.trim()}>
+            <button className="btn btn-primary rounded-circle flex-shrink-0" style={{ width: 36, height: 36, padding: 0 }} disabled={sending || !question.trim()}>
               <i className="bi bi-send-fill" />
             </button>
           </div>
