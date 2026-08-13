@@ -75,17 +75,20 @@ function extractText(msg: WAMessage): string | null {
 async function mapInbound(msg: WAMessage, mediaDir: string, log: Logger): Promise<InboundMessage | null> {
   if (!msg.key?.id || !msg.key.remoteJid) return null
   if (msg.key.fromMe) return null
-  const chatJid = msg.key.remoteJid
-  if (isStatusBroadcast(chatJid)) return null
+  const rawChatJid = msg.key.remoteJid
+  if (isStatusBroadcast(rawChatJid)) return null
   const text = extractText(msg)
   const media = extractMediaInfo(msg)
   if (text == null && !media) return null
 
-  const isGroup = isGroupJid(chatJid)
-  const fromJid =
-    (isGroup ? msg.key.participant : undefined) ||
-    msg.key.remoteJid ||
-    ""
+  const isGroup = isGroupJid(rawChatJid)
+  // WhatsApp's newer "LID" privacy identity can show up as remoteJid/participant
+  // instead of the phone-number JID (@s.whatsapp.net). Baileys separately exposes
+  // the phone-number equivalent as senderPn/participantPn when it's known — prefer
+  // that so stored JIDs and outbound replies land in the sender's normal chat
+  // thread instead of a LID-only shadow thread that may not render on their end.
+  const chatJid = isGroup ? rawChatJid : msg.key.senderPn || rawChatJid
+  const fromJid = (isGroup ? msg.key.participantPn || msg.key.participant : undefined) || chatJid
 
   const ts =
     typeof msg.messageTimestamp === "number"
