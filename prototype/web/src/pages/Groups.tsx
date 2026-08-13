@@ -13,13 +13,13 @@ const SCOPE_LABEL: Record<GroupScope, string> = {
 }
 
 const SCOPE_BADGE: Record<GroupScope, string> = {
-  pusat: "badge-soft-green",
+  pusat: "badge-soft-slate",
   dusun: "badge-soft-slate",
   anggota: "badge-soft-slate",
 }
 
 const SCOPE_DOT: Record<GroupScope, string> = {
-  pusat: "#16a34a",
+  pusat: "#334155",
   dusun: "#64748b",
   anggota: "#cbd5e1",
 }

@@ -1,8 +1,9 @@
 /** Single source of truth for the app's brand accent — used by the sidebar nav
- * and each page's header. The theme is green + white, matching the WhatsApp-bot
- * identity, plus red reserved for danger and neutral grays elsewhere — so every
- * section shares the same green instead of each page carrying its own hue. */
-const PRIMARY = "#16a34a"
+ * and each page's header. The theme is navy + white as the brand identity;
+ * green/amber/red are reserved for status meaning (success/warning/danger)
+ * elsewhere, not used here — so every section shares the same navy instead of
+ * each page carrying its own hue. */
+const PRIMARY = "#1e3a5f"
 const NEUTRAL = "#64748b"
 
 export const NAV_COLORS = {

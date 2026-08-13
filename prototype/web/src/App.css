@@ -4,30 +4,45 @@
 }
 
 /*
- * Strict 3-color system — every color in the app is one of these three,
- * used by MEANING, not decoration:
- *   - green  = primary actions / default-positive state (buttons, active
- *              nav, "Connected", sent/success badges)
- *   - red    = attention / alerts only (spam scores, delete, overdue,
- *              destructive actions) — kept rare so it stands out
- *   - slate  = neutral information (draft/scheduled/Personal/Custom-style
- *              badges, secondary buttons, chart bars, empty-state icons)
+ * Navy-brand + 3-status color system — every color in the app is one of
+ * these four, used by MEANING, not decoration:
+ *   - navy   = brand / primary chrome (buttons, active nav, page-header
+ *              accents, WA logo badge) — no status meaning of its own
+ *   - green  = success / safe / good standing (Connected, sent, "Bukan
+ *              Spam", far-from-due agenda)
+ *   - amber  = warning / needs attention soon (draft, Terjadwal, agenda
+ *              approaching due date, Ditinjau)
+ *   - red    = danger / destructive (delete, spam score, overdue,
+ *              Konfirmasi Spam, Reset Semua Pesan) — kept rare so it stands out
+ *   - slate  = neutral, non-semantic labels (Personal, Custom, group tags)
  * Bootstrap's compiled CSS hardcodes its own default blue/red per-component
  * rather than deriving them from a shared variable, so each of those
  * components gets an explicit override below to actually pick up the token.
  */
 :root {
-  --brand-green: #16a34a;
-  --brand-green-hover: #15803d;
-  --brand-green-active: #166534;
-  --brand-green-soft-bg: rgba(22, 163, 74, 0.12);
-  --brand-green-soft-text: #15803d;
+  --brand-navy: #1e3a5f;
+  --brand-navy-hover: #16293f;
+  --brand-navy-active: #0f1d30;
+  --brand-navy-soft-bg: rgba(30, 58, 95, 0.1);
+  --brand-navy-soft-text: #14243a;
 
-  --alert-red: #e11d48;
-  --alert-red-hover: #be123c;
-  --alert-red-active: #9f1239;
-  --alert-red-soft-bg: rgba(225, 29, 72, 0.12);
-  --alert-red-soft-text: #be123c;
+  --status-success: #16a34a;
+  --status-success-hover: #15803d;
+  --status-success-active: #166534;
+  --status-success-soft-bg: rgba(22, 163, 74, 0.12);
+  --status-success-soft-text: #166534;
+
+  --status-warning: #d97706;
+  --status-warning-hover: #b45309;
+  --status-warning-active: #92400e;
+  --status-warning-soft-bg: rgba(217, 119, 6, 0.14);
+  --status-warning-soft-text: #92400e;
+
+  --status-danger: #dc2626;
+  --status-danger-hover: #b91c1c;
+  --status-danger-active: #991b1b;
+  --status-danger-soft-bg: rgba(220, 38, 38, 0.1);
+  --status-danger-soft-text: #991b1b;
 
   --info-slate: #475569;
   --info-slate-hover: #334155;
@@ -40,57 +55,78 @@ body {
 }
 
 :root {
-  --bs-primary-rgb: 22, 163, 74;
-  --bs-danger-rgb: 225, 29, 72;
+  --bs-primary-rgb: 30, 58, 95;
+  --bs-danger-rgb: 220, 38, 38;
   --bs-success-rgb: 22, 163, 74;
+  --bs-warning-rgb: 217, 119, 6;
 }
 
 .btn-primary {
-  --bs-btn-bg: #16a34a;
-  --bs-btn-border-color: #16a34a;
-  --bs-btn-hover-bg: #15803d;
-  --bs-btn-hover-border-color: #15803d;
-  --bs-btn-focus-shadow-rgb: 22, 163, 74;
-  --bs-btn-active-bg: #166534;
-  --bs-btn-active-border-color: #166534;
-  --bs-btn-disabled-bg: #16a34a;
-  --bs-btn-disabled-border-color: #16a34a;
+  --bs-btn-bg: #1e3a5f;
+  --bs-btn-border-color: #1e3a5f;
+  --bs-btn-hover-bg: #16293f;
+  --bs-btn-hover-border-color: #16293f;
+  --bs-btn-focus-shadow-rgb: 30, 58, 95;
+  --bs-btn-active-bg: #0f1d30;
+  --bs-btn-active-border-color: #0f1d30;
+  --bs-btn-disabled-bg: #1e3a5f;
+  --bs-btn-disabled-border-color: #1e3a5f;
 }
 
 .btn-outline-primary {
+  --bs-btn-color: #1e3a5f;
+  --bs-btn-border-color: #1e3a5f;
+  --bs-btn-hover-bg: #1e3a5f;
+  --bs-btn-hover-border-color: #1e3a5f;
+  --bs-btn-focus-shadow-rgb: 30, 58, 95;
+  --bs-btn-active-bg: #1e3a5f;
+  --bs-btn-active-border-color: #1e3a5f;
+  --bs-btn-disabled-color: #1e3a5f;
+  --bs-btn-disabled-border-color: #1e3a5f;
+}
+
+.btn-danger {
+  --bs-btn-bg: #dc2626;
+  --bs-btn-border-color: #dc2626;
+  --bs-btn-hover-bg: #b91c1c;
+  --bs-btn-hover-border-color: #b91c1c;
+  --bs-btn-focus-shadow-rgb: 220, 38, 38;
+  --bs-btn-active-bg: #991b1b;
+  --bs-btn-active-border-color: #991b1b;
+  --bs-btn-disabled-bg: #dc2626;
+  --bs-btn-disabled-border-color: #dc2626;
+}
+
+.btn-outline-danger {
+  --bs-btn-color: #dc2626;
+  --bs-btn-border-color: #dc2626;
+  --bs-btn-hover-bg: #dc2626;
+  --bs-btn-hover-border-color: #dc2626;
+  --bs-btn-focus-shadow-rgb: 220, 38, 38;
+  --bs-btn-active-bg: #dc2626;
+  --bs-btn-active-border-color: #dc2626;
+  --bs-btn-disabled-color: #dc2626;
+  --bs-btn-disabled-border-color: #dc2626;
+}
+
+.btn-success,
+.btn-outline-success {
   --bs-btn-color: #16a34a;
   --bs-btn-border-color: #16a34a;
+  --bs-btn-hover-color: #fff;
   --bs-btn-hover-bg: #16a34a;
   --bs-btn-hover-border-color: #16a34a;
   --bs-btn-focus-shadow-rgb: 22, 163, 74;
-  --bs-btn-active-bg: #16a34a;
-  --bs-btn-active-border-color: #16a34a;
+  --bs-btn-active-bg: #15803d;
+  --bs-btn-active-border-color: #15803d;
   --bs-btn-disabled-color: #16a34a;
   --bs-btn-disabled-border-color: #16a34a;
 }
 
-.btn-danger {
-  --bs-btn-bg: #e11d48;
-  --bs-btn-border-color: #e11d48;
-  --bs-btn-hover-bg: #be123c;
-  --bs-btn-hover-border-color: #be123c;
-  --bs-btn-focus-shadow-rgb: 225, 29, 72;
-  --bs-btn-active-bg: #9f1239;
-  --bs-btn-active-border-color: #9f1239;
-  --bs-btn-disabled-bg: #e11d48;
-  --bs-btn-disabled-border-color: #e11d48;
-}
-
-.btn-outline-danger {
-  --bs-btn-color: #e11d48;
-  --bs-btn-border-color: #e11d48;
-  --bs-btn-hover-bg: #e11d48;
-  --bs-btn-hover-border-color: #e11d48;
-  --bs-btn-focus-shadow-rgb: 225, 29, 72;
-  --bs-btn-active-bg: #e11d48;
-  --bs-btn-active-border-color: #e11d48;
-  --bs-btn-disabled-color: #e11d48;
-  --bs-btn-disabled-border-color: #e11d48;
+.btn-success {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: #16a34a;
+  --bs-btn-hover-color: #fff;
 }
 
 .btn-outline-secondary {
@@ -107,23 +143,23 @@ body {
 }
 
 .dropdown-menu {
-  --bs-dropdown-link-active-bg: #16a34a;
+  --bs-dropdown-link-active-bg: #1e3a5f;
 }
 
 .form-control:focus,
 .form-select:focus {
-  border-color: #86efac;
-  box-shadow: 0 0 0 0.25rem rgba(22, 163, 74, 0.2);
+  border-color: #93a9c4;
+  box-shadow: 0 0 0 0.25rem rgba(30, 58, 95, 0.2);
 }
 
 .form-check-input:checked {
-  background-color: #16a34a;
-  border-color: #16a34a;
+  background-color: #1e3a5f;
+  border-color: #1e3a5f;
 }
 
 .form-check-input:focus {
-  border-color: #86efac;
-  box-shadow: 0 0 0 0.25rem rgba(22, 163, 74, 0.2);
+  border-color: #93a9c4;
+  box-shadow: 0 0 0 0.25rem rgba(30, 58, 95, 0.2);
 }
 
 .app-topbar {
@@ -241,7 +277,7 @@ body {
   height: 36px;
   flex-shrink: 0;
   border-radius: 9px;
-  background: #16a34a;
+  background: #1e3a5f;
   color: #fff;
   font-size: 1rem;
 }
@@ -399,7 +435,7 @@ body {
 }
 
 .ai-chat-bubble-user {
-  background: #16a34a;
+  background: #1e3a5f;
   color: #fff;
   border-bottom-right-radius: 0.25rem;
 }
@@ -418,8 +454,8 @@ body {
   height: 28px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: color-mix(in srgb, #16a34a 15%, white);
-  color: #16a34a;
+  background: color-mix(in srgb, #1e3a5f 15%, white);
+  color: #1e3a5f;
   font-size: 0.85rem;
 }
 
@@ -434,8 +470,8 @@ body {
 }
 
 .ai-chat-composer:focus-within {
-  border-color: #86efac;
-  box-shadow: 0 0 0 0.2rem rgba(22, 163, 74, 0.15);
+  border-color: #93a9c4;
+  box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.15);
 }
 
 .ai-chat-composer .form-control {
@@ -475,9 +511,9 @@ body {
   height: 36px;
   padding: 0 0.4rem 0 0.75rem;
   border-radius: 999px;
-  border: 1px solid #bbf7d0;
-  background: #f0fdf4;
-  color: #15803d;
+  border: 1px solid #b9c6d6;
+  background: var(--brand-navy-soft-bg);
+  color: var(--brand-navy-hover);
   font-size: 0.8rem;
   font-weight: 500;
   white-space: nowrap;
@@ -504,7 +540,7 @@ body {
 .ai-chat-scope-chip-clear {
   border: none;
   background: transparent;
-  color: #15803d;
+  color: var(--brand-navy-hover);
   opacity: 0.6;
   padding: 0.25rem;
   line-height: 1;
@@ -539,7 +575,7 @@ body {
 }
 
 .ai-chat-scope-menu .dropdown-item i {
-  color: #16a34a;
+  color: #1e3a5f;
   font-size: 0.9rem;
   width: 1.1rem;
   text-align: center;
@@ -711,23 +747,35 @@ body {
 }
 
 .stat-pill-idea {
-  background: var(--brand-green-soft-bg);
-  color: var(--brand-green-soft-text);
+  background: var(--status-success-soft-bg);
+  color: var(--status-success-soft-text);
 }
 
 /* Solid-but-soft badges: 10-15% tint background + full-opacity text, used
-   for the 3 meaningful colors only (green/red/slate) instead of Bootstrap's
+   for the 4 meaningful colors (navy/green/amber/red) instead of Bootstrap's
    flat solid text-bg-* badges. */
+.badge-soft-navy {
+  --bs-badge-color: var(--brand-navy-soft-text);
+  background-color: var(--brand-navy-soft-bg);
+  color: var(--brand-navy-soft-text);
+}
+
 .badge-soft-green {
-  --bs-badge-color: var(--brand-green-soft-text);
-  background-color: var(--brand-green-soft-bg);
-  color: var(--brand-green-soft-text);
+  --bs-badge-color: var(--status-success-soft-text);
+  background-color: var(--status-success-soft-bg);
+  color: var(--status-success-soft-text);
+}
+
+.badge-soft-amber {
+  --bs-badge-color: var(--status-warning-soft-text);
+  background-color: var(--status-warning-soft-bg);
+  color: var(--status-warning-soft-text);
 }
 
 .badge-soft-red {
-  --bs-badge-color: var(--alert-red-soft-text);
-  background-color: var(--alert-red-soft-bg);
-  color: var(--alert-red-soft-text);
+  --bs-badge-color: var(--status-danger-soft-text);
+  background-color: var(--status-danger-soft-bg);
+  color: var(--status-danger-soft-text);
 }
 
 .badge-soft-slate {
@@ -745,6 +793,10 @@ body {
 
 .text-info-slate {
   color: var(--info-slate) !important;
+}
+
+.text-warning-amber {
+  color: var(--status-warning-soft-text) !important;
 }
 
 .segmented-tabs {
@@ -780,9 +832,9 @@ body {
 
 .segmented-tab.active,
 .segmented-tab.active:hover {
-  background: #16a34a;
+  background: #1e3a5f;
   color: #fff;
-  box-shadow: 0 1px 4px rgba(22, 163, 74, 0.4);
+  box-shadow: 0 1px 4px rgba(30, 58, 95, 0.4);
 }
 
 .segmented-tabs-sm .segmented-tab {

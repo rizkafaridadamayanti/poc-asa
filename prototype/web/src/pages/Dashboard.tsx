@@ -182,7 +182,7 @@ export function Dashboard() {
                 <div className="d-flex align-items-start gap-3 flex-wrap">
                   <div
                     className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
-                    style={{ width: 48, height: 48, backgroundColor: "color-mix(in srgb, #16a34a 15%, white)", color: "#16a34a" }}
+                    style={{ width: 48, height: 48, backgroundColor: "color-mix(in srgb, #16a34a 15%, white)", color: "#166534" }}
                   >
                     <i className="bi bi-whatsapp fs-4" />
                   </div>
@@ -248,13 +248,13 @@ export function Dashboard() {
         {isConnected && status && (
           <div className="d-flex flex-column flex-sm-row gap-3 flex-grow-1" style={{ minWidth: 0 }}>
             <div className="flex-fill" style={{ minWidth: 0 }}>
-              <StatCard icon="bi-chat-dots" label="Messages" value={status.messageCount} color="#16a34a" />
+              <StatCard icon="bi-chat-dots" label="Messages" value={status.messageCount} color="#1e3a5f" />
             </div>
             <div className="flex-fill" style={{ minWidth: 0 }}>
-              <StatCard icon="bi-journal-text" label="Summaries" value={status.summaryCount} color="#16a34a" />
+              <StatCard icon="bi-journal-text" label="Summaries" value={status.summaryCount} color="#1e3a5f" />
             </div>
             <div className="flex-fill" style={{ minWidth: 0 }}>
-              <StatCard icon="bi-people" label="Participants" value={status.participantCount} color="#16a34a" />
+              <StatCard icon="bi-people" label="Participants" value={status.participantCount} color="#1e3a5f" />
             </div>
           </div>
         )}

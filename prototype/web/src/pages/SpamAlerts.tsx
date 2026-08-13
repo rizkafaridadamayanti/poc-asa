@@ -125,7 +125,7 @@ export function SpamAlerts() {
                   Konfirmasi Spam
                 </button>
                 <button
-                  className="btn btn-outline-secondary btn-sm"
+                  className="btn btn-outline-success btn-sm"
                   onClick={() => setStatus(a._id, "dismissed")}
                   disabled={busyId === a._id}
                 >

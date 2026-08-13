@@ -23,13 +23,22 @@ function toLocalInputValue(iso: string): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-function relativeDue(dueAt: string): { text: string; overdue: boolean } {
+type DueStatus = "ok" | "soon" | "overdue"
+
+const DUE_BADGE: Record<DueStatus, string> = {
+  ok: "badge-soft-green",
+  soon: "badge-soft-amber",
+  overdue: "badge-soft-red",
+}
+
+function relativeDue(dueAt: string): { text: string; status: DueStatus } {
   const diffMs = new Date(dueAt).getTime() - Date.now()
   const days = Math.round(diffMs / (24 * 60 * 60 * 1000))
-  if (diffMs < 0) return { text: "Sudah lewat", overdue: true }
-  if (days === 0) return { text: "Hari ini", overdue: false }
-  if (days === 1) return { text: "Besok", overdue: false }
-  return { text: `${days} hari lagi`, overdue: false }
+  if (diffMs < 0) return { text: "Sudah lewat", status: "overdue" }
+  if (days === 0) return { text: "Hari ini", status: "soon" }
+  if (days === 1) return { text: "Besok", status: "soon" }
+  if (days <= 3) return { text: `${days} hari lagi`, status: "soon" }
+  return { text: `${days} hari lagi`, status: "ok" }
 }
 
 export function PengingatAgenda() {
@@ -379,7 +388,7 @@ export function PengingatAgenda() {
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                 <strong className="fs-6">{a.title}</strong>
-                <span className={`badge rounded-pill ${due.overdue ? "badge-soft-red" : "badge-soft-green"}`}>
+                <span className={`badge rounded-pill ${DUE_BADGE[due.status]}`}>
                   {due.text}
                 </span>
               </div>
