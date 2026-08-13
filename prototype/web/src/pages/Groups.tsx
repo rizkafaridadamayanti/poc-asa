@@ -57,6 +57,10 @@ export function Groups() {
   const [scopeFilter, setScopeFilter] = useState<ScopeFilter>("all")
   const [search, setSearch] = useState("")
 
+  const [editingDusunId, setEditingDusunId] = useState<string | null>(null)
+  const [dusunDraft, setDusunDraft] = useState("")
+  const [savingDusun, setSavingDusun] = useState(false)
+
   const load = async () => {
     setLoading(true)
     setError(null)
@@ -99,6 +103,31 @@ export function Groups() {
       await load()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  const startEditDusun = (g: Group) => {
+    setEditingDusunId(g._id)
+    setDusunDraft(g.dusunId ?? "")
+  }
+
+  const cancelEditDusun = () => {
+    setEditingDusunId(null)
+    setDusunDraft("")
+  }
+
+  const saveDusun = async (id: string) => {
+    setSavingDusun(true)
+    setError(null)
+    try {
+      await api.updateGroup(id, { dusunId: dusunDraft.trim() })
+      setEditingDusunId(null)
+      setDusunDraft("")
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setSavingDusun(false)
     }
   }
 
@@ -311,9 +340,53 @@ export function Groups() {
             <div>
               <strong>{g.name || g.waJid}</strong>
               {g.source === "auto" && <span className="text-muted small ms-2">(auto)</span>}
-              <div className="text-muted small">
-                {g.waJid}
-                {g.dusunId ? ` · dusun: ${g.dusunId}` : ""}
+              <div className="text-muted small d-flex align-items-center flex-wrap gap-1">
+                <span>{g.waJid}</span>
+                {editingDusunId === g._id ? (
+                  <span className="d-inline-flex align-items-center gap-1">
+                    <span>·</span>
+                    <input
+                      autoFocus
+                      className="form-control form-control-sm dusun-edit-input"
+                      placeholder="Nama dusun"
+                      value={dusunDraft}
+                      onChange={(e) => setDusunDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveDusun(g._id)
+                        if (e.key === "Escape") cancelEditDusun()
+                      }}
+                      disabled={savingDusun}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-link btn-sm p-0 text-success"
+                      onClick={() => saveDusun(g._id)}
+                      disabled={savingDusun}
+                      title="Simpan"
+                    >
+                      <i className="bi bi-check-lg" />
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-link btn-sm p-0 text-muted"
+                      onClick={cancelEditDusun}
+                      disabled={savingDusun}
+                      title="Batal"
+                    >
+                      <i className="bi bi-x-lg" />
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-link btn-sm p-0 text-decoration-none text-muted dusun-edit-trigger"
+                    onClick={() => startEditDusun(g)}
+                    title="Edit dusun"
+                  >
+                    {g.dusunId ? `· dusun: ${g.dusunId}` : "+ Tambah dusun"}
+                    <i className="bi bi-pencil ms-1" />
+                  </button>
+                )}
               </div>
             </div>
             <div className="d-flex align-items-center gap-2">
