@@ -422,28 +422,15 @@ export function InformasiBaru() {
                 {new Date(item.createdAt).toLocaleString()}
               </span>
             </div>
-            <p className="my-3" style={{ whiteSpace: "pre-wrap" }}>
-              {item.body}
-            </p>
-            <p className="text-muted small mb-3">
-              Targets ({item.targets.length}): {item.targets.length > 0 ? item.targets.join(", ") : "—"}
-            </p>
             {item.status === "scheduled" && (
-              <p className="text-primary small mb-3">
+              <p className="text-primary small mt-3 mb-0">
                 <i className="bi bi-clock me-1" />
                 Terjadwal: {item.scheduledAt ? new Date(item.scheduledAt).toLocaleString() : "—"}
               </p>
             )}
-            <div className="d-flex gap-2 flex-wrap align-items-center">
-              <button
-                className="btn btn-outline-secondary btn-sm"
-                onClick={() => setViewingItem(item)}
-              >
-                <i className="bi bi-eye me-1" />
-                Lihat Detail
-              </button>
-              {viewMode === "trash" ? (
-                <>
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
+              <div className="d-flex gap-2 flex-wrap align-items-center">
+                {viewMode === "trash" ? (
                   <button
                     className="btn btn-outline-success btn-sm"
                     onClick={() => handleRestore(item._id)}
@@ -452,6 +439,73 @@ export function InformasiBaru() {
                     <i className="bi bi-arrow-counterclockwise me-1" />
                     Pulihkan
                   </button>
+                ) : (
+                  <>
+                    {item.status === "draft" && (
+                      <>
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          onClick={() => startEdit(item)}
+                          disabled={busyId === item._id}
+                        >
+                          <i className="bi bi-pencil me-1" />
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => quickAction(item, "send")}
+                          disabled={busyId === item._id}
+                        >
+                          <i className="bi bi-send-fill me-1" />
+                          Kirim Langsung
+                        </button>
+                        <button
+                          className="btn btn-outline-primary btn-sm"
+                          onClick={() => quickAction(item, "schedule")}
+                          disabled={busyId === item._id}
+                        >
+                          <i className="bi bi-clock me-1" />
+                          Jadwalkan
+                        </button>
+                      </>
+                    )}
+                    {item.status === "scheduled" && (
+                      <>
+                        <button
+                          className="btn btn-primary btn-sm"
+                          onClick={() => handleSendNow(item._id)}
+                          disabled={busyId === item._id}
+                        >
+                          <i className="bi bi-send-fill me-1" />
+                          {busyId === item._id ? "Mengirim…" : "Kirim Sekarang"}
+                        </button>
+                        <button
+                          className="btn btn-outline-secondary btn-sm"
+                          onClick={() => handleUnschedule(item._id)}
+                          disabled={busyId === item._id}
+                        >
+                          <i className="bi bi-x-circle me-1" />
+                          Batalkan Jadwal
+                        </button>
+                      </>
+                    )}
+                    {item.status === "sent" && (
+                      <span className="text-muted small">
+                        Sent {item.sentAt ? new Date(item.sentAt).toLocaleString() : ""}
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+              <div className="d-flex gap-2 flex-wrap align-items-center">
+                <button
+                  className="btn btn-outline-secondary btn-sm"
+                  onClick={() => setViewingItem(item)}
+                >
+                  <i className="bi bi-eye me-1" />
+                  Lihat Detail
+                </button>
+                {viewMode === "trash" ? (
                   <button
                     className="btn btn-outline-danger btn-sm"
                     onClick={() => setConfirmingDeleteId(item._id)}
@@ -460,62 +514,7 @@ export function InformasiBaru() {
                     <i className="bi bi-trash3 me-1" />
                     Hapus Permanen
                   </button>
-                </>
-              ) : (
-                <>
-                  {item.status === "draft" && (
-                    <>
-                      <button
-                        className="btn btn-outline-secondary btn-sm"
-                        onClick={() => startEdit(item)}
-                        disabled={busyId === item._id}
-                      >
-                        <i className="bi bi-pencil me-1" />
-                        Edit
-                      </button>
-                      <button
-                        className="btn btn-primary btn-sm"
-                        onClick={() => quickAction(item, "send")}
-                        disabled={busyId === item._id}
-                      >
-                        <i className="bi bi-send-fill me-1" />
-                        Kirim Langsung
-                      </button>
-                      <button
-                        className="btn btn-outline-primary btn-sm"
-                        onClick={() => quickAction(item, "schedule")}
-                        disabled={busyId === item._id}
-                      >
-                        <i className="bi bi-clock me-1" />
-                        Jadwalkan
-                      </button>
-                    </>
-                  )}
-                  {item.status === "scheduled" && (
-                    <>
-                      <button
-                        className="btn btn-primary btn-sm"
-                        onClick={() => handleSendNow(item._id)}
-                        disabled={busyId === item._id}
-                      >
-                        <i className="bi bi-send-fill me-1" />
-                        {busyId === item._id ? "Mengirim…" : "Kirim Sekarang"}
-                      </button>
-                      <button
-                        className="btn btn-outline-secondary btn-sm"
-                        onClick={() => handleUnschedule(item._id)}
-                        disabled={busyId === item._id}
-                      >
-                        <i className="bi bi-x-circle me-1" />
-                        Batalkan Jadwal
-                      </button>
-                    </>
-                  )}
-                  {item.status === "sent" && (
-                    <span className="text-muted small">
-                      Sent {item.sentAt ? new Date(item.sentAt).toLocaleString() : ""}
-                    </span>
-                  )}
+                ) : (
                   <button
                     className="btn btn-outline-danger btn-sm"
                     onClick={() => handleDelete(item._id)}
@@ -524,8 +523,8 @@ export function InformasiBaru() {
                     <i className="bi bi-trash me-1" />
                     Delete
                   </button>
-                </>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
