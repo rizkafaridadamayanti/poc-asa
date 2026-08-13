@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react"
-import { api, type Group } from "../api.js"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { api, type Group, type GroupScope } from "../api.js"
 import { NAV_COLORS } from "../navColors.js"
 
 type Exchange = {
@@ -11,12 +11,30 @@ type Exchange = {
   pending: boolean
 }
 
+const SCOPE_LABEL: Record<GroupScope, string> = {
+  pusat: "Pusat",
+  dusun: "Dusun",
+  anggota: "Anggota",
+}
+const SCOPE_ORDER: GroupScope[] = ["pusat", "dusun", "anggota"]
+
 export function AiChatPanel({ groups }: { groups: Group[] }) {
   const [conversation, setConversation] = useState<Exchange[]>([])
   const [question, setQuestion] = useState("")
   const [scopeGroupJid, setScopeGroupJid] = useState("")
   const [sending, setSending] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  const groupsByScope = useMemo(() => {
+    const map = new Map<GroupScope | "unset", Group[]>()
+    for (const g of groups) {
+      const key = g.scope ?? "unset"
+      const list = map.get(key)
+      if (list) list.push(g)
+      else map.set(key, [g])
+    }
+    return map
+  }, [groups])
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" })
@@ -124,22 +142,48 @@ export function AiChatPanel({ groups }: { groups: Group[] }) {
                     Semua grup
                   </button>
                 </li>
-                {groups.length > 0 && (
+                {SCOPE_ORDER.map((scope) => {
+                  const list = groupsByScope.get(scope)
+                  if (!list || list.length === 0) return null
+                  return (
+                    <li key={scope}>
+                      <hr className="dropdown-divider" />
+                      <h6 className="dropdown-header">{SCOPE_LABEL[scope]}</h6>
+                      <ul className="list-unstyled mb-0">
+                        {list.map((g) => (
+                          <li key={g._id}>
+                            <button
+                              type="button"
+                              className={`dropdown-item${scopeGroupJid === g.waJid ? " active" : ""}`}
+                              onClick={() => setScopeGroupJid(g.waJid)}
+                            >
+                              {g.name || g.waJid}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  )
+                })}
+                {groupsByScope.get("unset")?.length ? (
                   <li>
                     <hr className="dropdown-divider" />
+                    <h6 className="dropdown-header">Belum diatur</h6>
+                    <ul className="list-unstyled mb-0">
+                      {groupsByScope.get("unset")!.map((g) => (
+                        <li key={g._id}>
+                          <button
+                            type="button"
+                            className={`dropdown-item${scopeGroupJid === g.waJid ? " active" : ""}`}
+                            onClick={() => setScopeGroupJid(g.waJid)}
+                          >
+                            {g.name || g.waJid}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
                   </li>
-                )}
-                {groups.map((g) => (
-                  <li key={g._id}>
-                    <button
-                      type="button"
-                      className={`dropdown-item${scopeGroupJid === g.waJid ? " active" : ""}`}
-                      onClick={() => setScopeGroupJid(g.waJid)}
-                    >
-                      {g.name || g.waJid}
-                    </button>
-                  </li>
-                ))}
+                ) : null}
               </ul>
             </div>
           </div>
