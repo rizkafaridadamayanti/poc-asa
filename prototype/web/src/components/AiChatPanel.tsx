@@ -104,20 +104,44 @@ export function AiChatPanel({ groups }: { groups: Group[] }) {
 
         <form onSubmit={handleSubmit}>
           <div className="d-flex flex-wrap gap-2 mb-2">
-            <select
-              className="form-select form-select-sm"
-              style={{ maxWidth: "260px" }}
-              value={scopeGroupJid}
-              onChange={(e) => setScopeGroupJid(e.target.value)}
-              aria-label="Batasi ke satu grup"
-            >
-              <option value="">Semua grup</option>
-              {groups.map((g) => (
-                <option key={g._id} value={g.waJid}>
-                  {g.name || g.waJid}
-                </option>
-              ))}
-            </select>
+            <div className="dropdown">
+              <button
+                type="button"
+                className="btn btn-outline-secondary btn-sm dropdown-toggle d-inline-flex align-items-center gap-2"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i className="bi bi-people" />
+                {scopeGroupJid ? groups.find((g) => g.waJid === scopeGroupJid)?.name || scopeGroupJid : "Semua grup"}
+              </button>
+              <ul className="dropdown-menu shadow-sm" style={{ maxHeight: "280px", overflowY: "auto" }}>
+                <li>
+                  <button
+                    type="button"
+                    className={`dropdown-item${scopeGroupJid === "" ? " active" : ""}`}
+                    onClick={() => setScopeGroupJid("")}
+                  >
+                    Semua grup
+                  </button>
+                </li>
+                {groups.length > 0 && (
+                  <li>
+                    <hr className="dropdown-divider" />
+                  </li>
+                )}
+                {groups.map((g) => (
+                  <li key={g._id}>
+                    <button
+                      type="button"
+                      className={`dropdown-item${scopeGroupJid === g.waJid ? " active" : ""}`}
+                      onClick={() => setScopeGroupJid(g.waJid)}
+                    >
+                      {g.name || g.waJid}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
           <div className="input-group">
             <input
