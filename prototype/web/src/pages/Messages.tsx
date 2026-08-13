@@ -199,19 +199,21 @@ export function Messages() {
       {info && <div className="alert alert-success">{info}</div>}
 
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <div className="btn-group">
+        <div className="segmented-tabs">
           <button
-            className={`btn btn-sm ${viewMode === "active" ? "btn-primary" : "btn-outline-primary"}`}
+            type="button"
+            className={`segmented-tab${viewMode === "active" ? " active" : ""}`}
             onClick={() => switchView("active")}
           >
-            <i className="bi bi-inbox me-1" />
+            <i className="bi bi-inbox" />
             Pesan Aktif
           </button>
           <button
-            className={`btn btn-sm ${viewMode === "trash" ? "btn-primary" : "btn-outline-primary"}`}
+            type="button"
+            className={`segmented-tab${viewMode === "trash" ? " active" : ""}`}
             onClick={() => switchView("trash")}
           >
-            <i className="bi bi-clock-history me-1" />
+            <i className="bi bi-clock-history" />
             Riwayat
           </button>
         </div>

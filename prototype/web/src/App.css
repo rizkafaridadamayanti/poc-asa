@@ -584,3 +584,43 @@ body {
   background: rgba(124, 58, 237, 0.12);
   color: #7c3aed;
 }
+
+.segmented-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #f1f3f7;
+  border-radius: 999px;
+  padding: 3px;
+  flex-wrap: wrap;
+}
+
+.segmented-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: none;
+  background: transparent;
+  color: #4b5563;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.segmented-tab:hover {
+  color: #1f2937;
+}
+
+.segmented-tab.active {
+  background: #fff;
+  color: #1f2937;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.18);
+}
+
+.segmented-tabs-sm .segmented-tab {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.78rem;
+}
