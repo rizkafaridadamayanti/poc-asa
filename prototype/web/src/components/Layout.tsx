@@ -94,14 +94,14 @@ export function Layout() {
 
   const statusBadge =
     connected === null ? (
-      <span className="badge text-bg-secondary">Syncing…</span>
+      <span className="badge badge-soft-slate">Syncing…</span>
     ) : connected ? (
-      <span className="badge text-bg-success d-inline-flex align-items-center gap-2">
+      <span className="badge badge-soft-green d-inline-flex align-items-center gap-2">
         <span className="live-dot" />
         WA Connected
       </span>
     ) : (
-      <span className="badge text-bg-danger">WA Disconnected</span>
+      <span className="badge badge-soft-red">WA Disconnected</span>
     )
 
   return (

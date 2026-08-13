@@ -19,7 +19,7 @@ export function MediaTypeBadge({ type }: { type: string }) {
   const info = MEDIA_TYPE_INFO[type]
   if (!info) return null
   return (
-    <span className="badge text-bg-secondary me-1">
+    <span className="badge badge-soft-slate me-1">
       <i className={`bi ${info.icon} me-1`} />
       {info.label}
     </span>

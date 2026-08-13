@@ -378,8 +378,8 @@ export function Summaries() {
             <dd className="col-9">{viewingSummary.sourceMessageIds.length}</dd>
             <dt className="col-3">Status</dt>
             <dd className="col-9">
-              {viewingSummary.read && <span className="badge text-bg-secondary me-1">Read</span>}
-              {viewingSummary.important && <span className="badge text-bg-primary me-1">Important</span>}
+              {viewingSummary.read && <span className="badge badge-soft-slate me-1">Read</span>}
+              {viewingSummary.important && <span className="badge badge-soft-green me-1">Important</span>}
               {!viewingSummary.read && !viewingSummary.important && <span className="text-muted">—</span>}
             </dd>
           </dl>

@@ -100,7 +100,7 @@ export function AntrianIde() {
         <div key={idea._id} className="card mb-3">
           <div className="card-body">
             <div className="d-flex justify-content-between align-items-start gap-3">
-              <span className={`badge rounded-pill ${idea.status === "new" ? "text-bg-success" : "text-bg-secondary"}`}>
+              <span className={`badge rounded-pill ${idea.status === "new" ? "badge-soft-green" : "badge-soft-slate"}`}>
                 {idea.status === "new" ? "Baru" : "Ditinjau"}
               </span>
               <span className="text-muted small text-nowrap">{new Date(idea.createdAt).toLocaleString()}</span>

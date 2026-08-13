@@ -19,9 +19,9 @@ const TYPE_LABEL: Record<CuratedInfoType, string> = {
 }
 
 const STATUS_BADGE: Record<CuratedInfoStatus, string> = {
-  draft: "text-bg-secondary",
-  scheduled: "text-bg-primary",
-  sent: "text-bg-success",
+  draft: "badge-soft-slate",
+  scheduled: "badge-soft-slate",
+  sent: "badge-soft-green",
 }
 
 const STATUS_FILTERS: Array<{ value: CuratedInfoStatus | "all"; label: string }> = [
@@ -426,7 +426,7 @@ export function InformasiBaru() {
               </span>
             </div>
             {item.status === "scheduled" && (
-              <p className="text-primary small mt-3 mb-0">
+              <p className="text-info-slate small mt-3 mb-0">
                 <i className="bi bi-clock me-1" />
                 Terjadwal: {item.scheduledAt ? new Date(item.scheduledAt).toLocaleString() : "—"}
               </p>

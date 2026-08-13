@@ -89,9 +89,9 @@ export function SpamAlerts() {
           <div className="card-body">
             <div className="d-flex justify-content-between align-items-start gap-3 flex-wrap">
               <div className="d-flex gap-2 align-items-center flex-wrap">
-                <span className="badge rounded-pill text-bg-danger">Skor {a.spamScore}/100</span>
-                {a.status === "confirmed" && <span className="badge rounded-pill text-bg-secondary">Dikonfirmasi spam</span>}
-                {a.status === "dismissed" && <span className="badge rounded-pill text-bg-secondary">Bukan spam</span>}
+                <span className="badge rounded-pill badge-soft-red">Skor {a.spamScore}/100</span>
+                {a.status === "confirmed" && <span className="badge rounded-pill badge-soft-red">Dikonfirmasi spam</span>}
+                {a.status === "dismissed" && <span className="badge rounded-pill badge-soft-green">Bukan spam</span>}
                 {a.notified && (
                   <span className="text-muted small">
                     <i className="bi bi-send-check me-1" />

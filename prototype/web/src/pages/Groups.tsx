@@ -13,15 +13,15 @@ const SCOPE_LABEL: Record<GroupScope, string> = {
 }
 
 const SCOPE_BADGE: Record<GroupScope, string> = {
-  pusat: "text-bg-primary",
-  dusun: "badge-tint-primary",
-  anggota: "text-bg-secondary",
+  pusat: "badge-soft-green",
+  dusun: "badge-soft-slate",
+  anggota: "badge-soft-slate",
 }
 
 const SCOPE_DOT: Record<GroupScope, string> = {
   pusat: "#16a34a",
-  dusun: "#4ade80",
-  anggota: "#9ca3af",
+  dusun: "#64748b",
+  anggota: "#cbd5e1",
 }
 
 type ScopeFilter = GroupScope | "unreviewed" | "all"
@@ -38,7 +38,7 @@ const FILTER_DOT: Partial<Record<ScopeFilter, string>> = {
   pusat: SCOPE_DOT.pusat,
   dusun: SCOPE_DOT.dusun,
   anggota: SCOPE_DOT.anggota,
-  unreviewed: "#9ca3af",
+  unreviewed: "#cbd5e1",
 }
 
 export function Groups() {
@@ -392,7 +392,7 @@ export function Groups() {
             </div>
             <div className="d-flex align-items-center gap-2">
               {g.scope === null ? (
-                <span className="badge rounded-pill text-bg-secondary">Belum diatur</span>
+                <span className="badge rounded-pill badge-soft-slate">Belum diatur</span>
               ) : (
                 <span className={`badge rounded-pill ${SCOPE_BADGE[g.scope]}`}>{SCOPE_LABEL[g.scope]}</span>
               )}

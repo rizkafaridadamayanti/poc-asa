@@ -4,31 +4,45 @@
 }
 
 /*
- * Site-wide color theme: green (primary/brand, matching the WhatsApp-bot
- * identity) + white, plus red reserved strictly for danger/destructive
- * actions and neutral grays for everything else. Bootstrap's compiled CSS
- * hardcodes its own default blue (#0d6efd) per-component rather than
- * deriving it from a shared variable everywhere, so each of those
- * components needs an explicit override here to actually pick up green.
- *
- * Two muted accent tints (soft blue, soft amber) are layered on top for
- * exactly two narrow purposes — message-volume stats and "pending" states —
- * so categories are easier to scan at a glance without turning the brand
- * chrome (buttons, nav, active states) colorful again.
+ * Strict 3-color system — every color in the app is one of these three,
+ * used by MEANING, not decoration:
+ *   - green  = primary actions / default-positive state (buttons, active
+ *              nav, "Connected", sent/success badges)
+ *   - red    = attention / alerts only (spam scores, delete, overdue,
+ *              destructive actions) — kept rare so it stands out
+ *   - slate  = neutral information (draft/scheduled/Personal/Custom-style
+ *              badges, secondary buttons, chart bars, empty-state icons)
+ * Bootstrap's compiled CSS hardcodes its own default blue/red per-component
+ * rather than deriving them from a shared variable, so each of those
+ * components gets an explicit override below to actually pick up the token.
  */
 :root {
-  --accent-blue: #0ea5e9;
-  --accent-blue-soft: rgba(14, 165, 233, 0.12);
-  --accent-amber: #d97706;
-  --accent-amber-soft: rgba(217, 119, 6, 0.14);
+  --brand-green: #16a34a;
+  --brand-green-hover: #15803d;
+  --brand-green-active: #166534;
+  --brand-green-soft-bg: rgba(22, 163, 74, 0.12);
+  --brand-green-soft-text: #15803d;
+
+  --alert-red: #e11d48;
+  --alert-red-hover: #be123c;
+  --alert-red-active: #9f1239;
+  --alert-red-soft-bg: rgba(225, 29, 72, 0.12);
+  --alert-red-soft-text: #be123c;
+
+  --info-slate: #475569;
+  --info-slate-hover: #334155;
+  --info-slate-soft-bg: rgba(71, 85, 105, 0.1);
+  --info-slate-soft-text: #475569;
 }
 
 body {
-  background-color: #f1f3f7;
+  background-color: #f7f8fa;
 }
 
 :root {
   --bs-primary-rgb: 22, 163, 74;
+  --bs-danger-rgb: 225, 29, 72;
+  --bs-success-rgb: 22, 163, 74;
 }
 
 .btn-primary {
@@ -53,6 +67,43 @@ body {
   --bs-btn-active-border-color: #16a34a;
   --bs-btn-disabled-color: #16a34a;
   --bs-btn-disabled-border-color: #16a34a;
+}
+
+.btn-danger {
+  --bs-btn-bg: #e11d48;
+  --bs-btn-border-color: #e11d48;
+  --bs-btn-hover-bg: #be123c;
+  --bs-btn-hover-border-color: #be123c;
+  --bs-btn-focus-shadow-rgb: 225, 29, 72;
+  --bs-btn-active-bg: #9f1239;
+  --bs-btn-active-border-color: #9f1239;
+  --bs-btn-disabled-bg: #e11d48;
+  --bs-btn-disabled-border-color: #e11d48;
+}
+
+.btn-outline-danger {
+  --bs-btn-color: #e11d48;
+  --bs-btn-border-color: #e11d48;
+  --bs-btn-hover-bg: #e11d48;
+  --bs-btn-hover-border-color: #e11d48;
+  --bs-btn-focus-shadow-rgb: 225, 29, 72;
+  --bs-btn-active-bg: #e11d48;
+  --bs-btn-active-border-color: #e11d48;
+  --bs-btn-disabled-color: #e11d48;
+  --bs-btn-disabled-border-color: #e11d48;
+}
+
+.btn-outline-secondary {
+  --bs-btn-color: #475569;
+  --bs-btn-border-color: #cbd5e1;
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: #475569;
+  --bs-btn-hover-border-color: #475569;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: #475569;
+  --bs-btn-active-border-color: #475569;
+  --bs-btn-disabled-color: #475569;
+  --bs-btn-disabled-border-color: #cbd5e1;
 }
 
 .dropdown-menu {
@@ -270,7 +321,7 @@ body {
   min-width: 0;
   height: 100%;
   overflow-y: auto;
-  background-color: #f1f3f7;
+  background-color: #f7f8fa;
 }
 
 .page-header {
@@ -279,7 +330,7 @@ body {
   z-index: 10;
   margin: -1.5rem -1.5rem 1rem;
   padding: 1.5rem 1.5rem 1rem;
-  background-color: #f1f3f7;
+  background-color: #f7f8fa;
 }
 
 .page-header-card {
@@ -348,7 +399,7 @@ body {
 }
 
 .ai-chat-bubble-ai {
-  background: #f1f3f7;
+  background: var(--info-slate-soft-bg);
   color: #1f2937;
   border-bottom-left-radius: 0.25rem;
 }
@@ -634,8 +685,8 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(22, 163, 74, 0.12);
-  color: #16a34a;
+  background: var(--info-slate-soft-bg);
+  color: var(--info-slate);
   flex-shrink: 0;
   font-size: 0.9rem;
 }
@@ -648,19 +699,46 @@ body {
   font-weight: 600;
   padding: 0.25rem 0.65rem;
   border-radius: 999px;
-  background: #f1f3f7;
-  color: #4b5563;
+  background: var(--info-slate-soft-bg);
+  color: var(--info-slate-soft-text);
   white-space: nowrap;
 }
 
 .stat-pill-idea {
-  background: rgba(22, 163, 74, 0.12);
-  color: #16a34a;
+  background: var(--brand-green-soft-bg);
+  color: var(--brand-green-soft-text);
 }
 
-.badge-tint-primary {
-  background: rgba(22, 163, 74, 0.12);
-  color: #16a34a;
+/* Solid-but-soft badges: 10-15% tint background + full-opacity text, used
+   for the 3 meaningful colors only (green/red/slate) instead of Bootstrap's
+   flat solid text-bg-* badges. */
+.badge-soft-green {
+  --bs-badge-color: var(--brand-green-soft-text);
+  background-color: var(--brand-green-soft-bg);
+  color: var(--brand-green-soft-text);
+}
+
+.badge-soft-red {
+  --bs-badge-color: var(--alert-red-soft-text);
+  background-color: var(--alert-red-soft-bg);
+  color: var(--alert-red-soft-text);
+}
+
+.badge-soft-slate {
+  --bs-badge-color: var(--info-slate-soft-text);
+  background-color: var(--info-slate-soft-bg);
+  color: var(--info-slate-soft-text);
+}
+
+/* Solid slate variant for surfaces that need full contrast (e.g. toast
+   banners), mirroring Bootstrap's own text-bg-success/text-bg-danger. */
+.text-bg-slate {
+  background-color: var(--info-slate) !important;
+  color: #fff !important;
+}
+
+.text-info-slate {
+  color: var(--info-slate) !important;
 }
 
 .segmented-tabs {
@@ -771,8 +849,8 @@ body {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: #f1f3f7;
-  color: #9ca3af;
+  background: var(--info-slate-soft-bg);
+  color: var(--info-slate);
   font-size: 1.3rem;
 }
 
@@ -789,7 +867,7 @@ body {
 }
 
 .chat-hour-bar {
-  background: linear-gradient(180deg, var(--accent-blue) 0%, #38bdf8 100%);
+  background: linear-gradient(180deg, #64748b 0%, #94a3b8 100%);
   border-radius: 4px 4px 0 0;
   transition: opacity 0.15s ease;
 }
@@ -831,13 +909,3 @@ body {
   transform: translate(-50%, -2px) scale(1);
 }
 
-/* Narrow accent tints: blue for message-volume stats, amber for pending states. */
-.stat-icon-blue {
-  background: var(--accent-blue-soft);
-  color: var(--accent-blue);
-}
-
-.stat-pill-pending {
-  background: var(--accent-amber-soft);
-  color: var(--accent-amber);
-}

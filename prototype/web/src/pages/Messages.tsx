@@ -313,7 +313,7 @@ export function Messages() {
                           <span>{m.chatName || m.chatJid}</span>
                         ) : (
                           <span>
-                            <span className="badge text-bg-secondary me-1">Personal</span>
+                            <span className="badge badge-soft-slate me-1">Personal</span>
                             <span className="text-muted small">{m.chatJid}</span>
                           </span>
                         )}

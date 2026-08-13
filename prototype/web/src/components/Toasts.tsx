@@ -37,7 +37,7 @@ export function ToastContainer({
 const BG_CLASS: Record<Toast["type"], string> = {
   success: "text-bg-success",
   error: "text-bg-danger",
-  info: "text-bg-primary",
+  info: "text-bg-slate",
 }
 
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: number) => void }) {

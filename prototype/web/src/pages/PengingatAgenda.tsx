@@ -378,7 +378,7 @@ export function PengingatAgenda() {
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-start gap-3 flex-wrap">
                 <strong className="fs-6">{a.title}</strong>
-                <span className={`badge rounded-pill ${due.overdue ? "text-bg-secondary" : "text-bg-success"}`}>
+                <span className={`badge rounded-pill ${due.overdue ? "badge-soft-red" : "badge-soft-green"}`}>
                   {due.text}
                 </span>
               </div>
@@ -394,7 +394,7 @@ export function PengingatAgenda() {
                   {a.remindAt.map((r, i) => (
                     <span
                       key={i}
-                      className={`stat-pill${r.sent ? " stat-pill-idea" : " stat-pill-pending"}`}
+                      className={`stat-pill${r.sent ? " stat-pill-idea" : ""}`}
                       title={new Date(r.at).toLocaleString("id-ID")}
                     >
                       <i className={`bi ${r.sent ? "bi-check-circle" : "bi-hourglass-split"}`} />
