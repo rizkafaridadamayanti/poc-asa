@@ -418,3 +418,78 @@ body {
 .ai-chat-scope-menu .dropdown-divider {
   margin: 0.35rem 0;
 }
+
+.scope-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #f1f3f7;
+  border-radius: 999px;
+  padding: 3px;
+  flex-wrap: wrap;
+}
+
+.scope-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: none;
+  background: transparent;
+  color: #4b5563;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.scope-tab:hover {
+  color: #1f2937;
+}
+
+.scope-tab.active {
+  background: #fff;
+  color: #1f2937;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.18);
+}
+
+.scope-tab .scope-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.scope-tab .tab-count {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6b7280;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 999px;
+  padding: 0.05rem 0.4rem;
+  min-width: 1.15rem;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.scope-tab.active .tab-count {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.scope-tab.scope-tab-warn.active {
+  color: #92400e;
+}
+
+.scope-tab.scope-tab-warn.active .tab-count {
+  background: rgba(146, 64, 14, 0.12);
+  color: #92400e;
+}
+
+.groups-row {
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.groups-row:hover {
+  box-shadow: 0 0.35rem 0.9rem rgba(15, 23, 42, 0.08);
+}

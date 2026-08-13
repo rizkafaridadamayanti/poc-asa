@@ -5,10 +5,22 @@ import { NAV_COLORS } from "../navColors.js"
 
 const SCOPES: GroupScope[] = ["pusat", "dusun", "anggota"]
 
+const SCOPE_LABEL: Record<GroupScope, string> = {
+  pusat: "Pusat",
+  dusun: "Dusun",
+  anggota: "Anggota",
+}
+
 const SCOPE_BADGE: Record<GroupScope, string> = {
   pusat: "text-bg-danger",
   dusun: "text-bg-warning",
   anggota: "text-bg-secondary",
+}
+
+const SCOPE_DOT: Record<GroupScope, string> = {
+  pusat: "#ef4444",
+  dusun: "#f59e0b",
+  anggota: "#6b7280",
 }
 
 type ScopeFilter = GroupScope | "unreviewed" | "all"
@@ -163,7 +175,7 @@ export function Groups() {
               >
                 {SCOPES.map((s) => (
                   <option key={s} value={s}>
-                    {s}
+                    {SCOPE_LABEL[s]}
                   </option>
                 ))}
               </select>
@@ -194,42 +206,55 @@ export function Groups() {
         </div>
       </form>
 
-      <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <div className="btn-group">
-          <button
-            className={`btn btn-sm ${scopeFilter === "all" ? "btn-primary" : "btn-outline-primary"}`}
-            onClick={() => setScopeFilter("all")}
-          >
-            All
-          </button>
-          {SCOPES.map((s) => (
+      <div className="card mb-3">
+        <div className="card-body py-2 px-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <div className="scope-tabs">
             <button
-              key={s}
-              className={`btn btn-sm ${scopeFilter === s ? "btn-primary" : "btn-outline-primary"}`}
-              onClick={() => setScopeFilter(s)}
+              type="button"
+              className={`scope-tab${scopeFilter === "all" ? " active" : ""}`}
+              onClick={() => setScopeFilter("all")}
             >
-              {s}
+              Semua
+              <span className="tab-count">{groups.length}</span>
             </button>
-          ))}
-          <button
-            className={`btn btn-sm ${scopeFilter === "unreviewed" ? "btn-warning" : "btn-outline-warning"}`}
-            onClick={() => setScopeFilter("unreviewed")}
-          >
-            Belum diatur{unreviewedCount > 0 ? ` (${unreviewedCount})` : ""}
-          </button>
-        </div>
-        <div className="d-flex gap-2">
-          <input
-            className="form-control form-control-sm"
-            style={{ maxWidth: "260px" }}
-            placeholder="Cari nama, JID, atau dusun…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <button className="btn btn-outline-secondary btn-sm text-nowrap" onClick={handleSync} disabled={syncing}>
-            <i className="bi bi-arrow-repeat me-1" />
-            {syncing ? "Syncing…" : "Sync from WhatsApp"}
-          </button>
+            {SCOPES.map((s) => (
+              <button
+                key={s}
+                type="button"
+                className={`scope-tab${scopeFilter === s ? " active" : ""}`}
+                onClick={() => setScopeFilter(s)}
+              >
+                <span className="scope-dot" style={{ background: SCOPE_DOT[s] }} />
+                {SCOPE_LABEL[s]}
+                <span className="tab-count">{groups.filter((g) => g.scope === s).length}</span>
+              </button>
+            ))}
+            <button
+              type="button"
+              className={`scope-tab scope-tab-warn${scopeFilter === "unreviewed" ? " active" : ""}`}
+              onClick={() => setScopeFilter("unreviewed")}
+            >
+              Belum diatur
+              <span className="tab-count">{unreviewedCount}</span>
+            </button>
+          </div>
+          <div className="d-flex gap-2 flex-shrink-0">
+            <div className="input-group input-group-sm" style={{ width: "240px" }}>
+              <span className="input-group-text bg-white border-end-0">
+                <i className="bi bi-search text-muted" />
+              </span>
+              <input
+                className="form-control border-start-0 ps-0"
+                placeholder="Cari nama, JID, atau dusun…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <button className="btn btn-outline-secondary btn-sm text-nowrap" onClick={handleSync} disabled={syncing}>
+              <i className="bi bi-arrow-repeat me-1" />
+              {syncing ? "Syncing…" : "Sync"}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -239,8 +264,8 @@ export function Groups() {
         <p className="text-muted fst-italic">No groups match this filter.</p>
       )}
       {filteredGroups.map((g) => (
-        <div key={g._id} className={`card mb-2 ${g.scope === null ? "border-warning-subtle" : ""}`}>
-          <div className="card-body d-flex justify-content-between align-items-center">
+        <div key={g._id} className={`card mb-2 groups-row ${g.scope === null ? "border-warning-subtle" : ""}`}>
+          <div className="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
               <strong>{g.name || g.waJid}</strong>
               {g.source === "auto" && <span className="text-muted small ms-2">(auto)</span>}
@@ -251,9 +276,9 @@ export function Groups() {
             </div>
             <div className="d-flex align-items-center gap-2">
               {g.scope === null ? (
-                <span className="badge text-bg-warning">Belum diatur</span>
+                <span className="badge rounded-pill text-bg-warning">Belum diatur</span>
               ) : (
-                <span className={`badge ${SCOPE_BADGE[g.scope]}`}>{g.scope}</span>
+                <span className={`badge rounded-pill ${SCOPE_BADGE[g.scope]}`}>{SCOPE_LABEL[g.scope]}</span>
               )}
               <select
                 className="form-select form-select-sm"
@@ -268,7 +293,7 @@ export function Groups() {
                 )}
                 {SCOPES.map((s) => (
                   <option key={s} value={s}>
-                    {s}
+                    {SCOPE_LABEL[s]}
                   </option>
                 ))}
               </select>
