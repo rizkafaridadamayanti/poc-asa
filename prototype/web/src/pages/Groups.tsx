@@ -18,8 +18,8 @@ const SCOPE_BADGE: Record<GroupScope, string> = {
 }
 
 const SCOPE_DOT: Record<GroupScope, string> = {
-  pusat: "#4f46e5",
-  dusun: "#818cf8",
+  pusat: "#16a34a",
+  dusun: "#4ade80",
   anggota: "#9ca3af",
 }
 

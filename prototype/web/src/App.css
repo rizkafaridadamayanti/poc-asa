@@ -4,63 +4,63 @@
 }
 
 /*
- * Site-wide color theme: 3 colors max — indigo (primary/brand), green
- * (success/connected), red (danger/destructive) — plus neutral grays for
- * everything else. Bootstrap's compiled CSS hardcodes its own default
- * blue (#0d6efd) per-component rather than deriving it from a shared
- * variable everywhere, so each of those components needs an explicit
- * override here to actually pick up the indigo brand color.
+ * Site-wide color theme: green (primary/brand, matching the WhatsApp-bot
+ * identity) + white, plus red reserved strictly for danger/destructive
+ * actions and neutral grays for everything else. Bootstrap's compiled CSS
+ * hardcodes its own default blue (#0d6efd) per-component rather than
+ * deriving it from a shared variable everywhere, so each of those
+ * components needs an explicit override here to actually pick up green.
  */
 body {
   background-color: #f1f3f7;
 }
 
 :root {
-  --bs-primary-rgb: 79, 70, 229;
+  --bs-primary-rgb: 22, 163, 74;
 }
 
 .btn-primary {
-  --bs-btn-bg: #4f46e5;
-  --bs-btn-border-color: #4f46e5;
-  --bs-btn-hover-bg: #4338ca;
-  --bs-btn-hover-border-color: #4338ca;
-  --bs-btn-focus-shadow-rgb: 79, 70, 229;
-  --bs-btn-active-bg: #3730a3;
-  --bs-btn-active-border-color: #3730a3;
-  --bs-btn-disabled-bg: #4f46e5;
-  --bs-btn-disabled-border-color: #4f46e5;
+  --bs-btn-bg: #16a34a;
+  --bs-btn-border-color: #16a34a;
+  --bs-btn-hover-bg: #15803d;
+  --bs-btn-hover-border-color: #15803d;
+  --bs-btn-focus-shadow-rgb: 22, 163, 74;
+  --bs-btn-active-bg: #166534;
+  --bs-btn-active-border-color: #166534;
+  --bs-btn-disabled-bg: #16a34a;
+  --bs-btn-disabled-border-color: #16a34a;
 }
 
 .btn-outline-primary {
-  --bs-btn-color: #4f46e5;
-  --bs-btn-border-color: #4f46e5;
-  --bs-btn-hover-bg: #4f46e5;
-  --bs-btn-hover-border-color: #4f46e5;
-  --bs-btn-focus-shadow-rgb: 79, 70, 229;
-  --bs-btn-active-bg: #4f46e5;
-  --bs-btn-active-border-color: #4f46e5;
-  --bs-btn-disabled-color: #4f46e5;
-  --bs-btn-disabled-border-color: #4f46e5;
+  --bs-btn-color: #16a34a;
+  --bs-btn-border-color: #16a34a;
+  --bs-btn-hover-bg: #16a34a;
+  --bs-btn-hover-border-color: #16a34a;
+  --bs-btn-focus-shadow-rgb: 22, 163, 74;
+  --bs-btn-active-bg: #16a34a;
+  --bs-btn-active-border-color: #16a34a;
+  --bs-btn-disabled-color: #16a34a;
+  --bs-btn-disabled-border-color: #16a34a;
 }
 
 .dropdown-menu {
-  --bs-dropdown-link-active-bg: #4f46e5;
+  --bs-dropdown-link-active-bg: #16a34a;
 }
 
 .form-control:focus,
 .form-select:focus {
-  border-color: #a5b4fc;
-  box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.2);
+  border-color: #86efac;
+  box-shadow: 0 0 0 0.25rem rgba(22, 163, 74, 0.2);
 }
 
 .form-check-input:checked {
-  background-color: #4f46e5;
-  border-color: #4f46e5;
+  background-color: #16a34a;
+  border-color: #16a34a;
 }
 
 .form-check-input:focus {
-  border-color: #a5b4fc;
-  box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.2);
+  border-color: #86efac;
+  box-shadow: 0 0 0 0.25rem rgba(22, 163, 74, 0.2);
 }
 
 .app-topbar {
@@ -325,7 +325,7 @@ body {
 }
 
 .ai-chat-bubble-user {
-  background: #4f46e5;
+  background: #16a34a;
   color: #fff;
   border-bottom-right-radius: 0.25rem;
 }
@@ -344,8 +344,8 @@ body {
   height: 28px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: color-mix(in srgb, #4f46e5 15%, white);
-  color: #4f46e5;
+  background: color-mix(in srgb, #16a34a 15%, white);
+  color: #16a34a;
   font-size: 0.85rem;
 }
 
@@ -360,8 +360,8 @@ body {
 }
 
 .ai-chat-composer:focus-within {
-  border-color: #a5b4fc;
-  box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
+  border-color: #86efac;
+  box-shadow: 0 0 0 0.2rem rgba(22, 163, 74, 0.15);
 }
 
 .ai-chat-composer .form-control {
@@ -401,9 +401,9 @@ body {
   height: 36px;
   padding: 0 0.4rem 0 0.75rem;
   border-radius: 999px;
-  border: 1px solid #c7d2fe;
-  background: #eef2ff;
-  color: #4338ca;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #15803d;
   font-size: 0.8rem;
   font-weight: 500;
   white-space: nowrap;
@@ -430,7 +430,7 @@ body {
 .ai-chat-scope-chip-clear {
   border: none;
   background: transparent;
-  color: #4338ca;
+  color: #15803d;
   opacity: 0.6;
   padding: 0.25rem;
   line-height: 1;
@@ -465,7 +465,7 @@ body {
 }
 
 .ai-chat-scope-menu .dropdown-item i {
-  color: #4f46e5;
+  color: #16a34a;
   font-size: 0.9rem;
   width: 1.1rem;
   text-align: center;
@@ -617,8 +617,8 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(79, 70, 229, 0.12);
-  color: #4f46e5;
+  background: rgba(22, 163, 74, 0.12);
+  color: #16a34a;
   flex-shrink: 0;
   font-size: 0.9rem;
 }
@@ -637,13 +637,13 @@ body {
 }
 
 .stat-pill-idea {
-  background: rgba(79, 70, 229, 0.12);
-  color: #4f46e5;
+  background: rgba(22, 163, 74, 0.12);
+  color: #16a34a;
 }
 
 .badge-tint-primary {
-  background: rgba(79, 70, 229, 0.12);
-  color: #4f46e5;
+  background: rgba(22, 163, 74, 0.12);
+  color: #16a34a;
 }
 
 .segmented-tabs {
@@ -679,9 +679,9 @@ body {
 
 .segmented-tab.active,
 .segmented-tab.active:hover {
-  background: #4f46e5;
+  background: #16a34a;
   color: #fff;
-  box-shadow: 0 1px 4px rgba(79, 70, 229, 0.4);
+  box-shadow: 0 1px 4px rgba(22, 163, 74, 0.4);
 }
 
 .segmented-tabs-sm .segmented-tab {
