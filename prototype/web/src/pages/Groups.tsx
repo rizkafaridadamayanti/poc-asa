@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { api, type Group, type GroupScope } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
+import { EmptyState } from "../components/EmptyState.js"
 import { NAV_COLORS } from "../navColors.js"
 
 const SCOPES: GroupScope[] = ["pusat", "dusun", "anggota"]
@@ -330,9 +331,9 @@ export function Groups() {
       </div>
 
       {loading && <p className="text-muted">Loading groups…</p>}
-      {!loading && groups.length === 0 && <p className="text-muted fst-italic">No groups yet.</p>}
+      {!loading && groups.length === 0 && <EmptyState icon="bi-people" text="Belum ada grup." />}
       {!loading && groups.length > 0 && filteredGroups.length === 0 && (
-        <p className="text-muted fst-italic">No groups match this filter.</p>
+        <EmptyState icon="bi-search" text="Tidak ada grup yang cocok dengan filter ini." />
       )}
       {filteredGroups.map((g) => (
         <div key={g._id} className={`card mb-2 groups-row ${g.scope === null ? "border-secondary-subtle" : ""}`}>

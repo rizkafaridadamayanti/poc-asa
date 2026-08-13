@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { api, type ContributiveRow, type PeakHourRow, type DusunRow } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
+import { EmptyState } from "../components/EmptyState.js"
 import { NAV_COLORS } from "../navColors.js"
 
 export function Infografis() {
@@ -39,14 +40,13 @@ export function Infografis() {
                   const row = peakHours.find((r) => r.hour === hour)
                   const count = row?.count ?? 0
                   return (
-                    <div
-                      key={hour}
-                      className="flex-fill text-center"
-                      title={`${hour}:00 — ${count} pesan`}
-                    >
+                    <div key={hour} className="flex-fill text-center chat-hour-bar-wrap">
+                      <span className="chat-hour-tooltip">
+                        {hour}:00 — {count} pesan
+                      </span>
                       <div
-                        className="bg-primary rounded-top mx-auto"
-                        style={{ height: `${(count / maxHourCount) * 100}px`, width: "70%" }}
+                        className="chat-hour-bar mx-auto"
+                        style={{ height: `${Math.max((count / maxHourCount) * 100, 2)}px`, width: "70%" }}
                       />
                       <span className="text-muted" style={{ fontSize: "0.65rem" }}>
                         {hour}
@@ -61,7 +61,7 @@ export function Infografis() {
           <div className="card mb-4">
             <div className="card-body">
               <h5 className="card-title">Active vs contributive</h5>
-              {contributive.length === 0 && <p className="text-muted fst-italic mb-0">No messages yet.</p>}
+              {contributive.length === 0 && <EmptyState icon="bi-people" text="Belum ada pesan." />}
               {contributive.length > 0 && (
                 <div className="stat-table">
                   <div className="stat-row-header">
@@ -99,7 +99,9 @@ export function Infografis() {
           <div className="card">
             <div className="card-body">
               <h5 className="card-title">Groups by dusun</h5>
-              {dusun.length === 0 && <p className="text-muted fst-italic mb-0">No dusun assigned to any group yet.</p>}
+              {dusun.length === 0 && (
+                <EmptyState icon="bi-signpost-split" text="Belum ada grup yang diatur ke dusun." />
+              )}
               {dusun.length > 0 && (
                 <div className="stat-table">
                   <div className="stat-row-header">

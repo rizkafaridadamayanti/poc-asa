@@ -144,7 +144,10 @@ export function Dashboard() {
               </div>
               <div style={{ minWidth: 0 }}>
                 <h5 className="card-title mb-2">
-                  <span className="badge text-bg-success me-2">Connected</span>
+                  <span className="badge text-bg-success me-2 d-inline-flex align-items-center gap-2">
+                    <span className="live-dot" />
+                    Connected
+                  </span>
                   Bot terhubung ke WhatsApp
                 </h5>
                 <p className="text-muted mb-1 small">
@@ -201,7 +204,7 @@ export function Dashboard() {
       {status && (
         <>
           <div className="row g-3 mb-4">
-            <StatCard icon="bi-chat-dots" label="Messages" value={status.messageCount} color="#16a34a" />
+            <StatCard icon="bi-chat-dots" label="Messages" value={status.messageCount} color="#0ea5e9" />
             <StatCard icon="bi-journal-text" label="Summaries" value={status.summaryCount} color="#16a34a" />
             <StatCard icon="bi-people" label="Participants" value={status.participantCount} color="#16a34a" />
           </div>

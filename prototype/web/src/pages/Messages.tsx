@@ -6,6 +6,7 @@ import { Modal } from "../components/Modal.js"
 import { MediaPreview } from "../components/MediaPreview.js"
 import { MEDIA_TYPE_INFO, MediaTypeBadge, truncateWords } from "../messageUtils.js"
 import { NAV_COLORS } from "../navColors.js"
+import { EmptyState } from "../components/EmptyState.js"
 
 type ViewMode = "active" | "trash"
 
@@ -281,7 +282,7 @@ export function Messages() {
       </div>
 
       {loading && <p className="text-muted">Loading…</p>}
-      {!loading && messages.length === 0 && <p className="text-muted fst-italic">{emptyText}</p>}
+      {!loading && messages.length === 0 && <EmptyState icon="bi-inbox" text={emptyText} />}
       {messages.length > 0 && (
         <>
           <div className="card">

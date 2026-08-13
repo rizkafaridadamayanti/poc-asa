@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { api, type AnonymousIdea } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
+import { EmptyState } from "../components/EmptyState.js"
 import { NAV_COLORS } from "../navColors.js"
 
 export function AntrianIde() {
@@ -89,9 +90,10 @@ export function AntrianIde() {
 
       {loading && <p className="text-muted">Memuat…</p>}
       {!loading && ideas.length === 0 && (
-        <p className="text-muted fst-italic">
-          {filter === "new" ? "Belum ada ide baru." : "Tidak ada data untuk filter ini."}
-        </p>
+        <EmptyState
+          icon="bi-lightbulb"
+          text={filter === "new" ? "Belum ada ide baru." : "Tidak ada data untuk filter ini."}
+        />
       )}
 
       {ideas.map((idea) => (

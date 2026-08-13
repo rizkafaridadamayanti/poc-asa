@@ -3,6 +3,7 @@ import { api, type Agenda, type Group, type Participant } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
 import { Modal } from "../components/Modal.js"
 import { RecipientPicker } from "../components/RecipientPicker.js"
+import { EmptyState } from "../components/EmptyState.js"
 import { NAV_COLORS } from "../navColors.js"
 
 type ReminderDraft = { at: string; label: string }
@@ -364,9 +365,10 @@ export function PengingatAgenda() {
 
       {loading && <p className="text-muted">Memuat…</p>}
       {!loading && agendas.length === 0 && (
-        <p className="text-muted fst-italic">
-          {viewMode === "trash" ? "Riwayat kosong." : "Belum ada agenda."}
-        </p>
+        <EmptyState
+          icon="bi-calendar-event"
+          text={viewMode === "trash" ? "Riwayat kosong." : "Belum ada agenda."}
+        />
       )}
 
       {agendas.map((a) => {
@@ -392,7 +394,7 @@ export function PengingatAgenda() {
                   {a.remindAt.map((r, i) => (
                     <span
                       key={i}
-                      className={`stat-pill${r.sent ? " stat-pill-idea" : ""}`}
+                      className={`stat-pill${r.sent ? " stat-pill-idea" : " stat-pill-pending"}`}
                       title={new Date(r.at).toLocaleString("id-ID")}
                     >
                       <i className={`bi ${r.sent ? "bi-check-circle" : "bi-hourglass-split"}`} />

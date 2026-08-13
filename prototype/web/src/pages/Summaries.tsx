@@ -4,6 +4,7 @@ import { PageHeader } from "../components/PageHeader.js"
 import { AiChatPanel } from "../components/AiChatPanel.js"
 import { Modal } from "../components/Modal.js"
 import { truncateWords } from "../messageUtils.js"
+import { EmptyState } from "../components/EmptyState.js"
 import { NAV_COLORS } from "../navColors.js"
 
 type DigestResult = { summaryId: string; bodyMd: string; messageCount: number; waMessageId?: string }
@@ -279,9 +280,10 @@ export function Summaries() {
 
       {loading && <p className="text-muted">Loading summaries…</p>}
       {!loading && summaries.length === 0 && (
-        <p className="text-muted fst-italic">
-          {viewMode === "trash" ? "Riwayat kosong." : "No summaries yet."}
-        </p>
+        <EmptyState
+          icon="bi-journal-text"
+          text={viewMode === "trash" ? "Riwayat kosong." : "No summaries yet."}
+        />
       )}
       {summaries.map((s) => (
         <div key={s._id} className="card mb-3">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { api, type SpamAlert, type SpamAlertStatus } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
+import { EmptyState } from "../components/EmptyState.js"
 import { NAV_COLORS } from "../navColors.js"
 
 const FILTERS: { value: SpamAlertStatus | "all"; label: string; icon: string }[] = [
@@ -77,9 +78,10 @@ export function SpamAlerts() {
 
       {loading && <p className="text-muted">Memuat…</p>}
       {!loading && alerts.length === 0 && (
-        <p className="text-muted fst-italic">
-          {filter === "open" ? "Tidak ada alert baru — aman." : "Tidak ada data untuk filter ini."}
-        </p>
+        <EmptyState
+          icon={filter === "open" ? "bi-shield-check" : "bi-inbox"}
+          text={filter === "open" ? "Tidak ada alert baru — aman." : "Tidak ada data untuk filter ini."}
+        />
       )}
 
       {alerts.map((a) => (

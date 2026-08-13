@@ -9,6 +9,7 @@ import {
 import { PageHeader } from "../components/PageHeader.js"
 import { Modal } from "../components/Modal.js"
 import { RecipientPicker } from "../components/RecipientPicker.js"
+import { EmptyState } from "../components/EmptyState.js"
 import { NAV_COLORS } from "../navColors.js"
 
 const TYPE_LABEL: Record<CuratedInfoType, string> = {
@@ -405,7 +406,9 @@ export function InformasiBaru() {
       )}
 
       {loading && <p className="text-muted">Loading…</p>}
-      {!loading && items.length === 0 && <p className="text-muted fst-italic">No curated info yet.</p>}
+      {!loading && items.length === 0 && (
+        <EmptyState icon="bi-megaphone" text="Belum ada info yang dibuat." />
+      )}
 
       {items.map((item) => (
         <div key={item._id} className="card mb-3">

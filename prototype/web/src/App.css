@@ -10,7 +10,19 @@
  * hardcodes its own default blue (#0d6efd) per-component rather than
  * deriving it from a shared variable everywhere, so each of those
  * components needs an explicit override here to actually pick up green.
+ *
+ * Two muted accent tints (soft blue, soft amber) are layered on top for
+ * exactly two narrow purposes — message-volume stats and "pending" states —
+ * so categories are easier to scan at a glance without turning the brand
+ * chrome (buttons, nav, active states) colorful again.
  */
+:root {
+  --accent-blue: #0ea5e9;
+  --accent-blue-soft: rgba(14, 165, 233, 0.12);
+  --accent-amber: #d97706;
+  --accent-amber-soft: rgba(217, 119, 6, 0.14);
+}
+
 body {
   background-color: #f1f3f7;
 }
@@ -272,10 +284,10 @@ body {
 
 .page-header-card {
   background-color: #ffffff;
-  border-radius: 0.85rem;
+  border-radius: 1.1rem;
   padding: 1.4rem 1.6rem 0;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 8px rgba(15, 23, 42, 0.03);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 4px 16px rgba(15, 23, 42, 0.05);
 }
 
 .page-header-eyebrow {
@@ -293,8 +305,13 @@ body {
 
 .card {
   border-color: #e9ecf1;
-  border-radius: 0.85rem;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 8px rgba(15, 23, 42, 0.03);
+  border-radius: 1.1rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 4px 16px rgba(15, 23, 42, 0.05);
+  transition: box-shadow 0.18s ease;
+}
+
+.card:hover {
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.06), 0 8px 24px rgba(15, 23, 42, 0.07);
 }
 
 .markdown-body pre {
@@ -687,4 +704,140 @@ body {
 .segmented-tabs-sm .segmented-tab {
   padding: 0.35rem 0.7rem;
   font-size: 0.78rem;
+}
+
+/* Live-status pulsing dot, e.g. inside the "WA Connected" badge. */
+.live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  position: relative;
+}
+
+.live-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: currentColor;
+  animation: live-dot-pulse 1.8s ease-out infinite;
+}
+
+@keyframes live-dot-pulse {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot::after {
+    animation: none;
+  }
+}
+
+/* Table row hover — used by plain <table> lists (e.g. Messages) that aren't
+   built from .card rows and so don't get .card's hover treatment. */
+.table > tbody > tr {
+  transition: background-color 0.15s ease;
+}
+
+.table > tbody > tr:hover > * {
+  background-color: #f8fafb;
+}
+
+/* Friendly empty state: small icon + short text, instead of bare italic copy. */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 2.25rem 1rem;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.empty-state-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #f1f3f7;
+  color: #9ca3af;
+  font-size: 1.3rem;
+}
+
+.empty-state-text {
+  font-size: 0.86rem;
+  color: #94a3b8;
+  max-width: 320px;
+}
+
+/* Peak-hours chart bars: soft gradient fill + a small CSS tooltip on hover,
+   no charting library needed. */
+.chat-hour-bar-wrap {
+  position: relative;
+}
+
+.chat-hour-bar {
+  background: linear-gradient(180deg, var(--accent-blue) 0%, #38bdf8 100%);
+  border-radius: 4px 4px 0 0;
+  transition: opacity 0.15s ease;
+}
+
+.chat-hour-bar-wrap:hover .chat-hour-bar {
+  opacity: 0.85;
+}
+
+.chat-hour-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, -6px) scale(0.95);
+  background: #1f2937;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.3rem 0.55rem;
+  border-radius: 0.4rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s ease, transform 0.12s ease;
+  z-index: 5;
+}
+
+.chat-hour-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #1f2937;
+}
+
+.chat-hour-bar-wrap:hover .chat-hour-tooltip {
+  opacity: 1;
+  transform: translate(-50%, -2px) scale(1);
+}
+
+/* Narrow accent tints: blue for message-volume stats, amber for pending states. */
+.stat-icon-blue {
+  background: var(--accent-blue-soft);
+  color: var(--accent-blue);
+}
+
+.stat-pill-pending {
+  background: var(--accent-amber-soft);
+  color: var(--accent-amber);
 }

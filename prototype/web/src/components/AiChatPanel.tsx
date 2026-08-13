@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { Dropdown } from "bootstrap"
 import { api, type Group, type GroupScope } from "../api.js"
 import { NAV_COLORS } from "../navColors.js"
+import { EmptyState } from "./EmptyState.js"
 
 type Exchange = {
   id: string
@@ -92,9 +93,7 @@ export function AiChatPanel({ groups }: { groups: Group[] }) {
 
         <div ref={scrollRef} className="ai-chat-scroll mb-3">
           {conversation.length === 0 && (
-            <p className="text-muted fst-italic text-center my-4 mb-0">
-              Belum ada percakapan. Coba tanya sesuatu di bawah.
-            </p>
+            <EmptyState icon="bi-chat-square-text" text="Belum ada percakapan. Coba tanya sesuatu di bawah." />
           )}
           {conversation.map((ex) => (
             <div key={ex.id} className="mb-3">
