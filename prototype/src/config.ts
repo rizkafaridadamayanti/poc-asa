@@ -33,5 +33,6 @@ export function loadConfig(): AppConfig {
     sendMaxDelayMs: intEnv("SEND_MAX_DELAY_MS", 3000),
     dashboardPassword: process.env.DASHBOARD_PASSWORD?.trim() || "",
     digestCron: process.env.DIGEST_CRON?.trim() || "0 7 * * *",
+    weeklyStatsCron: process.env.WEEKLY_STATS_CRON?.trim() || "0 7 * * 1",
   }
 }

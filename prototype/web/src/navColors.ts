@@ -15,4 +15,7 @@ export const NAV_COLORS = {
   digest: PRIMARY,
   informasiBaru: PRIMARY,
   qa: PRIMARY,
+  pengingatAgenda: PRIMARY,
+  spamAlerts: PRIMARY,
+  antrianIde: PRIMARY,
 } as const

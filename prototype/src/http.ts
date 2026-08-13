@@ -6,6 +6,9 @@ import { registerDashboardApi } from "./api/dashboard.js"
 import { registerCuratedInfoApi } from "./api/curatedInfo.js"
 import { registerOutboundLogApi } from "./api/outboundLog.js"
 import { registerQaApi } from "./api/qa.js"
+import { registerAgendaApi } from "./api/agenda.js"
+import { registerSpamAlertApi } from "./api/spamAlert.js"
+import { registerAnonymousIdeaApi } from "./api/anonymousIdea.js"
 import { registerEventsApi } from "./api/events.js"
 import { registerAuthRoutes, createAuthMiddleware } from "./auth.js"
 import type { LlmClient } from "./llm.js"
@@ -44,6 +47,9 @@ export async function startHttp(deps: HttpDeps) {
     await registerCuratedInfoApi(api, { bridge, log })
     await registerOutboundLogApi(api)
     await registerQaApi(api, { llm, log })
+    await registerAgendaApi(api, { log })
+    await registerSpamAlertApi(api)
+    await registerAnonymousIdeaApi(api)
   })
 
   await app.register(staticPlugin, {

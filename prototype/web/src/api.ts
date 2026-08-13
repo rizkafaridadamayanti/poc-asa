@@ -196,6 +196,51 @@ export type OutboundLog = {
   createdAt: string
 }
 
+export type Reminder = { at: string; label: string; sent: boolean; sentAt: string | null }
+
+export type Agenda = {
+  _id: string
+  title: string
+  description: string
+  dueAt: string
+  remindAt: Reminder[]
+  audience: string[]
+  trash: boolean
+  trashedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type AgendaInput = {
+  title: string
+  description?: string
+  dueAt: string
+  remindAt: { at: string; label?: string }[]
+  audience: string[]
+}
+
+export type SpamAlertStatus = "open" | "confirmed" | "dismissed"
+
+export type SpamAlert = {
+  _id: string
+  messageId: string
+  chatJid: string
+  fromJid: string
+  text: string
+  spamScore: number
+  reasons: string[]
+  notified: boolean
+  status: SpamAlertStatus
+  createdAt: string
+}
+
+export type AnonymousIdea = {
+  _id: string
+  text: string
+  status: "new" | "reviewed"
+  createdAt: string
+}
+
 export const api = {
   status: () => fetchJson<Status>("/api/dashboard/status"),
 
@@ -362,4 +407,45 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ question, scopeGroupJid }),
     }),
+
+  agendas: (upcomingOnly = false, trash = false) => {
+    const params = new URLSearchParams()
+    if (upcomingOnly) params.set("upcoming", "true")
+    if (trash) params.set("trash", "true")
+    const qs = params.toString()
+    return fetchJson<{ count: number; agendas: Agenda[] }>(`/api/agendas${qs ? `?${qs}` : ""}`)
+  },
+
+  createAgenda: (data: AgendaInput) =>
+    fetchJson<Agenda>("/api/agendas", { method: "POST", body: JSON.stringify(data) }),
+
+  updateAgenda: (id: string, data: Partial<AgendaInput>) =>
+    fetchJson<Agenda>(`/api/agendas/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+
+  deleteAgenda: (id: string) => fetchJson<{ ok: boolean }>(`/api/agendas/${id}`, { method: "DELETE" }),
+
+  restoreAgenda: (id: string) =>
+    fetchJson<{ ok: boolean }>(`/api/agendas/${id}/restore`, { method: "POST" }),
+
+  deleteAgendaPermanent: (id: string) =>
+    fetchJson<{ ok: boolean }>(`/api/agendas/${id}/permanent`, { method: "DELETE" }),
+
+  spamAlerts: (status?: SpamAlertStatus) => {
+    const qs = status ? `?status=${status}` : ""
+    return fetchJson<{ count: number; alerts: SpamAlert[] }>(`/api/spam-alerts${qs}`)
+  },
+
+  setSpamAlertStatus: (id: string, status: SpamAlertStatus) =>
+    fetchJson<SpamAlert>(`/api/spam-alerts/${id}/status`, {
+      method: "POST",
+      body: JSON.stringify({ status }),
+    }),
+
+  anonymousIdeas: (status?: "new" | "reviewed") =>
+    fetchJson<{ count: number; ideas: AnonymousIdea[] }>(
+      `/api/anonymous-ideas${status ? `?status=${status}` : ""}`,
+    ),
+
+  markIdeaReviewed: (id: string) =>
+    fetchJson<AnonymousIdea>(`/api/anonymous-ideas/${id}/review`, { method: "POST" }),
 }

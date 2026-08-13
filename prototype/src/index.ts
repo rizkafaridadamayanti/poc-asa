@@ -7,9 +7,11 @@ import { createLlmClient } from "./llm.js"
 import { startHttp } from "./http.js"
 import { initSettings } from "./settings.js"
 import { startCuratedInfoScheduler } from "./curatedInfoScheduler.js"
+import { startAgendaScheduler } from "./agendaScheduler.js"
 import { startPurgeJob } from "./purge.js"
 import { startDigestCron } from "./digestCron.js"
 import { startSentimentCron } from "./sentimentCron.js"
+import { startWeeklyStatsCron } from "./weeklyStatsCron.js"
 
 async function main() {
   const cfg = loadConfig()
@@ -37,12 +39,15 @@ async function main() {
   await bridge.start()
   startDigestCron({ schedule: cfg.digestCron, bridge, llm, log })
   startSentimentCron({ schedule: cfg.digestCron, bridge, llm, log })
+  startWeeklyStatsCron({ schedule: cfg.weeklyStatsCron, bridge, log })
   const app = await startHttp({ cfg, bridge, llm, log })
   const curatedInfoScheduler = startCuratedInfoScheduler(bridge, log)
+  const agendaScheduler = startAgendaScheduler(bridge, log)
 
   const shutdown = async (signal: string) => {
     log.info({ signal }, "shutting down")
     curatedInfoScheduler.stop()
+    agendaScheduler.stop()
     try {
       await app.close()
     } catch {

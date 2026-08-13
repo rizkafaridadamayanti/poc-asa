@@ -6,6 +6,9 @@ import { Summaries } from "./pages/Summaries.js"
 import { Groups } from "./pages/Groups.js"
 import { Infografis } from "./pages/Infografis.js"
 import { InformasiBaru } from "./pages/InformasiBaru.js"
+import { PengingatAgenda } from "./pages/PengingatAgenda.js"
+import { SpamAlerts } from "./pages/SpamAlerts.js"
+import { AntrianIde } from "./pages/AntrianIde.js"
 import { LoginPage } from "./pages/Login.js"
 import { RegisterPage } from "./pages/Register.js"
 import { isLoggedIn } from "./api.js"
@@ -38,6 +41,9 @@ function App() {
           <Route path="groups" element={<Groups />} />
           <Route path="infografis" element={<Infografis />} />
           <Route path="informasi-baru" element={<InformasiBaru />} />
+          <Route path="pengingat-agenda" element={<PengingatAgenda />} />
+          <Route path="spam-alerts" element={<SpamAlerts />} />
+          <Route path="antrian-ide" element={<AntrianIde />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
