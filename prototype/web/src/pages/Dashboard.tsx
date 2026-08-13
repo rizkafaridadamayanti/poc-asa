@@ -135,19 +135,19 @@ export function Dashboard() {
       <div className="card mb-4">
         <div className="card-body">
           {isConnected ? (
-            <div className="d-flex align-items-center gap-3 flex-wrap">
+            <div className="d-flex align-items-start gap-3 flex-wrap">
               <div
                 className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
                 style={{ width: 48, height: 48, backgroundColor: "color-mix(in srgb, #16a34a 15%, white)", color: "#16a34a" }}
               >
                 <i className="bi bi-whatsapp fs-4" />
               </div>
-              <div>
-                <h5 className="card-title mb-1">
+              <div style={{ minWidth: 0 }}>
+                <h5 className="card-title mb-2">
                   <span className="badge text-bg-success me-2">Connected</span>
                   Bot terhubung ke WhatsApp
                 </h5>
-                <p className="text-muted mb-0 small">
+                <p className="text-muted mb-1 small">
                   {deviceInfo ? (
                     <>
                       Perangkat: <strong>{formatWaNumber(deviceInfo.id)}</strong>
