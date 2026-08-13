@@ -25,6 +25,21 @@ const SCOPE_DOT: Record<GroupScope, string> = {
 
 type ScopeFilter = GroupScope | "unreviewed" | "all"
 
+const FILTER_LABEL: Record<ScopeFilter, string> = {
+  all: "Semua",
+  pusat: "Pusat",
+  dusun: "Dusun",
+  anggota: "Anggota",
+  unreviewed: "Belum diatur",
+}
+
+const FILTER_DOT: Partial<Record<ScopeFilter, string>> = {
+  pusat: SCOPE_DOT.pusat,
+  dusun: SCOPE_DOT.dusun,
+  anggota: SCOPE_DOT.anggota,
+  unreviewed: "#f59e0b",
+}
+
 export function Groups() {
   const [groups, setGroups] = useState<Group[]>([])
   const [loading, setLoading] = useState(false)
@@ -135,6 +150,12 @@ export function Groups() {
 
   const unreviewedCount = groups.filter((g) => g.scope === null).length
 
+  const filterCount = (f: ScopeFilter) => {
+    if (f === "all") return groups.length
+    if (f === "unreviewed") return unreviewedCount
+    return groups.filter((g) => g.scope === f).length
+  }
+
   return (
     <div>
       <PageHeader eyebrow="Manajemen Grup" color={NAV_COLORS.groups} title="Groups" />
@@ -208,35 +229,56 @@ export function Groups() {
 
       <div className="card mb-3">
         <div className="card-body py-2 px-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
-          <div className="scope-tabs">
+          <div className="dropdown">
             <button
               type="button"
-              className={`scope-tab${scopeFilter === "all" ? " active" : ""}`}
-              onClick={() => setScopeFilter("all")}
+              className="btn btn-outline-secondary btn-sm dropdown-toggle groups-filter-btn"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
             >
-              Semua
-              <span className="tab-count">{groups.length}</span>
+              {FILTER_DOT[scopeFilter] && <span className="scope-dot" style={{ background: FILTER_DOT[scopeFilter] }} />}
+              {FILTER_LABEL[scopeFilter]}
+              <span className="tab-count">{filterCount(scopeFilter)}</span>
             </button>
-            {SCOPES.map((s) => (
-              <button
-                key={s}
-                type="button"
-                className={`scope-tab${scopeFilter === s ? " active" : ""}`}
-                onClick={() => setScopeFilter(s)}
-              >
-                <span className="scope-dot" style={{ background: SCOPE_DOT[s] }} />
-                {SCOPE_LABEL[s]}
-                <span className="tab-count">{groups.filter((g) => g.scope === s).length}</span>
-              </button>
-            ))}
-            <button
-              type="button"
-              className={`scope-tab scope-tab-warn${scopeFilter === "unreviewed" ? " active" : ""}`}
-              onClick={() => setScopeFilter("unreviewed")}
-            >
-              Belum diatur
-              <span className="tab-count">{unreviewedCount}</span>
-            </button>
+            <ul className="dropdown-menu groups-filter-menu">
+              <li>
+                <button
+                  type="button"
+                  className={`dropdown-item${scopeFilter === "all" ? " active" : ""}`}
+                  onClick={() => setScopeFilter("all")}
+                >
+                  Semua
+                  <span className="tab-count">{filterCount("all")}</span>
+                </button>
+              </li>
+              {SCOPES.map((s) => (
+                <li key={s}>
+                  <button
+                    type="button"
+                    className={`dropdown-item${scopeFilter === s ? " active" : ""}`}
+                    onClick={() => setScopeFilter(s)}
+                  >
+                    <span className="scope-dot" style={{ background: SCOPE_DOT[s] }} />
+                    {SCOPE_LABEL[s]}
+                    <span className="tab-count">{filterCount(s)}</span>
+                  </button>
+                </li>
+              ))}
+              <li>
+                <hr className="dropdown-divider" />
+              </li>
+              <li>
+                <button
+                  type="button"
+                  className={`dropdown-item${scopeFilter === "unreviewed" ? " active" : ""}`}
+                  onClick={() => setScopeFilter("unreviewed")}
+                >
+                  <span className="scope-dot" style={{ background: FILTER_DOT.unreviewed }} />
+                  Belum diatur
+                  <span className="tab-count">{filterCount("unreviewed")}</span>
+                </button>
+              </li>
+            </ul>
           </div>
           <div className="d-flex gap-2 flex-shrink-0">
             <div className="input-group input-group-sm" style={{ width: "240px" }}>

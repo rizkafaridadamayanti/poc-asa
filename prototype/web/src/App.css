@@ -419,49 +419,14 @@ body {
   margin: 0.35rem 0;
 }
 
-.scope-tabs {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: #f1f3f7;
-  border-radius: 999px;
-  padding: 3px;
-  flex-wrap: wrap;
-}
-
-.scope-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  border: none;
-  background: transparent;
-  color: #4b5563;
-  font-size: 0.8rem;
-  font-weight: 500;
-  padding: 0.4rem 0.75rem;
-  border-radius: 999px;
-  white-space: nowrap;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.scope-tab:hover {
-  color: #1f2937;
-}
-
-.scope-tab.active {
-  background: #fff;
-  color: #1f2937;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.18);
-}
-
-.scope-tab .scope-dot {
+.scope-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-.scope-tab .tab-count {
+.tab-count {
   font-size: 0.7rem;
   font-weight: 600;
   color: #6b7280;
@@ -473,17 +438,44 @@ body {
   line-height: 1.4;
 }
 
-.scope-tab.active .tab-count {
-  background: rgba(0, 0, 0, 0.08);
+.groups-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
 }
 
-.scope-tab.scope-tab-warn.active {
-  color: #92400e;
+.groups-filter-btn .tab-count {
+  background: rgba(0, 0, 0, 0.06);
 }
 
-.scope-tab.scope-tab-warn.active .tab-count {
-  background: rgba(146, 64, 14, 0.12);
-  color: #92400e;
+.groups-filter-menu {
+  min-width: 230px;
+  border-radius: 0.9rem;
+  padding: 0.4rem;
+  border: none;
+  box-shadow: 0 0.75rem 2rem rgba(15, 23, 42, 0.18);
+}
+
+.groups-filter-menu .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0.45rem 0.6rem;
+}
+
+.groups-filter-menu .dropdown-item .tab-count {
+  margin-left: auto;
+}
+
+.groups-filter-menu .dropdown-item.active .tab-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.groups-filter-menu .dropdown-divider {
+  margin: 0.3rem 0;
 }
 
 .groups-row {
