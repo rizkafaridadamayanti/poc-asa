@@ -5,9 +5,7 @@ import staticPlugin from "@fastify/static"
 import { registerDashboardApi } from "./api/dashboard.js"
 import { registerCuratedInfoApi } from "./api/curatedInfo.js"
 import { registerOutboundLogApi } from "./api/outboundLog.js"
-import { registerSpamAlertApi } from "./api/spamAlert.js"
 import { registerQaApi } from "./api/qa.js"
-import { registerAnonymousIdeaApi } from "./api/anonymousIdea.js"
 import { registerEventsApi } from "./api/events.js"
 import { registerAuthRoutes, createAuthMiddleware } from "./auth.js"
 import type { LlmClient } from "./llm.js"
@@ -45,9 +43,7 @@ export async function startHttp(deps: HttpDeps) {
     await registerDashboardApi(api, { bridge, llm, log, mediaDir: cfg.mediaDir })
     await registerCuratedInfoApi(api, { bridge, log })
     await registerOutboundLogApi(api)
-    await registerSpamAlertApi(api)
     await registerQaApi(api, { llm, log })
-    await registerAnonymousIdeaApi(api)
   })
 
   await app.register(staticPlugin, {

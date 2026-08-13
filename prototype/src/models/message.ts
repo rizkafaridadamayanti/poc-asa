@@ -12,7 +12,6 @@ const messageSchema = new Schema(
     mediaFilename: { type: String, default: null },
     mediaMimetype: { type: String, default: null },
     flags: {
-      spamScore: { type: Number, default: 0 },
       sentiment: { type: String, default: "" },
       isIdea: { type: Boolean, default: false },
     },

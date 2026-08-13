@@ -185,18 +185,6 @@ export type Sentiment = {
   createdAt: string
 }
 
-export type SpamAlert = {
-  _id: string
-  messageId: string
-  chatJid: string
-  fromJid: string
-  text: string
-  spamScore: number
-  reasons: string[]
-  notified: boolean
-  createdAt: string
-}
-
 export type OutboundLog = {
   _id: string
   toJid: string
@@ -205,13 +193,6 @@ export type OutboundLog = {
   ok: boolean
   waMessageId: string | null
   error: string | null
-  createdAt: string
-}
-
-export type AnonymousIdea = {
-  _id: string
-  text: string
-  status: "new" | "reviewed"
   createdAt: string
 }
 
@@ -373,8 +354,6 @@ export const api = {
 
   sentiments: () => fetchJson<{ count: number; sentiments: Sentiment[] }>("/api/sentiments"),
 
-  spamAlerts: () => fetchJson<{ count: number; alerts: SpamAlert[] }>("/api/spam-alerts"),
-
   outboundLogs: (limit = 50) =>
     fetchJson<{ count: number; logs: OutboundLog[] }>(`/api/outbound-logs?limit=${limit}`),
 
@@ -383,12 +362,4 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ question, scopeGroupJid }),
     }),
-
-  anonymousIdeas: (status?: "new" | "reviewed") =>
-    fetchJson<{ count: number; ideas: AnonymousIdea[] }>(
-      `/api/anonymous-ideas${status ? `?status=${status}` : ""}`,
-    ),
-
-  markIdeaReviewed: (id: string) =>
-    fetchJson<AnonymousIdea>(`/api/anonymous-ideas/${id}/review`, { method: "POST" }),
 }

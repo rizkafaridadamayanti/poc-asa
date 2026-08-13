@@ -3,7 +3,7 @@ import mongoose, { Schema, type InferSchemaType } from "mongoose"
 const outboundLogSchema = new Schema(
   {
     toJid: { type: String, required: true },
-    /** Free-form origin tag, e.g. "manual", "curated-info", "agenda-reminder", "spam-alert". */
+    /** Free-form origin tag, e.g. "manual", "curated-info", "qa-reply". */
     kind: { type: String, required: true, default: "manual" },
     text: { type: String, default: "" },
     ok: { type: Boolean, required: true },

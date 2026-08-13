@@ -8,7 +8,5 @@ export const NAV_COLORS = {
   infografis: "#0d9488",
   digest: "#db2777",
   informasiBaru: "#ea580c",
-  spamAlerts: "#dc2626",
   qa: "#7c3aed",
-  antrianIde: "#ca8a04",
 } as const
