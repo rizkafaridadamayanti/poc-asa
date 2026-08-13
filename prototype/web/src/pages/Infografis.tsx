@@ -63,25 +63,34 @@ export function Infografis() {
               <h5 className="card-title">Active vs contributive</h5>
               {contributive.length === 0 && <p className="text-muted fst-italic mb-0">No messages yet.</p>}
               {contributive.length > 0 && (
-                <div className="table-responsive">
-                  <table className="table table-hover align-middle mb-0">
-                    <thead>
-                      <tr>
-                        <th>Participant</th>
-                        <th>Messages (active)</th>
-                        <th>Ideas tagged (contributive)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {contributive.map((r) => (
-                        <tr key={r.waJid}>
-                          <td>{r.waJid.split("@")[0]}</td>
-                          <td>{r.messageCount}</td>
-                          <td>{r.ideaCount}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="stat-table">
+                  <div className="stat-row-header">
+                    <span>Participant</span>
+                    <span>Aktivitas</span>
+                  </div>
+                  {contributive.map((r) => (
+                    <div key={r.waJid} className="stat-row">
+                      <span className="stat-row-label">
+                        <span className="stat-row-icon">
+                          <i className="bi bi-person" />
+                        </span>
+                        {r.waJid.split("@")[0]}
+                      </span>
+                      <span className="d-flex gap-2">
+                        <span className="stat-pill" title="Total pesan">
+                          <i className="bi bi-chat-dots" />
+                          {r.messageCount}
+                        </span>
+                        <span
+                          className={`stat-pill${r.ideaCount > 0 ? " stat-pill-idea" : ""}`}
+                          title="Pesan bertanda ide"
+                        >
+                          <i className="bi bi-lightbulb" />
+                          {r.ideaCount}
+                        </span>
+                      </span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -92,23 +101,22 @@ export function Infografis() {
               <h5 className="card-title">Groups by dusun</h5>
               {dusun.length === 0 && <p className="text-muted fst-italic mb-0">No dusun assigned to any group yet.</p>}
               {dusun.length > 0 && (
-                <div className="table-responsive">
-                  <table className="table table-hover align-middle mb-0">
-                    <thead>
-                      <tr>
-                        <th>Dusun</th>
-                        <th>Groups</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {dusun.map((r) => (
-                        <tr key={r.dusunId}>
-                          <td>{r.dusunId}</td>
-                          <td>{r.groupCount}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="stat-table">
+                  <div className="stat-row-header">
+                    <span>Dusun</span>
+                    <span>Jumlah grup</span>
+                  </div>
+                  {dusun.map((r) => (
+                    <div key={r.dusunId} className="stat-row">
+                      <span className="stat-row-label">
+                        <span className="stat-row-icon">
+                          <i className="bi bi-signpost-split" />
+                        </span>
+                        {r.dusunId}
+                      </span>
+                      <span className="stat-pill">{r.groupCount} grup</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
