@@ -1169,17 +1169,8 @@ body {
 }
 
 .dashboard-square-card {
-  width: 420px;
+  width: 360px;
   max-width: 100%;
-}
-
-@media (min-width: 992px) {
-  /* Stacked on mobile, each card should just hug its own content — the
-     matched size only makes sense once they're actually side by side.
-     Square (equal width/height) instead of the previous tall rectangle. */
-  .dashboard-square-card {
-    height: 420px;
-  }
 }
 
 .calendar-grid {
