@@ -36,7 +36,7 @@ function initialsOf(name: string): string {
 // (just enough for the SVG filter's blur to resolve) and by GOO_INSET_RIGHT
 // on the right, where the active bubble needs room to poke outside the pill.
 const GOO_INSET_Y = 10
-const GOO_BUBBLE_SIZE = 54
+const GOO_BUBBLE_SIZE = 46
 
 export function Layout() {
   const navigate = useNavigate()

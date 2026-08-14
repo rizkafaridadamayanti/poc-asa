@@ -261,9 +261,9 @@ body {
 
   .sidebar-goo-bubble {
     position: absolute;
-    right: 5px;
-    width: 54px;
-    height: 54px;
+    right: 15px;
+    width: 46px;
+    height: 46px;
     border-radius: 50%;
     background: #ffffff;
     transition: top 220ms ease;
@@ -317,6 +317,12 @@ body {
     margin: 0 auto;
     border-radius: 50%;
     color: rgba(255, 255, 255, 0.6);
+    /* Every icon (not just the active one) sits a bit closer to the pill's
+       right edge — keeps the whole column on one consistent line instead
+       of only nudging the active item, which read as it jumping out of
+       alignment with the rest of the icons. */
+    position: relative;
+    right: -10px;
   }
 
   .sidebar.sidebar-collapsed .nav-link i {
@@ -335,12 +341,13 @@ body {
 
   /* Active state: the visible bubble is .sidebar-goo-bubble (part of the
      filtered goo layer, positioned in JS to track this item), not anything
-     drawn here — this just shifts the icon to sit inside the bubble's
-     overhanging portion and makes it a touch bigger to read as "current". */
+     drawn here — this just nudges the icon a little further than the rest
+     (on top of the -10px every icon already gets) to sit inside the
+     bubble's overhanging portion, and makes it a touch bigger to read as
+     "current". */
   .sidebar.sidebar-collapsed .nav-link.active {
-    position: relative;
     z-index: 1;
-    right: -42px;
+    right: -26px;
     background: transparent;
   }
 
