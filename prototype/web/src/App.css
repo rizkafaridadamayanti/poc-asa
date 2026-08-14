@@ -1145,14 +1145,14 @@ body {
 
 .donut-ring {
   position: relative;
-  width: 160px;
-  height: 160px;
+  width: 240px;
+  height: 240px;
   border-radius: 50%;
 }
 
 .donut-ring-hole {
   position: absolute;
-  inset: 18px;
+  inset: 28px;
   border-radius: 50%;
   background: #fff;
   display: flex;
@@ -1162,8 +1162,8 @@ body {
 }
 
 .donut-legend-dot {
-  width: 9px;
-  height: 9px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -1183,13 +1183,13 @@ body {
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 34px);
-  gap: 4px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .calendar-weekday {
   text-align: center;
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   color: #94a3b8;
@@ -1203,12 +1203,15 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
+  width: 100%;
+  max-width: 56px;
   aspect-ratio: 1;
+  margin: 0 auto;
   border: none;
   background: transparent;
   border-radius: 10px;
-  font-size: 0.82rem;
+  font-size: 1.05rem;
   color: #1f2937;
   transition: background-color 120ms ease;
 }
@@ -1235,12 +1238,12 @@ body {
 .calendar-day-dots {
   display: flex;
   gap: 3px;
-  height: 6px;
+  height: 7px;
 }
 
 .calendar-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
 }

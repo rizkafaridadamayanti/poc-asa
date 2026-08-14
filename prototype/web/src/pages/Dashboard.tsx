@@ -173,8 +173,8 @@ function GroupsDonut({ counts }: { counts: ScopeCounts }) {
     <div className="d-flex flex-column align-items-center gap-3">
       <div className="donut-ring flex-shrink-0" style={{ background: gradient }}>
         <div className="donut-ring-hole">
-          <div className="fs-4 fw-bold">{total}</div>
-          <div className="text-muted small">Grup</div>
+          <div className="fs-2 fw-bold">{total}</div>
+          <div className="text-muted">Grup</div>
         </div>
       </div>
       {segments.length === 0 ? (
@@ -184,8 +184,8 @@ function GroupsDonut({ counts }: { counts: ScopeCounts }) {
           {segments.map((s) => (
             <li key={s.label} className="d-flex align-items-center gap-2">
               <span className="donut-legend-dot" style={{ background: s.color }} />
-              <span className="small text-muted">{s.label}</span>
-              <span className="small fw-semibold">{s.value}</span>
+              <span className="text-muted">{s.label}</span>
+              <span className="fw-semibold">{s.value}</span>
             </li>
           ))}
         </ul>
