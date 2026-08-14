@@ -22,6 +22,11 @@ const NAV_ITEMS: NavItem[] = [
 
 const NAV_GROUPS: string[] = Array.from(new Set(NAV_ITEMS.map((item) => item.group)))
 
+// .sidebar-pill fills .offcanvas-body's full padding-box width (position:
+// absolute with inset:0 ignores the parent's own padding), which matches
+// the desktop .sidebar width set in App.css.
+const PILL_WIDTH = 76
+
 function initialsOf(name: string): string {
   const cleaned = name.trim()
   if (!cleaned) return "?"
@@ -30,12 +35,6 @@ function initialsOf(name: string): string {
   return cleaned.slice(0, 2).toUpperCase()
 }
 
-// The goo layer overhangs .offcanvas-body by GOO_INSET_Y on top/bottom/left
-// (just enough for the SVG filter's blur to resolve) and by GOO_INSET_RIGHT
-// on the right, where the active bubble needs room to poke outside the pill.
-const GOO_INSET_Y = 14
-const GOO_BUBBLE_SIZE = 58
-
 export function Layout() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -43,7 +42,7 @@ export function Layout() {
   const offcanvasBodyRef = useRef<HTMLDivElement>(null)
   const { connected, qr, disconnectReason, device, lastInbound, error } = useEvents()
   const { toasts, add, remove } = useToasts()
-  const [bubbleTop, setBubbleTop] = useState<number | null>(null)
+  const [notchY, setNotchY] = useState<number | null>(null)
   const username = getStoredUsername() || "Admin"
 
   const today = useMemo(
@@ -71,11 +70,11 @@ export function Layout() {
     }
   }
 
-  // Tracks the active nav item's vertical position so the goo bubble (a
-  // separate absolutely-positioned element, not a per-item pseudo-element)
-  // can line up behind it — recomputed whenever the active route changes.
-  // Harmless on mobile too: the goo layer is just CSS-hidden there, so this
-  // measurement is unused but not wrong.
+  // Tracks the active nav item's vertical center so the concave notch cut
+  // into the pill's right edge (a CSS mask-image on .sidebar-pill, not a
+  // per-item pseudo-element) lines up behind it — recomputed whenever the
+  // active route changes. Harmless on mobile too: the pill itself is just
+  // CSS-hidden there, so this measurement is unused but not wrong.
   useEffect(() => {
     const raf = requestAnimationFrame(() => {
       const body = offcanvasBodyRef.current
@@ -83,10 +82,9 @@ export function Layout() {
       if (body && activeEl) {
         const bodyRect = body.getBoundingClientRect()
         const activeRect = activeEl.getBoundingClientRect()
-        const centerY = activeRect.top - bodyRect.top + activeRect.height / 2
-        setBubbleTop(centerY + GOO_INSET_Y - GOO_BUBBLE_SIZE / 2)
+        setNotchY(activeRect.top - bodyRect.top + activeRect.height / 2)
       } else {
-        setBubbleTop(null)
+        setNotchY(null)
       }
     })
     return () => cancelAnimationFrame(raf)
@@ -125,24 +123,6 @@ export function Layout() {
 
   return (
     <div className="d-flex flex-column vh-100 overflow-hidden">
-      {/* Gooey-merge filter for the desktop sidebar's active bubble: blur
-          softens both shapes' edges, then the color-matrix cranks alpha
-          contrast back up so anywhere they overlap fuses into one blob
-          while everywhere else resharpens to a normal crisp edge. */}
-      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
-        <defs>
-          <filter id="sidebar-goo">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="13" result="blur" />
-            <feColorMatrix
-              in="blur"
-              mode="matrix"
-              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 28 -13"
-              result="goo"
-            />
-            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
-          </filter>
-        </defs>
-      </svg>
       <header className="app-topbar d-flex align-items-center justify-content-between px-3">
         <div className="d-flex align-items-center gap-2">
           <button
@@ -209,11 +189,18 @@ export function Layout() {
             <span className="sidebar-top-badge" aria-hidden="true">
               <i className="bi bi-whatsapp" />
             </span>
-            <div className="sidebar-goo-shadow" />
-            <div className="sidebar-goo-layer">
-              <div className="sidebar-goo-pill" />
-              {bubbleTop !== null && <div className="sidebar-goo-bubble" style={{ top: bubbleTop }} />}
-            </div>
+            <div className="sidebar-pill-shadow" />
+            <div
+              className="sidebar-pill"
+              style={
+                notchY !== null
+                  ? {
+                      WebkitMaskImage: `radial-gradient(circle at ${PILL_WIDTH + 10}px ${notchY}px, transparent 26px, #fff 34px)`,
+                      maskImage: `radial-gradient(circle at ${PILL_WIDTH + 10}px ${notchY}px, transparent 26px, #fff 34px)`,
+                    }
+                  : undefined
+              }
+            />
             <span className="sidebar-collapsed-brand d-none d-lg-flex" aria-hidden="true">
               <i className="bi bi-list" />
             </span>

@@ -191,8 +191,8 @@ body {
    win — a later "wins by default" ordering bug already broke this once. */
 .sidebar-collapsed-brand,
 .sidebar-collapsed-avatar,
-.sidebar-goo-layer,
-.sidebar-goo-shadow,
+.sidebar-pill,
+.sidebar-pill-shadow,
 .sidebar-top-badge {
   display: none;
 }
@@ -219,59 +219,39 @@ body {
     position: relative;
     flex-grow: 0 !important;
     padding: 1rem 0.5rem !important;
-    /* The pill's fill lives on .sidebar-goo-pill (part of the filtered goo
-       layer below) instead of directly on this element, so the active
-       bubble can visually fuse into its edge instead of just sitting on
-       top of it. Bootstrap's .offcanvas-lg reset forces this element's own
-       background transparent !important anyway, which works in our favor
-       here since we want it transparent now. */
+    /* The pill's fill lives on .sidebar-pill instead of directly on this
+       element, so it can carry the active-item notch cutout. Bootstrap's
+       .offcanvas-lg reset forces this element's own background transparent
+       !important anyway, which works in our favor since we want that now. */
     overflow: visible;
   }
 
-  /* Wraps the pill shape + the active bubble together so the SVG filter
-     blurs, then contrast-sharpens, their combined alpha as one shape —
-     wherever they're close enough to overlap they fuse; everywhere else
-     resharpens back to each shape's own crisp edge. Insets are generous
-     only on the right, where the bubble needs room to poke outside the
-     pill; the sidebar sits close to its row container's left/top/bottom
-     edges (which clip via overflow-hidden), so those stay tight. */
-  .sidebar-goo-layer {
+  /* Plain copy of the pill's shape sitting behind .sidebar-pill purely to
+     cast a drop shadow — kept separate (and un-notched) so the shadow
+     stays a clean soft-edged pill rather than picking up the cutout too. */
+  .sidebar-pill-shadow {
     display: block;
     position: absolute;
-    inset: -14px -43px -14px -12px;
-    z-index: 0;
-    filter: url(#sidebar-goo);
-    pointer-events: none;
-  }
-
-  /* Plain, unfiltered copy of the pill's shape sitting behind the goo layer
-     purely to cast a clean drop shadow — a box-shadow inside the filtered
-     layer would get warped by the same blur/contrast pass as the goo merge
-     itself, producing a smeared, oddly-directional shadow near the bubble. */
-  .sidebar-goo-shadow {
-    display: block;
-    position: absolute;
-    inset: 14px 43px 14px 12px;
+    inset: 0;
     border-radius: 40px;
     box-shadow: 0 14px 32px rgba(30, 58, 95, 0.3);
   }
 
-  .sidebar-goo-pill {
+  /* The pill itself, with a concave notch masked out of its right edge at
+     the active item's height. mask-image is set inline from JS (computed
+     pixel coordinates, not a CSS custom property inside the gradient's
+     position argument, which parses unreliably there): fully transparent
+     up to 26px from the notch center, ramping to fully opaque by 34px out,
+     so the pill's navy fill actually recedes inward there instead of a
+     shape merging outward — the concave "socket" a nav icon sits in, not a
+     bump on top of it. Centering the hole 10px past the pill's own right
+     edge means only its inward-facing arc actually cuts into the fill. */
+  .sidebar-pill {
+    display: block;
     position: absolute;
-    inset: 14px 43px 14px 12px;
+    inset: 0;
     border-radius: 40px;
     background: #1e3a5f;
-  }
-
-  .sidebar-goo-bubble {
-    position: absolute;
-    right: 8px;
-    width: 58px;
-    height: 58px;
-    border-radius: 50%;
-    background: #ec4899;
-    box-shadow: 0 0 0 8px rgba(236, 72, 153, 0.15), 0 10px 22px rgba(236, 72, 153, 0.4);
-    transition: top 220ms ease;
   }
 
   /* Small rounded-square logo badge that floats half above the pill's own
@@ -360,21 +340,12 @@ body {
     color: #fff !important;
   }
 
-  /* Active state: the visible bubble is .sidebar-goo-bubble (part of the
-     filtered goo layer, positioned in JS to track this item), not anything
-     drawn here — this just nudges the icon a little further than the rest
-     (on top of the -10px every icon already gets) to sit inside the
-     bubble's overhanging portion, and makes it a touch bigger to read as
-     "current". */
+  /* Active state is communicated entirely by the concave notch cut into
+     .sidebar-pill at this item's height (see --notch-y) — the icon itself
+     stays exactly like every other icon: same position, same color, same
+     size, no extra element drawn on top of it. */
   .sidebar .nav-link.active {
     z-index: 1;
-    right: -30px;
-    background: transparent;
-  }
-
-  .sidebar .nav-link.active i {
-    color: #ffffff !important;
-    font-size: 1.35rem;
   }
 
   .sidebar-collapsed-avatar {
