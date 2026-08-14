@@ -122,7 +122,7 @@ export function Layout() {
             <i className="bi bi-whatsapp" />
           </span>
           <div className="d-none d-sm-block lh-sm">
-            <div className="fs-6 fw-bold">ASA Dashboard</div>
+            <div className="fs-5 fw-bold">ASA Dashboard</div>
             <div className="text-muted app-topbar-subtitle">WhatsApp Bridge — Karang Taruna</div>
           </div>
         </div>
