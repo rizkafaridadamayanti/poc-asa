@@ -610,7 +610,7 @@ export function Dashboard() {
           </div>
 
           <div className="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-stretch">
-            <div className="flex-shrink-0 mx-auto mx-lg-0 dashboard-square-card">
+            <div className="mx-auto mx-lg-0 dashboard-square-card">
               <div className="card h-100">
                 <div className="card-body d-flex flex-column h-100">
                   <h5 className="card-title mb-3">Distribusi Grup</h5>
@@ -620,7 +620,7 @@ export function Dashboard() {
                 </div>
               </div>
             </div>
-            <div className="flex-shrink-0 mx-auto mx-lg-0 dashboard-square-card">
+            <div className="mx-auto mx-lg-0 dashboard-square-card">
               <ActivityCalendar outboundLogs={outboundLogs} curatedInfos={curatedInfos} />
             </div>
           </div>

@@ -1173,6 +1173,14 @@ body {
   max-width: 100%;
 }
 
+@media (min-width: 992px) {
+  .dashboard-square-card {
+    flex: 1 1 0;
+    width: auto;
+    max-width: 640px;
+  }
+}
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 34px);
