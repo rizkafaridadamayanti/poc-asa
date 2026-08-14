@@ -22,8 +22,6 @@ const NAV_ITEMS: NavItem[] = [
 
 const NAV_GROUPS: string[] = Array.from(new Set(NAV_ITEMS.map((item) => item.group)))
 
-const COLLAPSE_KEY = "asa_sidebar_collapsed"
-
 function initialsOf(name: string): string {
   const cleaned = name.trim()
   if (!cleaned) return "?"
@@ -45,7 +43,6 @@ export function Layout() {
   const offcanvasBodyRef = useRef<HTMLDivElement>(null)
   const { connected, qr, disconnectReason, device, lastInbound, error } = useEvents()
   const { toasts, add, remove } = useToasts()
-  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_KEY) === "1")
   const [bubbleTop, setBubbleTop] = useState<number | null>(null)
   const username = getStoredUsername() || "Admin"
 
@@ -74,23 +71,12 @@ export function Layout() {
     }
   }
 
-  const toggleCollapsed = () => {
-    setCollapsed((prev) => {
-      const next = !prev
-      localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0")
-      return next
-    })
-  }
-
   // Tracks the active nav item's vertical position so the goo bubble (a
   // separate absolutely-positioned element, not a per-item pseudo-element)
-  // can line up behind it — recomputed whenever the collapsed state or the
-  // active route changes.
+  // can line up behind it — recomputed whenever the active route changes.
+  // Harmless on mobile too: the goo layer is just CSS-hidden there, so this
+  // measurement is unused but not wrong.
   useEffect(() => {
-    if (!collapsed) {
-      setBubbleTop(null)
-      return
-    }
     const raf = requestAnimationFrame(() => {
       const body = offcanvasBodyRef.current
       const activeEl = body?.querySelector<HTMLElement>(".nav-link.active")
@@ -104,7 +90,7 @@ export function Layout() {
       }
     })
     return () => cancelAnimationFrame(raf)
-  }, [collapsed, location.pathname])
+  }, [location.pathname])
 
   useEffect(() => {
     if (connected === true) {
@@ -139,7 +125,7 @@ export function Layout() {
 
   return (
     <div className="d-flex flex-column vh-100 overflow-hidden">
-      {/* Gooey-merge filter for the collapsed sidebar's active bubble: blur
+      {/* Gooey-merge filter for the desktop sidebar's active bubble: blur
           softens both shapes' edges, then the color-matrix cranks alpha
           contrast back up so anywhere they overlap fuses into one blob
           while everywhere else resharpens to a normal crisp edge. */}
@@ -211,49 +197,27 @@ export function Layout() {
 
       <div className="d-flex flex-grow-1 overflow-hidden">
         <div
-          className={`offcanvas-lg offcanvas-start sidebar flex-shrink-0${collapsed ? " sidebar-collapsed" : ""}`}
+          className="offcanvas-lg offcanvas-start sidebar flex-shrink-0"
           tabIndex={-1}
           id="sidebarOffcanvas"
           ref={offcanvasRef}
         >
-          <button
-            type="button"
-            className="sidebar-toggle d-none d-lg-flex"
-            onClick={toggleCollapsed}
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            <i className={`bi ${collapsed ? "bi-chevron-right" : "bi-chevron-left"}`} />
-          </button>
-
           <div className="offcanvas-header d-lg-none justify-content-end py-2">
             <button type="button" className="btn-close" onClick={closeMobileSidebar} aria-label="Close" />
           </div>
           <div className="offcanvas-body d-flex flex-column p-3" ref={offcanvasBodyRef}>
-            {collapsed && (
-              <>
-                <div className="sidebar-goo-shadow" />
-                <div className="sidebar-goo-layer">
-                  <div className="sidebar-goo-pill" />
-                  {bubbleTop !== null && (
-                    <div className="sidebar-goo-bubble" style={{ top: bubbleTop }} />
-                  )}
-                </div>
-              </>
-            )}
-            <button
-              type="button"
-              className="sidebar-collapsed-brand"
-              onClick={toggleCollapsed}
-              title="Expand sidebar"
-              aria-label="Expand sidebar"
-            >
+            <div className="sidebar-goo-shadow" />
+            <div className="sidebar-goo-layer">
+              <div className="sidebar-goo-pill" />
+              {bubbleTop !== null && <div className="sidebar-goo-bubble" style={{ top: bubbleTop }} />}
+            </div>
+            <span className="sidebar-collapsed-brand d-none d-lg-flex" aria-hidden="true">
               <i className="bi bi-list" />
-            </button>
+            </span>
             <div className="sidebar-nav-scroll flex-grow-1 overflow-auto">
               {NAV_GROUPS.map((group, idx) => (
                 <div key={group} className={idx > 0 ? "mt-2" : ""}>
-                  <div className={`sidebar-group-label${collapsed ? " d-lg-none" : ""}`}>{group}</div>
+                  <div className="sidebar-group-label d-lg-none">{group}</div>
                   <ul className="nav flex-column gap-1">
                     {NAV_ITEMS.filter((item) => item.group === group).map((item) => (
                       <li className="nav-item" key={item.to}>
@@ -261,14 +225,14 @@ export function Layout() {
                           to={item.to}
                           end={item.end}
                           onClick={closeMobileSidebar}
-                          title={collapsed ? item.label : undefined}
+                          title={item.label}
                           style={{ "--item-color": item.color } as React.CSSProperties}
                           className={({ isActive }) =>
                             `nav-link d-flex align-items-center gap-2${isActive ? " active" : ""}`
                           }
                         >
                           <i className={`bi ${item.icon}`} />
-                          <span className={collapsed ? "d-lg-none" : ""}>{item.label}</span>
+                          <span className="d-lg-none">{item.label}</span>
                         </NavLink>
                       </li>
                     ))}
@@ -285,10 +249,10 @@ export function Layout() {
                 closeMobileSidebar()
                 handleLogout()
               }}
-              title={collapsed ? "Logout" : undefined}
+              title="Logout"
             >
-              <i className={`bi bi-box-arrow-right${collapsed ? "" : " me-2"}`} />
-              <span className={collapsed ? "d-lg-none" : ""}>Logout</span>
+              <i className="bi bi-box-arrow-right me-2 me-lg-0" />
+              <span className="d-lg-none">Logout</span>
             </button>
           </div>
         </div>
