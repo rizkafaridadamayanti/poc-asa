@@ -513,10 +513,6 @@ export function Dashboard() {
                         "Info perangkat belum tersedia."
                       )}
                     </p>
-                    <p className="text-muted mb-0" style={{ fontSize: "0.72rem" }}>
-                      WhatsApp cuma membagikan jenis OS HP yang terpasang, bukan model spesifiknya —
-                      perangkat utama akun WA selalu berupa HP, bukan laptop/PC.
-                    </p>
                   </div>
                 </div>
               ) : (
