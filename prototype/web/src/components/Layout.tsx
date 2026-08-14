@@ -34,7 +34,7 @@ function initialsOf(name: string): string {
 // (just enough for the SVG filter's blur to resolve) and by GOO_INSET_RIGHT
 // on the right, where the active bubble needs room to poke outside the pill.
 const GOO_INSET_Y = 14
-const GOO_BUBBLE_SIZE = 46
+const GOO_BUBBLE_SIZE = 58
 
 export function Layout() {
   const navigate = useNavigate()
@@ -206,6 +206,9 @@ export function Layout() {
             <button type="button" className="btn-close" onClick={closeMobileSidebar} aria-label="Close" />
           </div>
           <div className="offcanvas-body d-flex flex-column p-3" ref={offcanvasBodyRef}>
+            <span className="sidebar-top-badge" aria-hidden="true">
+              <i className="bi bi-whatsapp" />
+            </span>
             <div className="sidebar-goo-shadow" />
             <div className="sidebar-goo-layer">
               <div className="sidebar-goo-pill" />
