@@ -179,6 +179,9 @@ export function Layout() {
             <button type="button" className="btn-close" onClick={closeMobileSidebar} aria-label="Close" />
           </div>
           <div className="offcanvas-body d-flex flex-column p-3">
+            <span className="sidebar-collapsed-brand">
+              <i className="bi bi-whatsapp" />
+            </span>
             <div className="sidebar-nav-scroll flex-grow-1 overflow-auto">
               {NAV_GROUPS.map((group, idx) => (
                 <div key={group} className={idx > 0 ? "mt-2" : ""}>
