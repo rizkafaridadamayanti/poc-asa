@@ -254,19 +254,21 @@ body {
     background: #1e3a5f;
   }
 
-  /* Small rounded-square logo badge that floats half above the pill's own
-     top edge, like the active bubble floats past its right edge. */
+  /* Round white logo badge that hooks up and out of the pill's top-right
+     corner (per the sketch) instead of floating centered above it — it
+     overlaps into the pill's own top-right area so it reads as emerging
+     from the navy body, the same way the nav notch reads as part of the
+     pill rather than a separate sticker. */
   .sidebar-top-badge {
     display: flex;
     position: absolute;
-    top: -20px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: -16px;
+    right: -14px;
     align-items: center;
     justify-content: center;
     width: 44px;
     height: 44px;
-    border-radius: 14px;
+    border-radius: 50%;
     background: #ffffff;
     color: #1e3a5f;
     font-size: 1.2rem;
