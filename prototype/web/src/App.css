@@ -918,6 +918,13 @@ body {
 
 .table-fixed-cols {
   table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table-fixed-cols > tbody > tr > td {
+  border-left: none;
+  border-right: none;
 }
 
 .table-jid {
