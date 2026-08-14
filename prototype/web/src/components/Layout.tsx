@@ -179,9 +179,15 @@ export function Layout() {
             <button type="button" className="btn-close" onClick={closeMobileSidebar} aria-label="Close" />
           </div>
           <div className="offcanvas-body d-flex flex-column p-3">
-            <span className="sidebar-collapsed-brand">
-              <i className="bi bi-whatsapp" />
-            </span>
+            <button
+              type="button"
+              className="sidebar-collapsed-brand"
+              onClick={toggleCollapsed}
+              title="Expand sidebar"
+              aria-label="Expand sidebar"
+            >
+              <i className="bi bi-list" />
+            </button>
             <div className="sidebar-nav-scroll flex-grow-1 overflow-auto">
               {NAV_GROUPS.map((group, idx) => (
                 <div key={group} className={idx > 0 ? "mt-2" : ""}>
@@ -208,6 +214,9 @@ export function Layout() {
                 </div>
               ))}
             </div>
+            <span className="sidebar-collapsed-avatar" title={username}>
+              {initialsOf(username)}
+            </span>
             <button
               className="btn btn-outline-secondary mt-3"
               onClick={() => {
