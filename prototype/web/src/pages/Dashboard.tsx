@@ -589,11 +589,11 @@ export function Dashboard() {
       {!status && !error && <p className="text-muted">Loading status…</p>}
       {status && (
         <>
-          <div className="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-stretch">
-            <div className="flex-fill" style={{ minWidth: 0 }}>
+          <div className="row g-3 mb-4">
+            <div className="col-12 col-lg-5">
               <MiniPeakHoursChart rows={peakHours} />
             </div>
-            <div className="flex-fill" style={{ minWidth: 0 }}>
+            <div className="col-12 col-lg-7">
               <div className="card h-100">
                 <div className="card-body d-flex align-items-center gap-3 flex-wrap">
                   <BroadcastIllustration className="dashboard-illustration flex-shrink-0" />
