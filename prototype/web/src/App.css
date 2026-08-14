@@ -1145,14 +1145,14 @@ body {
 
 .donut-ring {
   position: relative;
-  width: 240px;
-  height: 240px;
+  width: 190px;
+  height: 190px;
   border-radius: 50%;
 }
 
 .donut-ring-hole {
   position: absolute;
-  inset: 28px;
+  inset: 22px;
   border-radius: 50%;
   background: #fff;
   display: flex;
@@ -1184,17 +1184,17 @@ body {
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px;
+  gap: 4px;
 }
 
 .calendar-weekday {
   text-align: center;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   color: #94a3b8;
   text-transform: uppercase;
-  padding-bottom: 0.35rem;
+  padding-bottom: 0.3rem;
 }
 
 .calendar-day {
@@ -1203,15 +1203,15 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   width: 100%;
-  max-width: 56px;
+  max-width: 38px;
   aspect-ratio: 1;
   margin: 0 auto;
   border: none;
   background: transparent;
-  border-radius: 10px;
-  font-size: 1.05rem;
+  border-radius: 9px;
+  font-size: 0.88rem;
   color: #1f2937;
   transition: background-color 120ms ease;
 }
