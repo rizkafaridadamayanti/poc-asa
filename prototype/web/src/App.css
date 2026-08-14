@@ -185,204 +185,41 @@ body {
   box-shadow: 2px 0 8px rgba(15, 23, 42, 0.05);
 }
 
-/* Desktop-only pill chrome, hidden here (mobile) by default. These share
-   equal specificity with their @media(min-width:992px) overrides below, so
-   this rule MUST come first in source order for the desktop override to
-   win — a later "wins by default" ordering bug already broke this once. */
-.sidebar-collapsed-brand,
-.sidebar-collapsed-avatar,
-.sidebar-pill,
-.sidebar-pill-shadow,
-.sidebar-top-badge {
-  display: none;
-}
-
 @media (min-width: 992px) {
-  /* Desktop always shows the narrow, icon-only docked pill now — there's no
-     toggle back to the wide labeled sidebar (that variant only survives for
-     the <992px mobile offcanvas, styled by the plain .sidebar rule above). */
   .sidebar {
+    /* Below this breakpoint, Bootstrap's .offcanvas-lg needs its own default
+       position: fixed to work as a slide-in overlay (translated off-screen
+       when closed) — overriding it unconditionally to "relative" kept the
+       sidebar in normal document flow at every width, silently eating its
+       260px from the flex row and squeezing .main-content. Only force
+       "relative" here, once it's meant to sit inline in the row layout. */
     position: relative;
+    /* Bootstrap's .offcanvas-lg flex/column layout only exists inside its
+       own <992px media query, so it's gone at this breakpoint — restore it
+       here or .offcanvas-body has no bounded height to scroll within. */
     display: flex;
     flex-direction: column;
-    width: 76px;
-    height: auto;
+    width: var(--sidebar-width);
+    height: 100%;
     flex-shrink: 0;
-    align-self: flex-start;
-    margin: 20px 0 20px 12px;
-    background-color: transparent !important;
-    border-right: none;
-    box-shadow: none;
+    transition: width 180ms ease;
+  }
+
+  .sidebar.sidebar-collapsed {
+    width: 84px;
+  }
+
+  .sidebar.sidebar-collapsed .nav-link {
+    justify-content: center;
   }
 
   .sidebar .offcanvas-body {
-    position: relative;
-    flex-grow: 0 !important;
-    padding: 1rem 0.5rem !important;
-    /* The pill's fill lives on .sidebar-pill instead of directly on this
-       element, so it can carry the active-item notch cutout. Bootstrap's
-       .offcanvas-lg reset forces this element's own background transparent
-       !important anyway, which works in our favor since we want that now. */
-    overflow: visible;
+    flex-grow: 1 !important;
+    min-height: 0;
   }
 
-  /* Plain copy of the pill's shape sitting behind .sidebar-pill purely to
-     cast a drop shadow — kept separate (and un-notched) so the shadow
-     stays a clean soft-edged pill rather than picking up the cutout too. */
-  .sidebar-pill-shadow {
-    display: block;
-    position: absolute;
-    inset: 0;
-    border-radius: 40px;
-    box-shadow: 0 14px 32px rgba(30, 58, 95, 0.3);
-  }
-
-  /* The pill itself, with a concave notch masked out of its right edge at
-     the active item's height. mask-image is set inline from JS (computed
-     pixel coordinates, not a CSS custom property inside the gradient's
-     position argument, which parses unreliably there): fully transparent
-     up to 26px from the notch center, ramping to fully opaque by 34px out,
-     so the pill's navy fill actually recedes inward there instead of a
-     shape merging outward — the concave "socket" a nav icon sits in, not a
-     bump on top of it. Centering the hole 10px past the pill's own right
-     edge means only its inward-facing arc actually cuts into the fill. */
-  .sidebar-pill {
-    display: block;
-    position: absolute;
-    inset: 0;
-    border-radius: 40px;
-    background: #1e3a5f;
-  }
-
-  /* Round white logo badge that hooks up and out of the pill's top-right
-     corner (per the sketch) instead of floating centered above it — it
-     overlaps into the pill's own top-right area so it reads as emerging
-     from the navy body, the same way the nav notch reads as part of the
-     pill rather than a separate sticker. */
-  .sidebar-top-badge {
-    display: flex;
-    position: absolute;
-    top: -16px;
-    right: -14px;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background: #ffffff;
-    color: #1e3a5f;
-    font-size: 1.2rem;
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
-    z-index: 2;
-  }
-
-  /* .sidebar-goo-layer is position:absolute, which paints above static-flow
-     siblings by default regardless of DOM order — pull the real icons back
-     on top of it explicitly instead of relying on stacking-order accidents. */
-  .sidebar-collapsed-brand,
-  .sidebar-nav-scroll,
-  .sidebar-collapsed-avatar,
-  .sidebar .offcanvas-body > .btn-outline-secondary {
-    position: relative;
-    z-index: 1;
-  }
-
-  .sidebar-nav-scroll ul.nav {
-    gap: 1.1rem !important;
-  }
-
-  /* The active bubble below overflows past the pill's right edge, so the
-     scroll container that would normally clip it needs to allow that. */
-  .sidebar-nav-scroll {
-    overflow: visible !important;
-  }
-
-  .sidebar-collapsed-brand {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    margin: 0 auto 1.1rem;
-    flex-shrink: 0;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-    color: #ffffff;
-    font-size: 1.5rem;
-  }
-
-  .sidebar .nav-link {
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    margin: 0 auto;
-    border-radius: 50%;
-    color: rgba(255, 255, 255, 0.6);
-    /* Every icon (not just the active one) sits a bit closer to the pill's
-       right edge — keeps the whole column on one consistent line instead
-       of only nudging the active item, which read as it jumping out of
-       alignment with the rest of the icons. */
-    position: relative;
-    right: -10px;
-  }
-
-  .sidebar .nav-link i {
-    color: rgba(255, 255, 255, 0.6) !important;
-    font-size: 1.05rem;
-    z-index: 1;
-  }
-
-  .sidebar .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.12);
-  }
-
-  .sidebar .nav-link:hover i {
-    color: #fff !important;
-  }
-
-  /* Active state is communicated entirely by the concave notch cut into
-     .sidebar-pill at this item's height (see --notch-y) — the icon itself
-     stays exactly like every other icon: same position, same color, same
-     size, no extra element drawn on top of it. */
-  .sidebar .nav-link.active {
-    z-index: 1;
-  }
-
-  .sidebar-collapsed-avatar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 34px;
-    height: 34px;
-    margin: 0.9rem auto 0;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: #f97066;
-    color: #fff;
-    font-size: 0.68rem;
-    font-weight: 700;
-  }
-
-  .sidebar .offcanvas-body > .btn-outline-secondary {
-    width: 40px;
-    height: 40px;
-    padding: 0;
-    margin: 0.9rem auto 0;
-    flex-shrink: 0;
-    border: 0;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(255, 255, 255, 0.65);
-    background: transparent;
-  }
-
-  .sidebar .offcanvas-body > .btn-outline-secondary:hover {
-    background-color: rgba(255, 255, 255, 0.12);
-    color: #fff;
+  .sidebar .sidebar-nav-scroll {
+    min-height: 0;
   }
 }
 
@@ -406,6 +243,30 @@ body {
 
 .sidebar-nav-scroll::-webkit-scrollbar-thumb:hover {
   background-color: #b9c0cc;
+}
+
+.sidebar-toggle {
+  position: absolute;
+  top: 50%;
+  right: -18px;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid #d7dbe3;
+  background: #ffffff;
+  color: #374151;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.2);
+  z-index: 5;
+}
+
+.sidebar-toggle:hover {
+  color: #1f2937;
+  border-color: #cbd2dc;
 }
 
 .sidebar-brand-mark {

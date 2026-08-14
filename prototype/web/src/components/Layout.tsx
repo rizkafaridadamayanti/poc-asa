@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom"
+import { NavLink, Outlet, useNavigate } from "react-router-dom"
 import { Offcanvas } from "bootstrap"
 import { clearToken, getStoredUsername } from "../api.js"
 import { useEvents } from "../hooks/useEvents.js"
@@ -22,10 +22,7 @@ const NAV_ITEMS: NavItem[] = [
 
 const NAV_GROUPS: string[] = Array.from(new Set(NAV_ITEMS.map((item) => item.group)))
 
-// .sidebar-pill fills .offcanvas-body's full padding-box width (position:
-// absolute with inset:0 ignores the parent's own padding), which matches
-// the desktop .sidebar width set in App.css.
-const PILL_WIDTH = 76
+const COLLAPSE_KEY = "asa_sidebar_collapsed"
 
 function initialsOf(name: string): string {
   const cleaned = name.trim()
@@ -37,12 +34,10 @@ function initialsOf(name: string): string {
 
 export function Layout() {
   const navigate = useNavigate()
-  const location = useLocation()
   const offcanvasRef = useRef<HTMLDivElement>(null)
-  const offcanvasBodyRef = useRef<HTMLDivElement>(null)
   const { connected, qr, disconnectReason, device, lastInbound, error } = useEvents()
   const { toasts, add, remove } = useToasts()
-  const [notchY, setNotchY] = useState<number | null>(null)
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_KEY) === "1")
   const username = getStoredUsername() || "Admin"
 
   const today = useMemo(
@@ -70,25 +65,13 @@ export function Layout() {
     }
   }
 
-  // Tracks the active nav item's vertical center so the concave notch cut
-  // into the pill's right edge (a CSS mask-image on .sidebar-pill, not a
-  // per-item pseudo-element) lines up behind it — recomputed whenever the
-  // active route changes. Harmless on mobile too: the pill itself is just
-  // CSS-hidden there, so this measurement is unused but not wrong.
-  useEffect(() => {
-    const raf = requestAnimationFrame(() => {
-      const body = offcanvasBodyRef.current
-      const activeEl = body?.querySelector<HTMLElement>(".nav-link.active")
-      if (body && activeEl) {
-        const bodyRect = body.getBoundingClientRect()
-        const activeRect = activeEl.getBoundingClientRect()
-        setNotchY(activeRect.top - bodyRect.top + activeRect.height / 2)
-      } else {
-        setNotchY(null)
-      }
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev
+      localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0")
+      return next
     })
-    return () => cancelAnimationFrame(raf)
-  }, [location.pathname])
+  }
 
   useEffect(() => {
     if (connected === true) {
@@ -177,37 +160,29 @@ export function Layout() {
 
       <div className="d-flex flex-grow-1 overflow-hidden">
         <div
-          className="offcanvas-lg offcanvas-start sidebar flex-shrink-0"
+          className={`offcanvas-lg offcanvas-start sidebar flex-shrink-0${collapsed ? " sidebar-collapsed" : ""}`}
           tabIndex={-1}
           id="sidebarOffcanvas"
           ref={offcanvasRef}
         >
+          <button
+            type="button"
+            className="sidebar-toggle d-none d-lg-flex"
+            onClick={toggleCollapsed}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            <i className={`bi ${collapsed ? "bi-chevron-right" : "bi-chevron-left"}`} />
+          </button>
+
           <div className="offcanvas-header d-lg-none justify-content-end py-2">
             <button type="button" className="btn-close" onClick={closeMobileSidebar} aria-label="Close" />
           </div>
-          <div className="offcanvas-body d-flex flex-column p-3" ref={offcanvasBodyRef}>
-            <span className="sidebar-top-badge" aria-hidden="true">
-              <i className="bi bi-whatsapp" />
-            </span>
-            <div className="sidebar-pill-shadow" />
-            <div
-              className="sidebar-pill"
-              style={
-                notchY !== null
-                  ? {
-                      WebkitMaskImage: `radial-gradient(circle at ${PILL_WIDTH + 10}px ${notchY}px, transparent 26px, #fff 34px)`,
-                      maskImage: `radial-gradient(circle at ${PILL_WIDTH + 10}px ${notchY}px, transparent 26px, #fff 34px)`,
-                    }
-                  : undefined
-              }
-            />
-            <span className="sidebar-collapsed-brand d-none d-lg-flex" aria-hidden="true">
-              <i className="bi bi-list" />
-            </span>
+          <div className="offcanvas-body d-flex flex-column p-3">
             <div className="sidebar-nav-scroll flex-grow-1 overflow-auto">
               {NAV_GROUPS.map((group, idx) => (
                 <div key={group} className={idx > 0 ? "mt-2" : ""}>
-                  <div className="sidebar-group-label d-lg-none">{group}</div>
+                  <div className={`sidebar-group-label${collapsed ? " d-lg-none" : ""}`}>{group}</div>
                   <ul className="nav flex-column gap-1">
                     {NAV_ITEMS.filter((item) => item.group === group).map((item) => (
                       <li className="nav-item" key={item.to}>
@@ -215,14 +190,14 @@ export function Layout() {
                           to={item.to}
                           end={item.end}
                           onClick={closeMobileSidebar}
-                          title={item.label}
+                          title={collapsed ? item.label : undefined}
                           style={{ "--item-color": item.color } as React.CSSProperties}
                           className={({ isActive }) =>
                             `nav-link d-flex align-items-center gap-2${isActive ? " active" : ""}`
                           }
                         >
                           <i className={`bi ${item.icon}`} />
-                          <span className="d-lg-none">{item.label}</span>
+                          <span className={collapsed ? "d-lg-none" : ""}>{item.label}</span>
                         </NavLink>
                       </li>
                     ))}
@@ -230,19 +205,16 @@ export function Layout() {
                 </div>
               ))}
             </div>
-            <span className="sidebar-collapsed-avatar" title={username}>
-              {initialsOf(username)}
-            </span>
             <button
               className="btn btn-outline-secondary mt-3"
               onClick={() => {
                 closeMobileSidebar()
                 handleLogout()
               }}
-              title="Logout"
+              title={collapsed ? "Logout" : undefined}
             >
-              <i className="bi bi-box-arrow-right me-2 me-lg-0" />
-              <span className="d-lg-none">Logout</span>
+              <i className={`bi bi-box-arrow-right${collapsed ? "" : " me-2"}`} />
+              <span className={collapsed ? "d-lg-none" : ""}>Logout</span>
             </button>
           </div>
         </div>
