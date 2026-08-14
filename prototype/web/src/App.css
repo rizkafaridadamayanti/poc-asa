@@ -288,9 +288,9 @@ body {
     color: #fff !important;
   }
 
-  /* Active state: a bright pink bubble that pokes out past the pill's right
-     edge instead of a plain highlight box, via a pseudo-element shifted
-     right and sized larger than the icon so its far side overflows. */
+  /* Active state: a white bubble that pokes out past the pill's right edge
+     instead of a plain highlight box, via a pseudo-element shifted right
+     and sized larger than the icon so its far side overflows. */
   .sidebar.sidebar-collapsed .nav-link.active {
     position: relative;
     right: -16px;
@@ -304,12 +304,12 @@ body {
     inset: -7px;
     z-index: 0;
     border-radius: 50%;
-    background: #ec4899;
-    box-shadow: 0 6px 16px rgba(236, 72, 153, 0.45);
+    background: #ffffff;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.3);
   }
 
   .sidebar.sidebar-collapsed .nav-link.active i {
-    color: #fff !important;
+    color: #1e3a5f !important;
   }
 
   .sidebar.sidebar-collapsed .sidebar-collapsed-avatar {
