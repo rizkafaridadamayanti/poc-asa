@@ -1229,14 +1229,17 @@ body {
   flex-shrink: 0;
 }
 
-.dashboard-calendar-card {
-  width: 320px;
+.dashboard-tri-card {
+  width: 360px;
   max-width: 100%;
 }
 
-.dashboard-donut-card {
-  width: 360px;
-  max-width: 100%;
+@media (min-width: 992px) {
+  /* Stacked on mobile, each card should just hug its own content — the
+     matched size only makes sense once they're actually side by side. */
+  .dashboard-tri-card {
+    height: 460px;
+  }
 }
 
 .calendar-grid {

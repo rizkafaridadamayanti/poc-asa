@@ -285,7 +285,7 @@ function ActivityCalendar({
   const selectedActivity = selectedDay !== null ? activityByDay.get(selectedDay) : undefined
 
   return (
-    <div className="card h-100 dashboard-calendar-card">
+    <div className="card h-100">
       <div className="card-body">
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h5 className="card-title mb-0 text-capitalize">{monthLabel}</h5>
@@ -704,9 +704,9 @@ export function Dashboard() {
             </div>
           </div>
 
-          <div className="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-start">
-            <div className="flex-grow-1 w-100" style={{ minWidth: 0 }}>
-              <div className="card">
+          <div className="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-stretch justify-content-lg-between">
+            <div className="flex-shrink-0 mx-auto mx-lg-0 dashboard-tri-card">
+              <div className="card h-100">
                 <div className="card-body">
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <h5 className="card-title mb-0">Menu Cepat</h5>
@@ -719,16 +719,16 @@ export function Dashboard() {
                 </div>
               </div>
             </div>
-            <div className="flex-shrink-0 mx-auto mx-lg-0">
-              <ActivityCalendar outboundLogs={outboundLogs} curatedInfos={curatedInfos} />
-            </div>
-            <div className="flex-shrink-0 mx-auto mx-lg-0 dashboard-donut-card">
-              <div className="card">
+            <div className="flex-shrink-0 mx-auto mx-lg-0 dashboard-tri-card">
+              <div className="card h-100">
                 <div className="card-body">
                   <h5 className="card-title mb-3">Distribusi Grup</h5>
                   <GroupsDonut counts={scopeCounts} />
                 </div>
               </div>
+            </div>
+            <div className="flex-shrink-0 mx-auto mx-lg-0 dashboard-tri-card">
+              <ActivityCalendar outboundLogs={outboundLogs} curatedInfos={curatedInfos} />
             </div>
           </div>
 
