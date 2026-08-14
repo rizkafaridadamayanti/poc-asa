@@ -225,15 +225,19 @@ body {
 
 .sidebar-nav-scroll {
   /* nav-scroll already grows to fill the sidebar's full height (flex-grow-1
-     in the markup); without this it left one big empty gap trailing after
-     the last group instead of actually using that space, so the sidebar
-     read as mostly blank below Antrian Ide. Spreading the 3 groups apart
-     with space-between distributes it evenly instead. */
+     in the markup); without the flex/space-between below, the flat item
+     list left one big empty gap trailing after the last item instead of
+     actually using that space, so the sidebar read as mostly blank below
+     Antrian Ide. Spreading all items apart evenly instead. */
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   scrollbar-width: thin;
   scrollbar-color: #d7dbe3 transparent;
+}
+
+.sidebar-nav-scroll > .nav {
+  flex-grow: 1;
+  justify-content: space-between;
 }
 
 .sidebar-nav-scroll::-webkit-scrollbar {
@@ -323,15 +327,6 @@ body {
   font-weight: 600;
   letter-spacing: 0.03em;
   color: #94a3b8;
-}
-
-.sidebar-group-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: #64748b;
-  padding: 0.85rem 0.7rem 0.4rem;
 }
 
 .sidebar .nav-link {

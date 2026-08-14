@@ -6,21 +6,19 @@ import { useEvents } from "../hooks/useEvents.js"
 import { NAV_COLORS } from "../navColors.js"
 import { ToastContainer, useToasts } from "./Toasts.js"
 
-type NavItem = { to: string; end?: boolean; icon: string; label: string; group: string; color: string }
+type NavItem = { to: string; end?: boolean; icon: string; label: string; color: string }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: "/", end: true, icon: "bi-speedometer2", label: "Dashboard", group: "Utama", color: NAV_COLORS.dashboard },
-  { to: "/messages", icon: "bi-chat-dots", label: "Messages", group: "Utama", color: NAV_COLORS.messages },
-  { to: "/summaries", icon: "bi-journal-text", label: "Summaries", group: "Summary & Insights", color: NAV_COLORS.summaries },
-  { to: "/groups", icon: "bi-people", label: "Groups", group: "Summary & Insights", color: NAV_COLORS.groups },
-  { to: "/infografis", icon: "bi-bar-chart", label: "Infografis", group: "Summary & Insights", color: NAV_COLORS.infografis },
-  { to: "/informasi-baru", icon: "bi-megaphone", label: "Kelola Pesan", group: "Engagement & Safety", color: NAV_COLORS.informasiBaru },
-  { to: "/pengingat-agenda", icon: "bi-calendar-event", label: "Pengingat Agenda", group: "Engagement & Safety", color: NAV_COLORS.pengingatAgenda },
-  { to: "/spam-alerts", icon: "bi-shield-exclamation", label: "Spam Alert", group: "Engagement & Safety", color: NAV_COLORS.spamAlerts },
-  { to: "/antrian-ide", icon: "bi-lightbulb", label: "Antrian Ide", group: "Engagement & Safety", color: NAV_COLORS.antrianIde },
+  { to: "/", end: true, icon: "bi-speedometer2", label: "Dashboard", color: NAV_COLORS.dashboard },
+  { to: "/messages", icon: "bi-chat-dots", label: "Messages", color: NAV_COLORS.messages },
+  { to: "/summaries", icon: "bi-journal-text", label: "Summaries", color: NAV_COLORS.summaries },
+  { to: "/groups", icon: "bi-people", label: "Groups", color: NAV_COLORS.groups },
+  { to: "/infografis", icon: "bi-bar-chart", label: "Infografis", color: NAV_COLORS.infografis },
+  { to: "/informasi-baru", icon: "bi-megaphone", label: "Kelola Pesan", color: NAV_COLORS.informasiBaru },
+  { to: "/pengingat-agenda", icon: "bi-calendar-event", label: "Pengingat Agenda", color: NAV_COLORS.pengingatAgenda },
+  { to: "/spam-alerts", icon: "bi-shield-exclamation", label: "Spam Alert", color: NAV_COLORS.spamAlerts },
+  { to: "/antrian-ide", icon: "bi-lightbulb", label: "Antrian Ide", color: NAV_COLORS.antrianIde },
 ]
-
-const NAV_GROUPS: string[] = Array.from(new Set(NAV_ITEMS.map((item) => item.group)))
 
 const COLLAPSE_KEY = "asa_sidebar_collapsed"
 
@@ -180,30 +178,25 @@ export function Layout() {
           </div>
           <div className="offcanvas-body d-flex flex-column p-3">
             <div className="sidebar-nav-scroll flex-grow-1 overflow-auto">
-              {NAV_GROUPS.map((group, idx) => (
-                <div key={group} className={idx > 0 ? "mt-2" : ""}>
-                  <div className={`sidebar-group-label${collapsed ? " d-lg-none" : ""}`}>{group}</div>
-                  <ul className="nav flex-column gap-1">
-                    {NAV_ITEMS.filter((item) => item.group === group).map((item) => (
-                      <li className="nav-item" key={item.to}>
-                        <NavLink
-                          to={item.to}
-                          end={item.end}
-                          onClick={closeMobileSidebar}
-                          title={collapsed ? item.label : undefined}
-                          style={{ "--item-color": item.color } as React.CSSProperties}
-                          className={({ isActive }) =>
-                            `nav-link d-flex align-items-center gap-2${isActive ? " active" : ""}`
-                          }
-                        >
-                          <i className={`bi ${item.icon}`} />
-                          <span className={collapsed ? "d-lg-none" : ""}>{item.label}</span>
-                        </NavLink>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
+              <ul className="nav flex-column gap-1">
+                {NAV_ITEMS.map((item) => (
+                  <li className="nav-item" key={item.to}>
+                    <NavLink
+                      to={item.to}
+                      end={item.end}
+                      onClick={closeMobileSidebar}
+                      title={collapsed ? item.label : undefined}
+                      style={{ "--item-color": item.color } as React.CSSProperties}
+                      className={({ isActive }) =>
+                        `nav-link d-flex align-items-center gap-2${isActive ? " active" : ""}`
+                      }
+                    >
+                      <i className={`bi ${item.icon}`} />
+                      <span className={collapsed ? "d-lg-none" : ""}>{item.label}</span>
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
             </div>
             <button
               className="btn btn-outline-secondary mt-3"
