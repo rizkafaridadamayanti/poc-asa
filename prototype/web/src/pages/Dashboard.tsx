@@ -10,9 +10,6 @@ import {
   type PeakHourRow,
   type Group,
   type CuratedInfo,
-  type Agenda,
-  type SpamAlert,
-  type AnonymousIdea,
   type OutboundLog,
 } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
@@ -149,35 +146,6 @@ function MiniPeakHoursChart({ rows }: { rows: PeakHourRow[] }) {
         )}
       </div>
     </div>
-  )
-}
-
-type QuickLinkBadge = { text: string; tone: "amber" | "red" }
-
-function QuickLinkTile({
-  to,
-  icon,
-  label,
-  accent,
-  badge,
-}: {
-  to: string
-  icon: string
-  label: string
-  accent: string
-  badge?: QuickLinkBadge
-}) {
-  return (
-    <Link to={to} className="quick-link-tile">
-      <span
-        className="quick-link-icon"
-        style={{ backgroundColor: `color-mix(in srgb, ${accent} 15%, white)`, color: accent }}
-      >
-        <i className={`bi ${icon}`} />
-      </span>
-      <span className="quick-link-label">{label}</span>
-      {badge && <span className={`quick-link-badge quick-link-badge-${badge.tone}`}>{badge.text}</span>}
-    </Link>
   )
 }
 
@@ -404,9 +372,6 @@ export function Dashboard() {
   const [peakHours, setPeakHours] = useState<PeakHourRow[]>([])
   const [groups, setGroups] = useState<Group[]>([])
   const [curatedInfos, setCuratedInfos] = useState<CuratedInfo[]>([])
-  const [activeAgendas, setActiveAgendas] = useState<Agenda[]>([])
-  const [openSpamAlerts, setOpenSpamAlerts] = useState<SpamAlert[]>([])
-  const [newIdeas, setNewIdeas] = useState<AnonymousIdea[]>([])
   const [outboundLogs, setOutboundLogs] = useState<OutboundLog[]>([])
   const [error, setError] = useState<string | null>(null)
   const [manualQr, setManualQr] = useState<string | null>(null)
@@ -470,24 +435,6 @@ export function Dashboard() {
       })
       .catch(() => {})
     api
-      .agendas(true)
-      .then((res) => {
-        if (mounted) setActiveAgendas(res.agendas)
-      })
-      .catch(() => {})
-    api
-      .spamAlerts("open")
-      .then((res) => {
-        if (mounted) setOpenSpamAlerts(res.alerts)
-      })
-      .catch(() => {})
-    api
-      .anonymousIdeas("new")
-      .then((res) => {
-        if (mounted) setNewIdeas(res.ideas)
-      })
-      .catch(() => {})
-    api
       .outboundLogs(200)
       .then((res) => {
         if (mounted) setOutboundLogs(res.logs)
@@ -501,9 +448,6 @@ export function Dashboard() {
   const isConnected = connected ?? status?.connected ?? false
   const deviceInfo = device ?? status?.device ?? null
 
-  const draftOrScheduledCount = curatedInfos.filter(
-    (i) => i.status === "draft" || i.status === "scheduled",
-  ).length
   const unreviewedGroupCount = groups.filter((g) => g.scope === null).length
   const scopeCounts: ScopeCounts = {
     pusat: groups.filter((g) => g.scope === "pusat").length,
@@ -511,45 +455,6 @@ export function Dashboard() {
     anggota: groups.filter((g) => g.scope === "anggota").length,
     unreviewed: unreviewedGroupCount,
   }
-
-  const quickLinks: { to: string; icon: string; label: string; accent: string; badge?: QuickLinkBadge }[] = [
-    {
-      to: "/informasi-baru",
-      icon: "bi-megaphone",
-      label: "Kelola Pesan",
-      accent: "#1e3a5f",
-      badge: draftOrScheduledCount > 0 ? { text: `${draftOrScheduledCount} draft`, tone: "amber" } : undefined,
-    },
-    {
-      to: "/pengingat-agenda",
-      icon: "bi-calendar-event",
-      label: "Pengingat Agenda",
-      accent: "#1e3a5f",
-      badge: activeAgendas.length > 0 ? { text: `${activeAgendas.length} aktif`, tone: "amber" } : undefined,
-    },
-    {
-      to: "/spam-alerts",
-      icon: "bi-shield-exclamation",
-      label: "Spam Alert",
-      accent: "#dc2626",
-      badge: openSpamAlerts.length > 0 ? { text: `${openSpamAlerts.length} baru`, tone: "red" } : undefined,
-    },
-    {
-      to: "/antrian-ide",
-      icon: "bi-lightbulb",
-      label: "Antrian Ide",
-      accent: "#d97706",
-      badge: newIdeas.length > 0 ? { text: `${newIdeas.length} baru`, tone: "amber" } : undefined,
-    },
-    {
-      to: "/groups",
-      icon: "bi-people",
-      label: "Groups",
-      accent: "#1e3a5f",
-      badge: unreviewedGroupCount > 0 ? { text: `${unreviewedGroupCount} baru`, tone: "amber" } : undefined,
-    },
-    { to: "/infografis", icon: "bi-bar-chart", label: "Infografis", accent: "#1e3a5f" },
-  ]
 
   const statMax = Math.max(1, status?.messageCount ?? 0, status?.summaryCount ?? 0, status?.participantCount ?? 0)
 
@@ -705,21 +610,7 @@ export function Dashboard() {
           </div>
 
           <div className="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-stretch">
-            <div className="flex-shrink-0 mx-auto mx-lg-0 dashboard-tri-card">
-              <div className="card h-100">
-                <div className="card-body">
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h5 className="card-title mb-0">Menu Cepat</h5>
-                  </div>
-                  <div className="quick-link-grid quick-link-grid-compact">
-                    {quickLinks.map((q) => (
-                      <QuickLinkTile key={q.to} {...q} />
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="flex-shrink-0 mx-auto mx-lg-0 dashboard-tri-card">
+            <div className="flex-shrink-0 mx-auto mx-lg-0 dashboard-square-card">
               <div className="card h-100">
                 <div className="card-body">
                   <h5 className="card-title mb-3">Distribusi Grup</h5>
@@ -727,7 +618,7 @@ export function Dashboard() {
                 </div>
               </div>
             </div>
-            <div className="flex-shrink-0 mx-auto mx-lg-0 dashboard-tri-card">
+            <div className="flex-shrink-0 mx-auto mx-lg-0 dashboard-square-card">
               <ActivityCalendar outboundLogs={outboundLogs} curatedInfos={curatedInfos} />
             </div>
           </div>
