@@ -160,36 +160,44 @@ function GroupsDonut({ counts }: { counts: ScopeCounts }) {
     { label: "Belum diatur", value: counts.unreviewed, color: "#d97706" },
   ].filter((s) => s.value > 0)
 
+  const radius = 40
+  const strokeWidth = 16
+  const circumference = 2 * Math.PI * radius
   let acc = 0
-  const stops = segments.map((s) => {
-    const start = (acc / total) * 360
-    acc += s.value
-    const end = (acc / total) * 360
-    return `${s.color} ${start}deg ${end}deg`
-  })
-  const gradient = total > 0 ? `conic-gradient(${stops.join(", ")})` : "#e9ecf2"
 
   return (
-    <div className="d-flex flex-column align-items-center gap-3">
-      <div className="donut-ring flex-shrink-0" style={{ background: gradient }}>
-        <div className="donut-ring-hole">
-          <div className="fs-2 fw-bold">{total}</div>
-          <div className="text-muted">Grup</div>
-        </div>
+    <div className="donut-ring flex-shrink-0">
+      <svg viewBox="0 0 100 100" className="donut-ring-svg">
+        {total === 0 ? (
+          <circle cx="50" cy="50" r={radius} fill="none" stroke="#e9ecf2" strokeWidth={strokeWidth} />
+        ) : (
+          segments.map((s) => {
+            const length = (s.value / total) * circumference
+            const offset = -((acc / total) * circumference)
+            acc += s.value
+            return (
+              <circle
+                key={s.label}
+                cx="50"
+                cy="50"
+                r={radius}
+                fill="none"
+                stroke={s.color}
+                strokeWidth={strokeWidth}
+                strokeDasharray={`${length} ${circumference - length}`}
+                strokeDashoffset={offset}
+                transform="rotate(-90 50 50)"
+              >
+                <title>{`${s.label}: ${s.value}`}</title>
+              </circle>
+            )
+          })
+        )}
+      </svg>
+      <div className="donut-ring-hole">
+        <div className="fs-2 fw-bold">{total}</div>
+        <div className="text-muted">Grup</div>
       </div>
-      {segments.length === 0 ? (
-        <p className="text-muted small mb-0">Belum ada grup terdaftar.</p>
-      ) : (
-        <ul className="list-unstyled d-flex flex-wrap justify-content-center gap-3 mb-0">
-          {segments.map((s) => (
-            <li key={s.label} className="d-flex align-items-center gap-2">
-              <span className="donut-legend-dot" style={{ background: s.color }} />
-              <span className="text-muted">{s.label}</span>
-              <span className="fw-semibold">{s.value}</span>
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   )
 }
@@ -255,7 +263,7 @@ function ActivityCalendar({
   return (
     <div className="card h-100">
       <div className="card-body">
-        <div className="d-flex justify-content-between align-items-center mb-3">
+        <div className="d-flex justify-content-between align-items-center mb-2">
           <h5 className="card-title mb-0 text-capitalize">{monthLabel}</h5>
           <div className="btn-group btn-group-sm">
             <button
@@ -306,7 +314,7 @@ function ActivityCalendar({
             )
           })}
         </div>
-        <div className="d-flex gap-3 mt-3 small text-muted">
+        <div className="d-flex gap-3 mt-2 small text-muted">
           <span className="d-inline-flex align-items-center gap-1">
             <span className="calendar-dot calendar-dot-sent" /> Pesan terkirim
           </span>
