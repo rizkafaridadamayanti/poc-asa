@@ -14,7 +14,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/summaries", icon: "bi-journal-text", label: "Summaries", group: "Summary & Insights", color: NAV_COLORS.summaries },
   { to: "/groups", icon: "bi-people", label: "Groups", group: "Summary & Insights", color: NAV_COLORS.groups },
   { to: "/infografis", icon: "bi-bar-chart", label: "Infografis", group: "Summary & Insights", color: NAV_COLORS.infografis },
-  { to: "/informasi-baru", icon: "bi-megaphone", label: "Informasi Baru", group: "Engagement & Safety", color: NAV_COLORS.informasiBaru },
+  { to: "/informasi-baru", icon: "bi-megaphone", label: "Kelola Pesan", group: "Engagement & Safety", color: NAV_COLORS.informasiBaru },
   { to: "/pengingat-agenda", icon: "bi-calendar-event", label: "Pengingat Agenda", group: "Engagement & Safety", color: NAV_COLORS.pengingatAgenda },
   { to: "/spam-alerts", icon: "bi-shield-exclamation", label: "Spam Alert", group: "Engagement & Safety", color: NAV_COLORS.spamAlerts },
   { to: "/antrian-ide", icon: "bi-lightbulb", label: "Antrian Ide", group: "Engagement & Safety", color: NAV_COLORS.antrianIde },
@@ -38,7 +38,7 @@ export function Layout() {
   const { connected, qr, disconnectReason, device, lastInbound, error } = useEvents()
   const { toasts, add, remove } = useToasts()
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_KEY) === "1")
-  const username = getStoredUsername() || "Pengurus"
+  const username = getStoredUsername() || "Admin"
 
   const today = useMemo(
     () => new Intl.DateTimeFormat("id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(new Date()),
@@ -142,7 +142,7 @@ export function Layout() {
               <span className="user-avatar">{initialsOf(username)}</span>
               <span className="d-none d-sm-block text-start lh-sm">
                 <span className="d-block fw-semibold small text-capitalize">{username}</span>
-                <span className="d-block user-chip-role">PENGURUS PUSAT</span>
+                <span className="d-block user-chip-role">ADMIN PUSAT</span>
               </span>
               <i className="bi bi-chevron-down small text-muted" />
             </button>

@@ -291,7 +291,7 @@ export function InformasiBaru() {
       <PageHeader
         eyebrow="Broadcast Info"
         color={NAV_COLORS.informasiBaru}
-        title="Informasi Baru"
+        title="Kelola Pesan"
         subtitle="Tulis info beasiswa / magang / inovasi, lalu kirim langsung, jadwalkan, atau simpan sebagai draft dulu."
       />
 

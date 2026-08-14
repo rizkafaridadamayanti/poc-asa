@@ -228,7 +228,7 @@ export function PengingatAgenda() {
         eyebrow="Penjadwalan"
         color={NAV_COLORS.pengingatAgenda}
         title="Pengingat Agenda"
-        subtitle="Jadwalkan rapat/kegiatan sekali dengan beberapa pengingat otomatis (mis. H-3, H-1) yang dikirim ke grup/nomor terpilih — beda dari Informasi Baru yang cuma sekali kirim."
+        subtitle="Jadwalkan rapat/kegiatan sekali dengan beberapa pengingat otomatis (mis. H-3, H-1) yang dikirim ke grup/nomor terpilih — beda dari Kelola Pesan yang cuma sekali kirim."
       />
 
       {error && <div className="alert alert-danger">{error}</div>}
