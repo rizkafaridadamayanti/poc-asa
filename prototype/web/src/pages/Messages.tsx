@@ -312,38 +312,51 @@ export function Messages() {
             <>
               <div className="card">
                 <div className="table-responsive">
-                  <table className="table table-hover align-middle mb-0">
+                  <table className="table table-hover align-middle mb-0 table-compact table-fixed-cols">
+                    <colgroup>
+                      <col style={{ width: "15%" }} />
+                      <col style={{ width: "16%" }} />
+                      <col style={{ width: "18%" }} />
+                      <col style={{ width: "39%" }} />
+                      <col style={{ width: "12%" }} />
+                    </colgroup>
                     <thead>
                       <tr style={{ "--bs-table-bg": `color-mix(in srgb, ${themeColor} 12%, white)` } as React.CSSProperties}>
-                        <th className="text-nowrap text-center">{viewMode === "trash" ? "Dihapus" : "Time"}</th>
-                        <th className="text-nowrap text-center">From</th>
-                        <th className="text-nowrap text-center">Chat</th>
-                        <th className="text-center">Text</th>
+                        <th className="text-nowrap">{viewMode === "trash" ? "Dihapus" : "Time"}</th>
+                        <th className="text-nowrap">From</th>
+                        <th className="text-nowrap">Chat</th>
+                        <th>Text</th>
                         <th className="text-nowrap text-center">Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
                       {messages.map((m) => (
                         <tr key={m._id}>
-                          <td className="text-nowrap text-center text-muted small">
+                          <td className="text-nowrap text-muted small">
                             {viewMode === "trash"
                               ? m.trashedAt
                                 ? new Date(m.trashedAt).toLocaleString()
                                 : "—"
                               : formatDate(m.timestamp)}
                           </td>
-                          <td className="text-center">{m.fromJid}</td>
-                          <td className="text-center">
+                          <td className="table-jid" title={m.fromJid}>
+                            {m.fromJid}
+                          </td>
+                          <td>
                             {m.isGroup ? (
-                              <span>{m.chatName || m.chatJid}</span>
+                              <span className="table-jid" title={m.chatName || m.chatJid}>
+                                {m.chatName || m.chatJid}
+                              </span>
                             ) : (
-                              <span>
-                                <span className="badge badge-soft-slate me-1">Personal</span>
-                                <span className="text-muted small">{m.chatJid}</span>
+                              <span className="d-flex align-items-center gap-1" style={{ minWidth: 0 }}>
+                                <span className="badge badge-soft-slate flex-shrink-0">Personal</span>
+                                <span className="table-jid text-muted small" title={m.chatJid}>
+                                  {m.chatJid}
+                                </span>
                               </span>
                             )}
                           </td>
-                          <td className="text-center" style={{ wordBreak: "break-word" }}>
+                          <td className="table-text-cell" title={m.text || undefined}>
                             {m.type !== "text" && <MediaTypeBadge type={m.type} />}
                             {m.text ? truncateWords(m.text, 8) : null}
                           </td>
