@@ -704,9 +704,9 @@ export function Dashboard() {
             </div>
           </div>
 
-          <div className="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-stretch">
-            <div className="flex-grow-1" style={{ minWidth: 0 }}>
-              <div className="card h-100">
+          <div className="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-start">
+            <div className="flex-grow-1 w-100" style={{ minWidth: 0 }}>
+              <div className="card">
                 <div className="card-body">
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <h5 className="card-title mb-0">Menu Cepat</h5>
@@ -722,11 +722,8 @@ export function Dashboard() {
             <div className="flex-shrink-0 mx-auto mx-lg-0">
               <ActivityCalendar outboundLogs={outboundLogs} curatedInfos={curatedInfos} />
             </div>
-          </div>
-
-          <div className="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-stretch">
-            <div className="flex-fill" style={{ minWidth: 0 }}>
-              <div className="card h-100">
+            <div className="flex-shrink-0 mx-auto mx-lg-0 dashboard-donut-card">
+              <div className="card">
                 <div className="card-body">
                   <h5 className="card-title mb-3">Distribusi Grup</h5>
                   <GroupsDonut counts={scopeCounts} />
