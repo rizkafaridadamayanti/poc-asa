@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Link, useOutletContext } from "react-router-dom"
 import { QRCodeSVG } from "qrcode.react"
 import {
@@ -13,8 +13,10 @@ import {
   type Agenda,
   type SpamAlert,
   type AnonymousIdea,
+  type OutboundLog,
 } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
+import { Modal } from "../components/Modal.js"
 import { ChatIllustration, BroadcastIllustration } from "../components/Illustrations.js"
 import { NAV_COLORS } from "../navColors.js"
 
@@ -224,6 +226,177 @@ function GroupsDonut({ counts }: { counts: ScopeCounts }) {
   )
 }
 
+const WEEKDAY_LABELS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"]
+
+type DayActivity = { sent: OutboundLog[]; scheduled: CuratedInfo[] }
+
+function ActivityCalendar({
+  outboundLogs,
+  curatedInfos,
+}: {
+  outboundLogs: OutboundLog[]
+  curatedInfos: CuratedInfo[]
+}) {
+  const [viewDate, setViewDate] = useState(() => {
+    const d = new Date()
+    d.setDate(1)
+    return d
+  })
+  const [selectedDay, setSelectedDay] = useState<number | null>(null)
+
+  const year = viewDate.getFullYear()
+  const month = viewDate.getMonth()
+
+  const activityByDay = useMemo(() => {
+    const map = new Map<number, DayActivity>()
+    const ensure = (day: number) => {
+      let entry = map.get(day)
+      if (!entry) {
+        entry = { sent: [], scheduled: [] }
+        map.set(day, entry)
+      }
+      return entry
+    }
+    for (const log of outboundLogs) {
+      const d = new Date(log.createdAt)
+      if (d.getFullYear() === year && d.getMonth() === month) {
+        ensure(d.getDate()).sent.push(log)
+      }
+    }
+    for (const info of curatedInfos) {
+      if (info.status !== "scheduled" || !info.scheduledAt) continue
+      const d = new Date(info.scheduledAt)
+      if (d.getFullYear() === year && d.getMonth() === month) {
+        ensure(d.getDate()).scheduled.push(info)
+      }
+    }
+    return map
+  }, [outboundLogs, curatedInfos, year, month])
+
+  const firstWeekday = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const today = new Date()
+  const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month
+  const cells: (number | null)[] = [
+    ...Array.from({ length: firstWeekday }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ]
+  const monthLabel = viewDate.toLocaleDateString("id-ID", { month: "long", year: "numeric" })
+  const selectedActivity = selectedDay !== null ? activityByDay.get(selectedDay) : undefined
+
+  return (
+    <div className="card h-100">
+      <div className="card-body">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h5 className="card-title mb-0 text-capitalize">{monthLabel}</h5>
+          <div className="btn-group btn-group-sm">
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={() => setViewDate(new Date(year, month - 1, 1))}
+              aria-label="Bulan sebelumnya"
+            >
+              <i className="bi bi-chevron-left" />
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={() => setViewDate(new Date(year, month + 1, 1))}
+              aria-label="Bulan berikutnya"
+            >
+              <i className="bi bi-chevron-right" />
+            </button>
+          </div>
+        </div>
+        <div className="calendar-grid">
+          {WEEKDAY_LABELS.map((d) => (
+            <div key={d} className="calendar-weekday">
+              {d}
+            </div>
+          ))}
+          {cells.map((day, idx) => {
+            if (day === null) return <div key={`empty-${idx}`} />
+            const activity = activityByDay.get(day)
+            const hasActivity = !!activity && (activity.sent.length > 0 || activity.scheduled.length > 0)
+            const isToday = isCurrentMonth && today.getDate() === day
+            return (
+              <button
+                key={day}
+                type="button"
+                className={`calendar-day${isToday ? " calendar-day-today" : ""}${hasActivity ? " calendar-day-active" : ""}`}
+                onClick={() => hasActivity && setSelectedDay(day)}
+                disabled={!hasActivity}
+              >
+                <span>{day}</span>
+                {hasActivity && (
+                  <span className="calendar-day-dots">
+                    {activity!.sent.length > 0 && <span className="calendar-dot calendar-dot-sent" />}
+                    {activity!.scheduled.length > 0 && <span className="calendar-dot calendar-dot-scheduled" />}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+        <div className="d-flex gap-3 mt-3 small text-muted">
+          <span className="d-inline-flex align-items-center gap-1">
+            <span className="calendar-dot calendar-dot-sent" /> Pesan terkirim
+          </span>
+          <span className="d-inline-flex align-items-center gap-1">
+            <span className="calendar-dot calendar-dot-scheduled" /> Terjadwal
+          </span>
+        </div>
+      </div>
+
+      {selectedDay !== null && selectedActivity && (
+        <Modal title={`Aktivitas ${selectedDay} ${monthLabel}`} onClose={() => setSelectedDay(null)}>
+          {selectedActivity.sent.length > 0 && (
+            <div className="mb-3">
+              <div className="text-muted small mb-2 text-uppercase fw-semibold">
+                Pesan terkirim ({selectedActivity.sent.length})
+              </div>
+              {selectedActivity.sent.map((log) => (
+                <div key={log._id} className="d-flex gap-2 align-items-start mb-2 pb-2 border-bottom">
+                  <span className={`badge rounded-pill ${log.ok ? "badge-soft-green" : "badge-soft-red"}`}>
+                    {log.ok ? "Terkirim" : "Gagal"}
+                  </span>
+                  <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                    <div className="small text-muted">
+                      {log.toJid} · {new Date(log.createdAt).toLocaleTimeString("id-ID")}
+                    </div>
+                    <div className="text-truncate">
+                      {log.text || <em className="text-muted">(tanpa teks)</em>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {selectedActivity.scheduled.length > 0 && (
+            <div>
+              <div className="text-muted small mb-2 text-uppercase fw-semibold">
+                Terjadwal ({selectedActivity.scheduled.length})
+              </div>
+              {selectedActivity.scheduled.map((info) => (
+                <div key={info._id} className="d-flex gap-2 align-items-start mb-2 pb-2 border-bottom">
+                  <span className="badge badge-soft-amber rounded-pill">{info.type}</span>
+                  <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                    <div className="small text-muted">
+                      {info.scheduledAt && new Date(info.scheduledAt).toLocaleTimeString("id-ID")} ·{" "}
+                      {info.targets.length} penerima
+                    </div>
+                    <div>{info.title}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Modal>
+      )}
+    </div>
+  )
+}
+
 export function Dashboard() {
   const { connected, qr: liveQr, disconnectReason, device } = useOutletContext<OutletCtx>()
   const [status, setStatus] = useState<Status | null>(null)
@@ -234,6 +407,7 @@ export function Dashboard() {
   const [activeAgendas, setActiveAgendas] = useState<Agenda[]>([])
   const [openSpamAlerts, setOpenSpamAlerts] = useState<SpamAlert[]>([])
   const [newIdeas, setNewIdeas] = useState<AnonymousIdea[]>([])
+  const [outboundLogs, setOutboundLogs] = useState<OutboundLog[]>([])
   const [error, setError] = useState<string | null>(null)
   const [manualQr, setManualQr] = useState<string | null>(null)
   const [qrLoading, setQrLoading] = useState(false)
@@ -311,6 +485,12 @@ export function Dashboard() {
       .anonymousIdeas("new")
       .then((res) => {
         if (mounted) setNewIdeas(res.ideas)
+      })
+      .catch(() => {})
+    api
+      .outboundLogs(200)
+      .then((res) => {
+        if (mounted) setOutboundLogs(res.logs)
       })
       .catch(() => {})
     return () => {
@@ -525,7 +705,7 @@ export function Dashboard() {
           </div>
 
           <div className="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-stretch">
-            <div className="flex-fill" style={{ minWidth: 0, flexBasis: "58%" }}>
+            <div className="flex-fill" style={{ minWidth: 0, flexBasis: "56%" }}>
               <div className="card h-100">
                 <div className="card-body">
                   <div className="d-flex justify-content-between align-items-center mb-3">
@@ -539,6 +719,12 @@ export function Dashboard() {
                 </div>
               </div>
             </div>
+            <div className="flex-fill" style={{ minWidth: 0 }}>
+              <ActivityCalendar outboundLogs={outboundLogs} curatedInfos={curatedInfos} />
+            </div>
+          </div>
+
+          <div className="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-stretch">
             <div className="flex-fill" style={{ minWidth: 0 }}>
               <div className="card h-100">
                 <div className="card-body">
