@@ -128,8 +128,8 @@ export function Layout() {
         </div>
         <div className="d-flex align-items-center gap-3">
           {statusBadge}
-          <span className="text-muted small d-none d-md-inline text-capitalize">{today}</span>
-          <div className="vr d-none d-md-block" style={{ height: "28px" }} />
+          <span className="text-muted app-topbar-date d-none d-md-inline text-capitalize">{today}</span>
+          <div className="vr d-none d-md-block" style={{ height: "32px" }} />
           <div className="dropdown">
             <button
               type="button"
@@ -139,10 +139,10 @@ export function Layout() {
             >
               <span className="user-avatar">{initialsOf(username)}</span>
               <span className="d-none d-sm-block text-start lh-sm">
-                <span className="d-block fw-semibold small text-capitalize">{username}</span>
+                <span className="d-block fw-semibold app-topbar-username text-capitalize">{username}</span>
                 <span className="d-block user-chip-role">ADMIN PUSAT</span>
               </span>
-              <i className="bi bi-chevron-down small text-muted" />
+              <i className="bi bi-chevron-down app-topbar-chevron text-muted" />
             </button>
             <ul className="dropdown-menu dropdown-menu-end shadow-sm">
               <li>

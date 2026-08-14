@@ -171,6 +171,26 @@ body {
   z-index: 20;
 }
 
+/* Badges default to Bootstrap's compact 0.75em sizing, which reads as
+   undersized next to the topbar's bigger logo mark/avatar — bump just the
+   ones in the topbar rather than every badge in the app. */
+.app-topbar .badge {
+  font-size: 0.8rem;
+  padding: 0.4em 0.7em;
+}
+
+.app-topbar-date {
+  font-size: 0.86rem;
+}
+
+.app-topbar-username {
+  font-size: 0.92rem;
+}
+
+.app-topbar-chevron {
+  font-size: 0.85rem;
+}
+
 .sidebar {
   --bs-offcanvas-width: var(--sidebar-width);
   --bs-offcanvas-color: #4b5566;
