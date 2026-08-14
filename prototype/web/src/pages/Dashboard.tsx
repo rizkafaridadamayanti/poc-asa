@@ -285,7 +285,7 @@ function ActivityCalendar({
   const selectedActivity = selectedDay !== null ? activityByDay.get(selectedDay) : undefined
 
   return (
-    <div className="card h-100">
+    <div className="card h-100 dashboard-calendar-card">
       <div className="card-body">
         <div className="d-flex justify-content-between align-items-center mb-3">
           <h5 className="card-title mb-0 text-capitalize">{monthLabel}</h5>
@@ -705,7 +705,7 @@ export function Dashboard() {
           </div>
 
           <div className="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-stretch">
-            <div className="flex-fill" style={{ minWidth: 0, flexBasis: "56%" }}>
+            <div className="flex-grow-1" style={{ minWidth: 0 }}>
               <div className="card h-100">
                 <div className="card-body">
                   <div className="d-flex justify-content-between align-items-center mb-3">
@@ -719,7 +719,7 @@ export function Dashboard() {
                 </div>
               </div>
             </div>
-            <div className="flex-fill" style={{ minWidth: 0 }}>
+            <div className="flex-shrink-0 mx-auto mx-lg-0">
               <ActivityCalendar outboundLogs={outboundLogs} curatedInfos={curatedInfos} />
             </div>
           </div>

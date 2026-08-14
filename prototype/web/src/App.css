@@ -1229,9 +1229,14 @@ body {
   flex-shrink: 0;
 }
 
+.dashboard-calendar-card {
+  width: 320px;
+  max-width: 100%;
+}
+
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, 34px);
   gap: 4px;
 }
 
