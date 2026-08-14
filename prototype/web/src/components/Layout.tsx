@@ -35,7 +35,7 @@ function initialsOf(name: string): string {
 // The goo layer overhangs .offcanvas-body by GOO_INSET_Y on top/bottom/left
 // (just enough for the SVG filter's blur to resolve) and by GOO_INSET_RIGHT
 // on the right, where the active bubble needs room to poke outside the pill.
-const GOO_INSET_Y = 10
+const GOO_INSET_Y = 14
 const GOO_BUBBLE_SIZE = 46
 
 export function Layout() {
@@ -146,11 +146,11 @@ export function Layout() {
       <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
         <defs>
           <filter id="sidebar-goo">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="13" result="blur" />
             <feColorMatrix
               in="blur"
               mode="matrix"
-              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 28 -13"
               result="goo"
             />
             <feComposite in="SourceGraphic" in2="goo" operator="atop" />
@@ -231,12 +231,15 @@ export function Layout() {
           </div>
           <div className="offcanvas-body d-flex flex-column p-3" ref={offcanvasBodyRef}>
             {collapsed && (
-              <div className="sidebar-goo-layer">
-                <div className="sidebar-goo-pill" />
-                {bubbleTop !== null && (
-                  <div className="sidebar-goo-bubble" style={{ top: bubbleTop }} />
-                )}
-              </div>
+              <>
+                <div className="sidebar-goo-shadow" />
+                <div className="sidebar-goo-layer">
+                  <div className="sidebar-goo-pill" />
+                  {bubbleTop !== null && (
+                    <div className="sidebar-goo-bubble" style={{ top: bubbleTop }} />
+                  )}
+                </div>
+              </>
             )}
             <button
               type="button"
