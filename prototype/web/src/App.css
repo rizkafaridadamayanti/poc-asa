@@ -1230,16 +1230,24 @@ body {
 }
 
 .dashboard-tri-card {
-  width: 360px;
+  width: 420px;
   max-width: 100%;
 }
 
 @media (min-width: 992px) {
   /* Stacked on mobile, each card should just hug its own content — the
-     matched size only makes sense once they're actually side by side. */
+     matched size only makes sense once they're actually side by side.
+     Square (equal width/height) instead of the previous tall rectangle. */
   .dashboard-tri-card {
-    height: 460px;
+    height: 420px;
   }
+}
+
+/* Menu Cepat's tiles normally reflow to as many 190px-wide columns as fit,
+   but that only leaves room for 1 in the square card — force 2 narrower
+   columns instead so the 6 tiles fit without needing extra height. */
+.quick-link-grid-compact {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .calendar-grid {

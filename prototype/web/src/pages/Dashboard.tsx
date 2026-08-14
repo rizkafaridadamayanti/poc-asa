@@ -704,14 +704,14 @@ export function Dashboard() {
             </div>
           </div>
 
-          <div className="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-stretch justify-content-lg-between">
+          <div className="d-flex flex-column flex-lg-row gap-3 mb-4 align-items-stretch">
             <div className="flex-shrink-0 mx-auto mx-lg-0 dashboard-tri-card">
               <div className="card h-100">
                 <div className="card-body">
                   <div className="d-flex justify-content-between align-items-center mb-3">
                     <h5 className="card-title mb-0">Menu Cepat</h5>
                   </div>
-                  <div className="quick-link-grid">
+                  <div className="quick-link-grid quick-link-grid-compact">
                     {quickLinks.map((q) => (
                       <QuickLinkTile key={q.to} {...q} />
                     ))}
