@@ -170,7 +170,7 @@ function GroupsDonut({ counts }: { counts: ScopeCounts }) {
   const gradient = total > 0 ? `conic-gradient(${stops.join(", ")})` : "#e9ecf2"
 
   return (
-    <div className="d-flex align-items-center gap-4 flex-wrap">
+    <div className="d-flex flex-column align-items-center gap-3">
       <div className="donut-ring flex-shrink-0" style={{ background: gradient }}>
         <div className="donut-ring-hole">
           <div className="fs-4 fw-bold">{total}</div>
@@ -180,11 +180,11 @@ function GroupsDonut({ counts }: { counts: ScopeCounts }) {
       {segments.length === 0 ? (
         <p className="text-muted small mb-0">Belum ada grup terdaftar.</p>
       ) : (
-        <ul className="list-unstyled mb-0 flex-grow-1" style={{ minWidth: 140 }}>
+        <ul className="list-unstyled d-flex flex-wrap justify-content-center gap-3 mb-0">
           {segments.map((s) => (
-            <li key={s.label} className="d-flex align-items-center gap-2 mb-2">
+            <li key={s.label} className="d-flex align-items-center gap-2">
               <span className="donut-legend-dot" style={{ background: s.color }} />
-              <span className="small text-muted flex-grow-1">{s.label}</span>
+              <span className="small text-muted">{s.label}</span>
               <span className="small fw-semibold">{s.value}</span>
             </li>
           ))}
@@ -614,7 +614,7 @@ export function Dashboard() {
               <div className="card h-100">
                 <div className="card-body d-flex flex-column h-100">
                   <h5 className="card-title mb-3">Distribusi Grup</h5>
-                  <div className="d-flex flex-column justify-content-center flex-grow-1">
+                  <div className="d-flex flex-column align-items-center justify-content-center flex-grow-1">
                     <GroupsDonut counts={scopeCounts} />
                   </div>
                 </div>

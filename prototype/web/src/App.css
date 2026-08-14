@@ -1145,14 +1145,14 @@ body {
 
 .donut-ring {
   position: relative;
-  width: 132px;
-  height: 132px;
+  width: 160px;
+  height: 160px;
   border-radius: 50%;
 }
 
 .donut-ring-hole {
   position: absolute;
-  inset: 14px;
+  inset: 18px;
   border-radius: 50%;
   background: #fff;
   display: flex;
@@ -1169,7 +1169,7 @@ body {
 }
 
 .dashboard-square-card {
-  width: 360px;
+  width: 460px;
   max-width: 100%;
 }
 
