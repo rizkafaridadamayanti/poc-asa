@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import { NavLink, Outlet, useNavigate } from "react-router-dom"
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom"
 import { Offcanvas } from "bootstrap"
 import { clearToken, getStoredUsername } from "../api.js"
 import { useEvents } from "../hooks/useEvents.js"
@@ -32,12 +32,21 @@ function initialsOf(name: string): string {
   return cleaned.slice(0, 2).toUpperCase()
 }
 
+// The goo layer overhangs .offcanvas-body by GOO_INSET_Y on top/bottom/left
+// (just enough for the SVG filter's blur to resolve) and by GOO_INSET_RIGHT
+// on the right, where the active bubble needs room to poke outside the pill.
+const GOO_INSET_Y = 10
+const GOO_BUBBLE_SIZE = 54
+
 export function Layout() {
   const navigate = useNavigate()
+  const location = useLocation()
   const offcanvasRef = useRef<HTMLDivElement>(null)
+  const offcanvasBodyRef = useRef<HTMLDivElement>(null)
   const { connected, qr, disconnectReason, device, lastInbound, error } = useEvents()
   const { toasts, add, remove } = useToasts()
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_KEY) === "1")
+  const [bubbleTop, setBubbleTop] = useState<number | null>(null)
   const username = getStoredUsername() || "Admin"
 
   const today = useMemo(
@@ -73,6 +82,30 @@ export function Layout() {
     })
   }
 
+  // Tracks the active nav item's vertical position so the goo bubble (a
+  // separate absolutely-positioned element, not a per-item pseudo-element)
+  // can line up behind it — recomputed whenever the collapsed state or the
+  // active route changes.
+  useEffect(() => {
+    if (!collapsed) {
+      setBubbleTop(null)
+      return
+    }
+    const raf = requestAnimationFrame(() => {
+      const body = offcanvasBodyRef.current
+      const activeEl = body?.querySelector<HTMLElement>(".nav-link.active")
+      if (body && activeEl) {
+        const bodyRect = body.getBoundingClientRect()
+        const activeRect = activeEl.getBoundingClientRect()
+        const centerY = activeRect.top - bodyRect.top + activeRect.height / 2
+        setBubbleTop(centerY + GOO_INSET_Y - GOO_BUBBLE_SIZE / 2)
+      } else {
+        setBubbleTop(null)
+      }
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [collapsed, location.pathname])
+
   useEffect(() => {
     if (connected === true) {
       add("WhatsApp connected", "success")
@@ -106,6 +139,24 @@ export function Layout() {
 
   return (
     <div className="d-flex flex-column vh-100 overflow-hidden">
+      {/* Gooey-merge filter for the collapsed sidebar's active bubble: blur
+          softens both shapes' edges, then the color-matrix cranks alpha
+          contrast back up so anywhere they overlap fuses into one blob
+          while everywhere else resharpens to a normal crisp edge. */}
+      <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
+        <defs>
+          <filter id="sidebar-goo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
+            <feColorMatrix
+              in="blur"
+              mode="matrix"
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"
+              result="goo"
+            />
+            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+          </filter>
+        </defs>
+      </svg>
       <header className="app-topbar d-flex align-items-center justify-content-between px-3">
         <div className="d-flex align-items-center gap-2">
           <button
@@ -178,7 +229,15 @@ export function Layout() {
           <div className="offcanvas-header d-lg-none justify-content-end py-2">
             <button type="button" className="btn-close" onClick={closeMobileSidebar} aria-label="Close" />
           </div>
-          <div className="offcanvas-body d-flex flex-column p-3">
+          <div className="offcanvas-body d-flex flex-column p-3" ref={offcanvasBodyRef}>
+            {collapsed && (
+              <div className="sidebar-goo-layer">
+                <div className="sidebar-goo-pill" />
+                {bubbleTop !== null && (
+                  <div className="sidebar-goo-bubble" style={{ top: bubbleTop }} />
+                )}
+              </div>
+            )}
             <button
               type="button"
               className="sidebar-collapsed-brand"
