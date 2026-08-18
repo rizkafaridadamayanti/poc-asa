@@ -929,6 +929,24 @@ h1, h2, h3, h4, h5, h6,
   color: var(--info-slate-soft-text);
 }
 
+/* Messages table's 3-tier chat category badges: Personal (palest) <
+   Group (mid, solid secondary) < media type (brightest, solid accent) —
+   a visual hierarchy of how much a row deviates from a plain DM. */
+.chat-badge-personal {
+  background-color: #e8f0e3;
+  color: #2d5a3d;
+}
+
+.chat-badge-group {
+  background-color: var(--color-secondary);
+  color: #fff;
+}
+
+.chat-badge-media {
+  background-color: var(--color-accent);
+  color: #fff;
+}
+
 /* Solid slate variant for surfaces that need full contrast (e.g. toast
    banners), mirroring Bootstrap's own text-bg-success/text-bg-danger. */
 .text-bg-slate {
@@ -1030,12 +1048,21 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .table > tbody > tr:hover > * {
-  background-color: var(--color-accent-soft-bg);
+  background-color: #f4f8f0;
 }
 
 .table-compact > thead > tr > th,
 .table-compact > tbody > tr > td {
   padding: 0.6rem 0.85rem;
+}
+
+.table-header-eco {
+  --bs-table-bg: #e8f0e3;
+}
+
+.table-header-eco > th {
+  color: #2d5a3d;
+  font-weight: 600;
 }
 
 .table-fixed-cols {
@@ -1264,6 +1291,32 @@ h1, h2, h3, h4, h5, h6,
   .filter-panel-toggle {
     display: inline-flex;
   }
+}
+
+.filter-panel .form-select,
+.filter-panel .form-control,
+.filter-panel .input-group-text {
+  border-color: #d4e4cb;
+}
+
+.filter-panel .form-select:focus,
+.filter-panel .form-control:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 0.25rem var(--color-accent-soft-bg);
+}
+
+.filter-search-icon {
+  color: var(--color-secondary);
+}
+
+.btn-outline-clear {
+  --bs-btn-color: var(--color-secondary);
+  --bs-btn-border-color: var(--color-secondary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--color-secondary);
+  --bs-btn-hover-border-color: var(--color-secondary);
+  --bs-btn-disabled-color: #9ca8a0;
+  --bs-btn-disabled-border-color: #d5ddd0;
 }
 
 .mini-chart-bars {

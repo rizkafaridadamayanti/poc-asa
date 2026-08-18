@@ -239,7 +239,7 @@ export function Messages() {
                 </label>
                 <div className="input-group input-group-sm">
                   <span className="input-group-text bg-white">
-                    <i className="bi bi-search text-muted" />
+                    <i className="bi bi-search filter-search-icon" />
                   </span>
                   <input
                     id="search"
@@ -252,7 +252,7 @@ export function Messages() {
                 </div>
               </div>
               <button
-                className="btn btn-outline-secondary btn-sm w-100"
+                className="btn btn-outline-clear btn-sm w-100"
                 onClick={clearFilters}
                 disabled={!hasFilters}
               >
@@ -321,7 +321,7 @@ export function Messages() {
                       <col style={{ width: "12%" }} />
                     </colgroup>
                     <thead>
-                      <tr style={{ "--bs-table-bg": `color-mix(in srgb, ${themeColor} 12%, white)` } as React.CSSProperties}>
+                      <tr className="table-header-eco">
                         <th className="text-nowrap">{viewMode === "trash" ? "Dihapus" : "Time"}</th>
                         <th className="text-nowrap">From</th>
                         <th className="text-nowrap">Chat</th>
@@ -344,12 +344,16 @@ export function Messages() {
                           </td>
                           <td>
                             {m.isGroup ? (
-                              <span className="table-jid" title={m.chatName || m.chatJid}>
+                              <span
+                                className="badge chat-badge-group text-truncate d-inline-block"
+                                style={{ maxWidth: "100%" }}
+                                title={m.chatName || m.chatJid}
+                              >
                                 {m.chatName || m.chatJid}
                               </span>
                             ) : (
                               <span className="d-flex align-items-center gap-1" style={{ minWidth: 0 }}>
-                                <span className="badge badge-soft-slate flex-shrink-0">Personal</span>
+                                <span className="badge chat-badge-personal flex-shrink-0">Personal</span>
                                 <span className="table-jid text-muted small" title={m.chatJid}>
                                   {m.chatJid}
                                 </span>
