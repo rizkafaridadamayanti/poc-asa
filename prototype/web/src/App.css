@@ -733,6 +733,23 @@ h1, h2, h3, h4, h5, h6,
   transform: translateY(0);
 }
 
+/* Default bubble opens upward (safe inside .page-header-card's
+   overflow:hidden); use this modifier when the wrap sits somewhere without
+   that constraint and downward has more natural room, e.g. near the bottom
+   of a plain .card. */
+.info-tooltip-bubble-down {
+  top: 100%;
+  bottom: auto;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+  transform: translateY(-4px);
+}
+
+.info-tooltip-wrap:hover .info-tooltip-bubble-down,
+.info-tooltip-wrap:focus-within .info-tooltip-bubble-down {
+  transform: translateY(0);
+}
+
 .toast-stack {
   position: fixed;
   top: 1rem;
@@ -971,6 +988,38 @@ h1, h2, h3, h4, h5, h6,
 
 .groups-row:hover {
   box-shadow: 0 0.35rem 0.9rem rgba(15, 23, 42, 0.08);
+}
+
+.groups-row-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-accent-soft-bg);
+  color: var(--color-secondary);
+  font-size: 1rem;
+}
+
+.groups-page .form-control,
+.groups-page .form-select,
+.groups-page .input-group-text {
+  border-color: #d4e4cb;
+}
+
+.groups-page .form-control:focus,
+.groups-page .form-select:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 0.25rem var(--color-accent-soft-bg);
+}
+
+.groups-page .btn-outline-secondary {
+  border-color: #d4e4cb;
+}
+
+.groups-icon-accent {
+  color: var(--color-secondary);
 }
 
 .dusun-edit-trigger {

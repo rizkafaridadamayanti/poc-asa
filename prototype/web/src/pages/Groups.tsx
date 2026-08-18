@@ -12,12 +12,6 @@ const SCOPE_LABEL: Record<GroupScope, string> = {
   anggota: "Anggota",
 }
 
-const SCOPE_BADGE: Record<GroupScope, string> = {
-  pusat: "badge-soft-slate",
-  dusun: "badge-soft-slate",
-  anggota: "badge-soft-slate",
-}
-
 const SCOPE_DOT: Record<GroupScope, string> = {
   pusat: "var(--color-primary)",
   dusun: "var(--color-secondary)",
@@ -187,7 +181,7 @@ export function Groups() {
   }
 
   return (
-    <div>
+    <div className="groups-page">
       <PageHeader eyebrow="Manajemen Grup" color={NAV_COLORS.groups} title="Groups" />
       {error && <div className="alert alert-danger">{error}</div>}
       {info && <div className="alert alert-success">{info}</div>}
@@ -248,11 +242,17 @@ export function Groups() {
               </button>
             </div>
           </div>
-          <div className="form-text mt-2">
-            Grup baru otomatis terdaftar begitu bot menerima pesan darinya (scope perlu ditinjau
-            manual). Form ini buat mendaftarkan kontak pribadi, atau grup lama yang belum pernah
-            kirim pesan — pakai <b>Sync from WhatsApp</b> di bawah untuk itu. JID lengkap
-            (<code>xxx@g.us</code>) atau nomor HP biasa, otomatis dinormalisasi.
+          <div className="form-text mt-2 d-inline-flex align-items-center gap-2">
+            Grup baru otomatis terdaftar dari pesan masuk — pakai form ini untuk kontak/grup lama.
+            <span className="info-tooltip-wrap">
+              <i className="bi bi-info-circle info-tooltip-icon" />
+              <span className="info-tooltip-bubble info-tooltip-bubble-down">
+                Grup baru otomatis terdaftar begitu bot menerima pesan darinya (scope perlu ditinjau
+                manual). Form ini buat mendaftarkan kontak pribadi, atau grup lama yang belum pernah
+                kirim pesan — pakai <strong>Sync from WhatsApp</strong> di bawah untuk itu. JID
+                lengkap (<code>xxx@g.us</code>) atau nomor HP biasa, otomatis dinormalisasi.
+              </span>
+            </span>
           </div>
         </div>
       </form>
@@ -313,7 +313,7 @@ export function Groups() {
           <div className="d-flex gap-2 flex-shrink-0">
             <div className="input-group input-group-sm" style={{ width: "240px" }}>
               <span className="input-group-text bg-white border-end-0">
-                <i className="bi bi-search text-muted" />
+                <i className="bi bi-search groups-icon-accent" />
               </span>
               <input
                 className="form-control border-start-0 ps-0"
@@ -323,7 +323,7 @@ export function Groups() {
               />
             </div>
             <button className="btn btn-outline-secondary btn-sm text-nowrap" onClick={handleSync} disabled={syncing}>
-              <i className="bi bi-arrow-repeat me-1" />
+              <i className="bi bi-arrow-repeat me-1 groups-icon-accent" />
               {syncing ? "Syncing…" : "Sync"}
             </button>
           </div>
@@ -338,64 +338,65 @@ export function Groups() {
       {filteredGroups.map((g) => (
         <div key={g._id} className={`card mb-2 groups-row ${g.scope === null ? "border-secondary-subtle" : ""}`}>
           <div className="card-body d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <div>
-              <strong>{g.name || g.waJid}</strong>
-              {g.source === "auto" && <span className="text-muted small ms-2">(auto)</span>}
-              <div className="text-muted small d-flex align-items-center flex-wrap gap-1">
-                <span>{g.waJid}</span>
-                {editingDusunId === g._id ? (
-                  <span className="d-inline-flex align-items-center gap-1">
-                    <span>·</span>
-                    <input
-                      autoFocus
-                      className="form-control form-control-sm dusun-edit-input"
-                      placeholder="Nama dusun"
-                      value={dusunDraft}
-                      onChange={(e) => setDusunDraft(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") saveDusun(g._id)
-                        if (e.key === "Escape") cancelEditDusun()
-                      }}
-                      disabled={savingDusun}
-                    />
+            <div className="d-flex align-items-start gap-3">
+              <span className="groups-row-icon flex-shrink-0">
+                <i className="bi bi-people-fill" />
+              </span>
+              <div>
+                <strong>{g.name || g.waJid}</strong>
+                {g.source === "auto" && <span className="text-muted small ms-2">(auto)</span>}
+                <div className="text-muted small d-flex align-items-center flex-wrap gap-1">
+                  <span>{g.waJid}</span>
+                  {editingDusunId === g._id ? (
+                    <span className="d-inline-flex align-items-center gap-1">
+                      <span>·</span>
+                      <input
+                        autoFocus
+                        className="form-control form-control-sm dusun-edit-input"
+                        placeholder="Nama dusun"
+                        value={dusunDraft}
+                        onChange={(e) => setDusunDraft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") saveDusun(g._id)
+                          if (e.key === "Escape") cancelEditDusun()
+                        }}
+                        disabled={savingDusun}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-link btn-sm p-0 text-success"
+                        onClick={() => saveDusun(g._id)}
+                        disabled={savingDusun}
+                        title="Simpan"
+                      >
+                        <i className="bi bi-check-lg" />
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-link btn-sm p-0 text-muted"
+                        onClick={cancelEditDusun}
+                        disabled={savingDusun}
+                        title="Batal"
+                      >
+                        <i className="bi bi-x-lg" />
+                      </button>
+                    </span>
+                  ) : (
                     <button
                       type="button"
-                      className="btn btn-link btn-sm p-0 text-success"
-                      onClick={() => saveDusun(g._id)}
-                      disabled={savingDusun}
-                      title="Simpan"
+                      className="btn btn-link btn-sm p-0 text-decoration-none text-muted dusun-edit-trigger"
+                      onClick={() => startEditDusun(g)}
+                      title="Edit dusun"
                     >
-                      <i className="bi bi-check-lg" />
+                      {g.dusunId ? `· dusun: ${g.dusunId}` : "+ Tambah dusun"}
+                      <i className="bi bi-pencil ms-1" />
                     </button>
-                    <button
-                      type="button"
-                      className="btn btn-link btn-sm p-0 text-muted"
-                      onClick={cancelEditDusun}
-                      disabled={savingDusun}
-                      title="Batal"
-                    >
-                      <i className="bi bi-x-lg" />
-                    </button>
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    className="btn btn-link btn-sm p-0 text-decoration-none text-muted dusun-edit-trigger"
-                    onClick={() => startEditDusun(g)}
-                    title="Edit dusun"
-                  >
-                    {g.dusunId ? `· dusun: ${g.dusunId}` : "+ Tambah dusun"}
-                    <i className="bi bi-pencil ms-1" />
-                  </button>
-                )}
+                  )}
+                </div>
               </div>
             </div>
             <div className="d-flex align-items-center gap-2">
-              {g.scope === null ? (
-                <span className="badge rounded-pill badge-soft-slate">Belum diatur</span>
-              ) : (
-                <span className={`badge rounded-pill ${SCOPE_BADGE[g.scope]}`}>{SCOPE_LABEL[g.scope]}</span>
-              )}
+              {g.scope === null && <span className="badge rounded-pill badge-soft-amber">Belum diatur</span>}
               <select
                 className="form-select form-select-sm"
                 style={{ width: "auto" }}
