@@ -1054,12 +1054,14 @@ h1, h2, h3, h4, h5, h6,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.4rem 0.6rem;
+  padding: 0.5rem 0.6rem;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--color-text-secondary);
+  color: var(--color-primary);
+  background-color: #e8f0e3;
+  border-radius: 0.5rem 0.5rem 0 0;
   border-bottom: 1px solid var(--color-card-border);
 }
 
@@ -1103,6 +1105,12 @@ h1, h2, h3, h4, h5, h6,
   font-size: 0.9rem;
 }
 
+.stat-row-icon-participant {
+  border-radius: 50%;
+  background: #e8f0e3;
+  color: var(--color-primary);
+}
+
 .stat-pill {
   display: inline-flex;
   align-items: center;
@@ -1116,9 +1124,9 @@ h1, h2, h3, h4, h5, h6,
   white-space: nowrap;
 }
 
-.stat-pill-idea {
-  background: var(--status-success-soft-bg);
-  color: var(--status-success-soft-text);
+.stat-pill-accent {
+  background: var(--color-accent-soft-bg);
+  color: var(--color-accent-soft-text);
 }
 
 /* Solid-but-soft badges: 10-15% tint background + full-opacity text, used
@@ -1398,6 +1406,58 @@ h1, h2, h3, h4, h5, h6,
 .chat-hour-bar-wrap:hover .chat-hour-tooltip {
   opacity: 1;
   transform: translate(-50%, -2px) scale(1);
+}
+
+.chat-hour-chart-row {
+  display: flex;
+  align-items: stretch;
+}
+
+.chat-hour-yaxis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex-shrink: 0;
+  width: 26px;
+  height: 120px;
+  padding-right: 0.4rem;
+  font-size: 0.65rem;
+  line-height: 1;
+  color: var(--color-text-secondary);
+  text-align: right;
+}
+
+.chat-hour-plot {
+  position: relative;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.chat-hour-gridlines {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.chat-hour-gridlines span {
+  display: block;
+  border-top: 1px solid var(--color-card-border);
+}
+
+.chat-hour-bars {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 120px;
+}
+
+.chat-hour-xaxis {
+  display: flex;
+  padding-left: calc(26px + 0.4rem);
 }
 
 /* ---- Layout restructure: drawer, sticky/filter columns, mini chart ---- */

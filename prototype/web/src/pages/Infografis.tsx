@@ -23,6 +23,13 @@ export function Infografis() {
   }, [])
 
   const maxHourCount = Math.max(1, ...peakHours.map((r) => r.count))
+  const yAxisLabels = [
+    maxHourCount,
+    Math.round(maxHourCount * 0.75),
+    Math.round(maxHourCount * 0.5),
+    Math.round(maxHourCount * 0.25),
+    0,
+  ]
 
   return (
     <div>
@@ -37,26 +44,55 @@ export function Infografis() {
               <div className="card h-100">
                 <div className="card-body">
                   <h5 className="card-title">Peak chat hours</h5>
-                  <div className="d-flex align-items-end gap-1" style={{ height: "120px" }}>
-                    {Array.from({ length: 24 }, (_, hour) => {
-                      const row = peakHours.find((r) => r.hour === hour)
-                      const count = row?.count ?? 0
-                      return (
-                        <div key={hour} className="flex-fill text-center chat-hour-bar-wrap">
-                          <span className="chat-hour-tooltip">
-                            {hour}:00 — {count} pesan
-                          </span>
-                          <div
-                            className="chat-hour-bar mx-auto"
-                            style={{ height: `${Math.max((count / maxHourCount) * 100, 2)}px`, width: "70%" }}
-                          />
-                          <span className="text-muted" style={{ fontSize: "0.65rem" }}>
+                  {peakHours.length === 0 ? (
+                    <EmptyState icon="bi-bar-chart" text="Belum ada data pesan." />
+                  ) : (
+                    <>
+                      <div className="chat-hour-chart-row">
+                        <div className="chat-hour-yaxis">
+                          {yAxisLabels.map((v, i) => (
+                            <span key={i}>{v}</span>
+                          ))}
+                        </div>
+                        <div className="chat-hour-plot">
+                          <div className="chat-hour-gridlines">
+                            <span />
+                            <span />
+                            <span />
+                            <span />
+                            <span />
+                          </div>
+                          <div className="chat-hour-bars">
+                            {Array.from({ length: 24 }, (_, hour) => {
+                              const row = peakHours.find((r) => r.hour === hour)
+                              const count = row?.count ?? 0
+                              return (
+                                <div key={hour} className="flex-fill text-center chat-hour-bar-wrap">
+                                  <span className="chat-hour-tooltip">
+                                    {hour}:00 — {count} pesan
+                                  </span>
+                                  <div
+                                    className="chat-hour-bar mx-auto"
+                                    style={{
+                                      height: `${Math.max((count / maxHourCount) * 120, count > 0 ? 2 : 0)}px`,
+                                      width: "70%",
+                                    }}
+                                  />
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="chat-hour-xaxis">
+                        {Array.from({ length: 24 }, (_, hour) => (
+                          <span key={hour} className="flex-fill text-center text-muted" style={{ fontSize: "0.65rem" }}>
                             {hour}
                           </span>
-                        </div>
-                      )
-                    })}
-                  </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -75,18 +111,21 @@ export function Infografis() {
                       {contributive.map((r) => (
                         <div key={r.waJid} className="stat-row">
                           <span className="stat-row-label">
-                            <span className="stat-row-icon">
+                            <span className="stat-row-icon stat-row-icon-participant">
                               <i className="bi bi-person" />
                             </span>
                             {r.waJid.split("@")[0]}
                           </span>
                           <span className="d-flex gap-2">
-                            <span className="stat-pill" title="Total pesan">
+                            <span
+                              className={`stat-pill${r.messageCount > 0 ? " stat-pill-accent" : ""}`}
+                              title="Total pesan"
+                            >
                               <i className="bi bi-chat-dots" />
                               {r.messageCount}
                             </span>
                             <span
-                              className={`stat-pill${r.ideaCount > 0 ? " stat-pill-idea" : ""}`}
+                              className={`stat-pill${r.ideaCount > 0 ? " stat-pill-accent" : ""}`}
                               title="Pesan bertanda ide"
                             >
                               <i className="bi bi-lightbulb" />
@@ -106,7 +145,7 @@ export function Infografis() {
             <div className="card-body">
               <h5 className="card-title">Groups by dusun</h5>
               {dusun.length === 0 && (
-                <EmptyState icon="bi-signpost-split" text="Belum ada grup yang diatur ke dusun." />
+                <EmptyState icon="bi-geo-alt-fill" text="Belum ada grup yang diatur ke dusun." />
               )}
               {dusun.length > 0 && (
                 <div className="stat-table">
@@ -118,7 +157,7 @@ export function Infografis() {
                     <div key={r.dusunId} className="stat-row">
                       <span className="stat-row-label">
                         <span className="stat-row-icon">
-                          <i className="bi bi-signpost-split" />
+                          <i className="bi bi-geo-alt-fill" />
                         </span>
                         {r.dusunId}
                       </span>
