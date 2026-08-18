@@ -41,6 +41,17 @@ function relativeDue(dueAt: string): { text: string; status: DueStatus } {
   return { text: `${days} hari lagi`, status: "ok" }
 }
 
+// Separate from Aktif/Riwayat (which is soft-delete, not date-based — see
+// the backend's /api/agendas trash flag). This filters by due date instead,
+// entirely client-side since relativeDue() already computes it per item.
+type DueFilter = "all" | "upcoming" | "overdue"
+
+const DUE_FILTERS: Array<{ value: DueFilter; label: string }> = [
+  { value: "all", label: "Semua" },
+  { value: "upcoming", label: "Akan datang" },
+  { value: "overdue", label: "Sudah lewat" },
+]
+
 // Describes a reminder's timing relative to the due date (e.g. "H-3",
 // "H+1", "Saat jatuh tempo") instead of the generic "Custom" label a
 // manually-picked datetime otherwise gets.
@@ -84,6 +95,7 @@ function reminderSummary(remindAt: Agenda["remindAt"], dueAtIso: string): string
 export function PengingatAgenda() {
   const [agendas, setAgendas] = useState<Agenda[]>([])
   const [viewMode, setViewMode] = useState<"active" | "trash">("active")
+  const [dueFilter, setDueFilter] = useState<DueFilter>("all")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
@@ -264,6 +276,14 @@ export function PengingatAgenda() {
     }
   }
 
+  const visibleAgendas =
+    dueFilter === "all"
+      ? agendas
+      : agendas.filter((a) => {
+          const isOverdue = relativeDue(a.dueAt).status === "overdue"
+          return dueFilter === "overdue" ? isOverdue : !isOverdue
+        })
+
   return (
     <div>
       <PageHeader
@@ -277,23 +297,38 @@ export function PengingatAgenda() {
       {info && <div className="alert alert-success">{info}</div>}
 
       <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <div className="segmented-tabs">
-          <button
-            type="button"
-            className={`segmented-tab${viewMode === "active" ? " active" : ""}`}
-            onClick={() => switchView("active")}
-          >
-            <i className="bi bi-calendar-event" />
-            Aktif
-          </button>
-          <button
-            type="button"
-            className={`segmented-tab${viewMode === "trash" ? " active" : ""}`}
-            onClick={() => switchView("trash")}
-          >
-            <i className="bi bi-clock-history" />
-            Riwayat
-          </button>
+        <div className="d-flex flex-wrap align-items-center gap-2">
+          <div className="segmented-tabs">
+            <button
+              type="button"
+              className={`segmented-tab${viewMode === "active" ? " active" : ""}`}
+              onClick={() => switchView("active")}
+            >
+              <i className="bi bi-calendar-event" />
+              Aktif
+            </button>
+            <button
+              type="button"
+              className={`segmented-tab${viewMode === "trash" ? " active" : ""}`}
+              onClick={() => switchView("trash")}
+            >
+              <i className="bi bi-clock-history" />
+              Riwayat
+            </button>
+          </div>
+          <div className="vr d-none d-md-block" style={{ height: "24px" }} />
+          <div className="segmented-tabs segmented-tabs-sm">
+            {DUE_FILTERS.map((f) => (
+              <button
+                key={f.value}
+                type="button"
+                className={`segmented-tab${f.value === dueFilter ? " active" : ""}`}
+                onClick={() => setDueFilter(f.value)}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
         {viewMode === "active" && !showForm && (
           <button className="btn btn-primary" onClick={startCreate}>
@@ -422,8 +457,11 @@ export function PengingatAgenda() {
           text={viewMode === "trash" ? "Riwayat kosong." : "Belum ada agenda."}
         />
       )}
+      {!loading && agendas.length > 0 && visibleAgendas.length === 0 && (
+        <EmptyState icon="bi-filter" text="Tidak ada agenda yang cocok dengan filter ini." />
+      )}
 
-      {agendas.map((a) => {
+      {visibleAgendas.map((a) => {
         const due = relativeDue(a.dueAt)
         const sentCount = a.remindAt.filter((r) => r.sent).length
         const recipients = audienceSummary(a.audience, audienceLabel)
