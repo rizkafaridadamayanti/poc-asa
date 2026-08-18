@@ -1162,6 +1162,18 @@ h1, h2, h3, h4, h5, h6,
   color: var(--info-slate-soft-text);
 }
 
+.badge-soft-secondary {
+  --bs-badge-color: var(--color-primary);
+  background-color: var(--color-secondary-soft-bg);
+  color: var(--color-primary);
+}
+
+.badge-soft-accent {
+  --bs-badge-color: var(--color-accent-soft-text);
+  background-color: var(--color-accent-soft-bg);
+  color: var(--color-accent-soft-text);
+}
+
 /* Messages table's 3-tier chat category badges: Personal (palest) <
    Group (mid, solid secondary) < media type (brightest, solid accent) —
    a visual hierarchy of how much a row deviates from a plain DM. */
@@ -1597,7 +1609,11 @@ h1, h2, h3, h4, h5, h6,
   color: var(--color-secondary);
 }
 
-.btn-outline-clear {
+/* Secondary-green outline button — used wherever an outline button needs to
+   read as a distinct, "live" action rather than Bootstrap's neutral-gray
+   outline-secondary (which reads as disabled/inert at a glance). */
+.btn-outline-clear,
+.btn-outline-accent {
   --bs-btn-color: var(--color-secondary);
   --bs-btn-border-color: var(--color-secondary);
   --bs-btn-hover-color: #fff;
@@ -1605,6 +1621,23 @@ h1, h2, h3, h4, h5, h6,
   --bs-btn-hover-border-color: var(--color-secondary);
   --bs-btn-disabled-color: #9ca8a0;
   --bs-btn-disabled-border-color: #d5ddd0;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.kelola-search-group .form-control,
+.kelola-search-group .input-group-text {
+  border-color: #d4e4cb;
+}
+
+.kelola-search-group .form-control:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 0.2rem var(--color-accent-soft-bg);
 }
 
 .mini-chart-bars {

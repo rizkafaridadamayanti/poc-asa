@@ -19,6 +19,12 @@ const TYPE_LABEL: Record<CuratedInfoType, string> = {
   inovasi: "Inovasi",
 }
 
+const TYPE_BADGE: Record<CuratedInfoType, string> = {
+  beasiswa: "badge-soft-navy",
+  loker: "badge-soft-secondary",
+  inovasi: "badge-soft-accent",
+}
+
 const STATUS_BADGE: Record<CuratedInfoStatus, string> = {
   draft: "badge-soft-amber",
   scheduled: "badge-soft-amber",
@@ -40,6 +46,7 @@ type ActionMode = "send" | "schedule"
 export function InformasiBaru() {
   const [items, setItems] = useState<CuratedInfo[]>([])
   const [filter, setFilter] = useState<CuratedInfoStatus | "all">("all")
+  const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [info, setInfo] = useState<string | null>(null)
@@ -286,6 +293,11 @@ export function InformasiBaru() {
     }
   }
 
+  const q = search.trim().toLowerCase()
+  const filteredItems = q
+    ? items.filter((item) => item.title.toLowerCase().includes(q) || TYPE_LABEL[item.type].toLowerCase().includes(q))
+    : items
+
   return (
     <div>
       <PageHeader
@@ -318,6 +330,7 @@ export function InformasiBaru() {
               Riwayat
             </button>
           </div>
+          <div className="vr d-none d-md-block" style={{ height: "24px" }} />
           <div className="segmented-tabs segmented-tabs-sm">
             {STATUS_FILTERS.map((f) => (
               <button
@@ -329,6 +342,17 @@ export function InformasiBaru() {
                 {f.label}
               </button>
             ))}
+          </div>
+          <div className="input-group input-group-sm kelola-search-group" style={{ width: "220px" }}>
+            <span className="input-group-text bg-white border-end-0">
+              <i className="bi bi-search groups-icon-accent" />
+            </span>
+            <input
+              className="form-control border-start-0 ps-0"
+              placeholder="Cari judul atau kategori…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
         </div>
         {!showForm && (
@@ -412,20 +436,24 @@ export function InformasiBaru() {
       {!loading && items.length === 0 && (
         <EmptyState icon="bi-megaphone" text="Belum ada info yang dibuat." />
       )}
+      {!loading && items.length > 0 && filteredItems.length === 0 && (
+        <EmptyState icon="bi-search" text="Tidak ada info yang cocok dengan pencarian." />
+      )}
 
-      {items.map((item) => (
+      {filteredItems.map((item) => (
         <div key={item._id} className="card mb-3">
           <div className="card-body">
             <div className="d-flex justify-content-between align-items-start gap-3">
-              <div>
+              <div style={{ minWidth: 0 }}>
                 <div className="d-flex align-items-center gap-2 mb-1">
                   <span className={`badge ${STATUS_BADGE[item.status]}`}>{item.status}</span>
-                  <span className="text-muted small">{TYPE_LABEL[item.type]}</span>
+                  <span className={`badge ${TYPE_BADGE[item.type]}`}>{TYPE_LABEL[item.type]}</span>
                 </div>
                 <strong className="fs-6">{item.title}</strong>
+                <p className="line-clamp-2 text-secondary small mb-0 mt-1">{item.body}</p>
               </div>
               <span className="text-muted small text-nowrap">
-                {new Date(item.createdAt).toLocaleString()}
+                Dibuat: {new Date(item.createdAt).toLocaleString()}
               </span>
             </div>
             {item.status === "scheduled" && (
@@ -497,7 +525,7 @@ export function InformasiBaru() {
                     )}
                     {item.status === "sent" && (
                       <span className="text-muted small">
-                        Sent {item.sentAt ? new Date(item.sentAt).toLocaleString() : ""}
+                        Terkirim: {item.sentAt ? new Date(item.sentAt).toLocaleString() : "—"}
                       </span>
                     )}
                   </>
@@ -505,7 +533,7 @@ export function InformasiBaru() {
               </div>
               <div className="d-flex gap-2 flex-wrap align-items-center">
                 <button
-                  className="btn btn-outline-secondary btn-sm"
+                  className="btn btn-outline-accent btn-sm"
                   onClick={() => setViewingItem(item)}
                 >
                   <i className="bi bi-eye me-1" />
