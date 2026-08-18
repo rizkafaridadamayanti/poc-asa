@@ -1741,6 +1741,62 @@ h1, h2, h3, h4, h5, h6,
   background: var(--status-success);
 }
 
+/* "+N" overflow trigger next to the recipients line — interactive (not
+   just decorative text), with a hover/tap tooltip listing the names left
+   out of the compact summary. */
+.agenda-audience-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.agenda-audience-more {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin-left: 0.2rem;
+  font: inherit;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.agenda-audience-more:hover,
+.agenda-audience-more:focus-visible {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}
+
+.agenda-audience-tooltip {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 0.4rem;
+  min-width: 120px;
+  max-width: 260px;
+  width: max-content;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-align: left;
+  white-space: normal;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 30;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.2);
+}
+
+.agenda-audience-wrap:hover .agenda-audience-tooltip,
+.agenda-audience-wrap:focus-within .agenda-audience-tooltip {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
 .kelola-search-group .form-control,
 .kelola-search-group .input-group-text {
   border-color: #d4e4cb;

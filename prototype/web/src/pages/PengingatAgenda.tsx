@@ -60,17 +60,17 @@ function formatAudienceEntry(jid: string, label: string): string {
   return /^\d+$/.test(numPart) ? `+${numPart}` : label
 }
 
-// Compact "N penerima · FirstName +M" line for the card's metadata row —
-// full comma-separated JIDs still available via the returned tooltip text.
+// Compact "N penerima · FirstName" line for the card's metadata row, plus
+// the names left out of that line so the "+M" next to it can show them on
+// hover/tap (or in a modal, once there are too many to fit a tooltip).
 function audienceSummary(
   jids: string[],
   audienceLabel: (jid: string) => string,
-): { line: string; tooltip: string } {
-  if (jids.length === 0) return { line: "Belum ada penerima", tooltip: "" }
+): { line: string; restNames: string[] } {
+  if (jids.length === 0) return { line: "Belum ada penerima", restNames: [] }
   const resolved = jids.map((jid) => formatAudienceEntry(jid, audienceLabel(jid)))
-  const rest = resolved.length - 1
-  const line = `${jids.length} penerima · ${resolved[0]}${rest > 0 ? ` +${rest}` : ""}`
-  return { line, tooltip: resolved.join(", ") }
+  const [first, ...rest] = resolved
+  return { line: `${jids.length} penerima · ${first}`, restNames: rest }
 }
 
 // Joined reminder offsets for the card's metadata row, e.g. "H-3, H-1".
@@ -100,6 +100,7 @@ export function PengingatAgenda() {
   const [saving, setSaving] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null)
+  const [audienceModalNames, setAudienceModalNames] = useState<string[] | null>(null)
 
   const load = async () => {
     setLoading(true)
@@ -496,9 +497,26 @@ export function PengingatAgenda() {
 
               {/* Row 3: recipients summary + reminder schedule summary */}
               <div className="d-flex justify-content-between align-items-center gap-3 flex-wrap">
-                <span className="agenda-meta" title={recipients.tooltip}>
+                <span className="agenda-meta">
                   <i className="bi bi-people me-1" />
                   {recipients.line}
+                  {recipients.restNames.length > 0 &&
+                    (recipients.restNames.length > 5 ? (
+                      <button
+                        type="button"
+                        className="agenda-audience-more"
+                        onClick={() => setAudienceModalNames(recipients.restNames)}
+                      >
+                        +{recipients.restNames.length}
+                      </button>
+                    ) : (
+                      <span className="agenda-audience-wrap">
+                        <button type="button" className="agenda-audience-more">
+                          +{recipients.restNames.length}
+                        </button>
+                        <span className="agenda-audience-tooltip">{recipients.restNames.join(", ")}</span>
+                      </span>
+                    ))}
                 </span>
                 <span className="agenda-meta d-inline-flex align-items-center gap-1" title={reminderTooltip}>
                   {a.remindAt.length > 0 && (
@@ -528,6 +546,16 @@ export function PengingatAgenda() {
               Ya, hapus permanen
             </button>
           </div>
+        </Modal>
+      )}
+
+      {audienceModalNames && (
+        <Modal title="Detail Penerima" onClose={() => setAudienceModalNames(null)}>
+          <ul className="mb-0 small">
+            {audienceModalNames.map((name) => (
+              <li key={name}>{name}</li>
+            ))}
+          </ul>
         </Modal>
       )}
     </div>
