@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
 import { api, type Group, type Summary } from "../api.js"
 import { PageHeader } from "../components/PageHeader.js"
 import { AiChatPanel } from "../components/AiChatPanel.js"
 import { Modal } from "../components/Modal.js"
-import { truncateWords } from "../messageUtils.js"
 import { EmptyState } from "../components/EmptyState.js"
 import { NAV_COLORS } from "../navColors.js"
 
@@ -150,10 +151,16 @@ export function Summaries() {
         color={NAV_COLORS.summaries}
         title="Summaries"
         subtitle={
-          <>
-            Catatan dominasi bicara (meeting-bias) di bawah ini adalah <strong>signal</strong>,
-            bukan vonis — pakai sebagai bahan diskusi, bukan penilaian final.
-          </>
+          <span className="d-inline-flex align-items-center gap-2">
+            Ringkasan aktivitas chat harian, otomatis dibuat.
+            <span className="info-tooltip-wrap">
+              <i className="bi bi-info-circle info-tooltip-icon" />
+              <span className="info-tooltip-bubble">
+                Catatan dominasi bicara (meeting-bias) di sini adalah <strong>signal</strong>, bukan
+                vonis — pakai sebagai bahan diskusi, bukan penilaian final.
+              </span>
+            </span>
+          </span>
         }
       />
       {error && <div className="alert alert-danger">{error}</div>}
@@ -256,14 +263,18 @@ export function Summaries() {
           {summaries.map((s) => (
             <div key={s._id} className="card mb-3">
               <div className="card-body">
-                <div className="d-flex justify-content-between mb-2">
-                  <strong>
+                <div className="d-flex justify-content-between align-items-start gap-3 mb-3">
+                  <span className="summary-period-label">
                     {new Date(s.periodStart).toLocaleDateString()} —{" "}
                     {new Date(s.periodEnd).toLocaleDateString()}
-                  </strong>
-                  <span className="text-muted small">{s.sourceMessageIds.length} messages</span>
+                  </span>
+                  <span className="badge badge-count flex-shrink-0">
+                    {s.sourceMessageIds.length} messages
+                  </span>
                 </div>
-                <p className="text-muted mb-3">{truncateWords(s.bodyMd, 40, 320)}</p>
+                <div className="summary-preview-clamp markdown-body text-secondary small mb-4">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{s.bodyMd}</ReactMarkdown>
+                </div>
                 <div className="d-flex gap-2 flex-wrap">
                   <button
                     className="btn btn-outline-secondary btn-sm"
@@ -389,8 +400,8 @@ export function Summaries() {
               {!viewingSummary.read && !viewingSummary.important && <span className="text-muted">—</span>}
             </dd>
           </dl>
-          <div className="markdown-body">
-            <pre className="bg-body-tertiary p-3 rounded">{viewingSummary.bodyMd}</pre>
+          <div className="markdown-body bg-body-tertiary p-3 rounded">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{viewingSummary.bodyMd}</ReactMarkdown>
           </div>
         </Modal>
       )}
