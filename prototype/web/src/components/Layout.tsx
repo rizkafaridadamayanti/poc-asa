@@ -199,7 +199,7 @@ export function Layout() {
               </ul>
             </div>
             <button
-              className="btn btn-outline-secondary mt-3"
+              className="btn sidebar-logout-btn mt-3"
               onClick={() => {
                 closeMobileSidebar()
                 handleLogout()

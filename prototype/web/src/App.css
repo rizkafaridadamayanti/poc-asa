@@ -392,6 +392,22 @@ h1, h2, h3, h4, h5, h6,
   border-color: var(--color-secondary);
 }
 
+/* Sidebar's own Logout button sits inside the dark-green nav column, so it
+   needs its own treatment instead of the generic outline-secondary (gray on
+   dark green reads poorly) — accent-lime outline on transparent, reading as
+   an action separate from the nav items above it. */
+.sidebar-logout-btn {
+  background: transparent;
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+}
+
+.sidebar-logout-btn:hover {
+  background: rgba(139, 195, 74, 0.14);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
 .sidebar-brand-mark {
   display: flex;
   align-items: center;
@@ -447,8 +463,9 @@ h1, h2, h3, h4, h5, h6,
   font-weight: 500;
   font-size: 0.9rem;
   border-radius: 0.6rem;
-  padding: 0.6rem 0.75rem;
-  transition: background-color 120ms ease, color 120ms ease;
+  border-left: 4px solid transparent;
+  padding: 0.6rem 0.75rem 0.6rem calc(0.75rem - 4px);
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
 }
 
 .sidebar .nav-link i {
@@ -466,26 +483,14 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .sidebar .nav-link:hover i {
-  color: #fff;
+  color: var(--color-accent);
 }
 
 .sidebar .nav-link.active {
-  position: relative;
   background-color: rgba(255, 255, 255, 0.12);
+  border-left-color: var(--color-accent);
   color: #fff;
   font-weight: 600;
-}
-
-.sidebar .nav-link.active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 60%;
-  border-radius: 0 4px 4px 0;
-  background: var(--color-accent);
 }
 
 .sidebar .nav-link.active i {
