@@ -60,6 +60,27 @@ function formatAudienceEntry(jid: string, label: string): string {
   return /^\d+$/.test(numPart) ? `+${numPart}` : label
 }
 
+// Compact "N penerima · FirstName +M" line for the card's metadata row —
+// full comma-separated JIDs still available via the returned tooltip text.
+function audienceSummary(
+  jids: string[],
+  audienceLabel: (jid: string) => string,
+): { line: string; tooltip: string } {
+  if (jids.length === 0) return { line: "Belum ada penerima", tooltip: "" }
+  const resolved = jids.map((jid) => formatAudienceEntry(jid, audienceLabel(jid)))
+  const rest = resolved.length - 1
+  const line = `${jids.length} penerima · ${resolved[0]}${rest > 0 ? ` +${rest}` : ""}`
+  return { line, tooltip: resolved.join(", ") }
+}
+
+// Joined reminder offsets for the card's metadata row, e.g. "H-3, H-1".
+function reminderSummary(remindAt: Agenda["remindAt"], dueAtIso: string): string {
+  if (remindAt.length === 0) return "Tanpa pengingat"
+  return remindAt
+    .map((r) => (r.label && r.label !== "Custom" ? r.label : reminderOffsetLabel(r.at, dueAtIso)))
+    .join(", ")
+}
+
 export function PengingatAgenda() {
   const [agendas, setAgendas] = useState<Agenda[]>([])
   const [viewMode, setViewMode] = useState<"active" | "trash">("active")
@@ -404,110 +425,91 @@ export function PengingatAgenda() {
       {agendas.map((a) => {
         const due = relativeDue(a.dueAt)
         const sentCount = a.remindAt.filter((r) => r.sent).length
+        const recipients = audienceSummary(a.audience, audienceLabel)
+        const reminderTooltip =
+          a.remindAt.length > 0 ? `${sentCount} dari ${a.remindAt.length} reminder terkirim` : undefined
         return (
           <div key={a._id} className={`card mb-3 agenda-card-${due.status}`}>
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                <strong className="fs-5">{a.title}</strong>
-                <span className={`badge rounded-pill ${DUE_BADGE[due.status]}`}>
-                  {due.text}
-                </span>
-              </div>
-              <p className="text-muted small mb-2">
-                Jatuh tempo: {new Date(a.dueAt).toLocaleString("id-ID", { dateStyle: "full", timeStyle: "short" })}
-              </p>
-              {a.description && <p className="agenda-description my-2">{a.description}</p>}
-              <div className="mb-2">
-                <div className="text-muted small mb-1">Penerima ({a.audience.length})</div>
-                {a.audience.length === 0 ? (
-                  <span className="text-muted small">—</span>
-                ) : a.audience.length > 2 ? (
-                  <div className="d-flex flex-wrap gap-1">
-                    {a.audience.map((jid) => (
-                      <span key={jid} className="badge badge-soft-slate">
-                        {formatAudienceEntry(jid, audienceLabel(jid))}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="agenda-description small">
-                    {a.audience.map((jid) => formatAudienceEntry(jid, audienceLabel(jid))).join(", ")}
+            <div className="card-body agenda-card-body">
+              {/* Row 1: title, due date, status badge, action icons */}
+              <div className="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                <strong className="agenda-title">{a.title}</strong>
+                <div className="d-flex align-items-center gap-3 flex-shrink-0">
+                  <span className="agenda-due-date text-nowrap">
+                    {new Date(a.dueAt).toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" })}
                   </span>
-                )}
-              </div>
-              {a.remindAt.length > 0 && (
-                <div className="mb-3">
-                  <div className="d-flex align-items-center gap-2 mb-2">
-                    <div className="stat-card-track flex-grow-1" style={{ maxWidth: "160px" }}>
-                      <div
-                        className="stat-card-fill"
-                        style={{
-                          width: `${Math.round((sentCount / a.remindAt.length) * 100)}%`,
-                          backgroundColor: "var(--color-accent)",
-                        }}
-                      />
-                    </div>
-                    <span className="text-muted small">
-                      {sentCount} dari {a.remindAt.length} reminder terkirim
-                    </span>
-                  </div>
-                  <div className="d-flex gap-2 flex-wrap">
-                    {a.remindAt.map((r, i) => {
-                      const label = r.label && r.label !== "Custom" ? r.label : reminderOffsetLabel(r.at, a.dueAt)
-                      return (
-                        <span
-                          key={i}
-                          className={`stat-pill${r.sent ? " stat-pill-accent" : ""}`}
-                          title={new Date(r.at).toLocaleString("id-ID")}
+                  <span className={`badge rounded-pill ${DUE_BADGE[due.status]}`}>{due.text}</span>
+                  <div className="d-flex align-items-center gap-2">
+                    {viewMode === "trash" ? (
+                      <>
+                        <button
+                          type="button"
+                          className="agenda-icon-btn agenda-icon-btn-success"
+                          onClick={() => handleRestore(a._id)}
+                          disabled={busyId === a._id}
+                          title="Pulihkan"
+                          aria-label="Pulihkan"
                         >
-                          <i className={`bi ${r.sent ? "bi-check-circle" : "bi-hourglass-split"}`} />
-                          {label}
-                        </span>
-                      )
-                    })}
+                          <i className="bi bi-arrow-counterclockwise" />
+                        </button>
+                        <button
+                          type="button"
+                          className="agenda-icon-btn agenda-icon-btn-danger"
+                          onClick={() => setConfirmingDeleteId(a._id)}
+                          disabled={busyId === a._id}
+                          title="Hapus permanen"
+                          aria-label="Hapus permanen"
+                        >
+                          <i className="bi bi-trash3" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          className="agenda-icon-btn"
+                          onClick={() => startEdit(a)}
+                          disabled={busyId === a._id}
+                          title="Edit"
+                          aria-label="Edit"
+                        >
+                          <i className="bi bi-pencil" />
+                        </button>
+                        <button
+                          type="button"
+                          className="agenda-icon-btn agenda-icon-btn-danger"
+                          onClick={() => handleDelete(a._id)}
+                          disabled={busyId === a._id}
+                          title="Hapus"
+                          aria-label="Hapus"
+                        >
+                          <i className="bi bi-trash" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
-              )}
-              <div className="d-flex gap-2 flex-wrap">
-                {viewMode === "trash" ? (
-                  <>
-                    <button
-                      className="btn btn-outline-success btn-sm"
-                      onClick={() => handleRestore(a._id)}
-                      disabled={busyId === a._id}
-                    >
-                      <i className="bi bi-arrow-counterclockwise me-1" />
-                      Pulihkan
-                    </button>
-                    <button
-                      className="btn btn-outline-danger btn-sm"
-                      onClick={() => setConfirmingDeleteId(a._id)}
-                      disabled={busyId === a._id}
-                    >
-                      <i className="bi bi-trash3 me-1" />
-                      Hapus Permanen
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      className="btn btn-outline-accent btn-sm"
-                      onClick={() => startEdit(a)}
-                      disabled={busyId === a._id}
-                    >
-                      <i className="bi bi-pencil me-1" />
-                      Edit
-                    </button>
-                    <button
-                      className="btn btn-outline-danger btn-sm"
-                      onClick={() => handleDelete(a._id)}
-                      disabled={busyId === a._id}
-                    >
-                      <i className="bi bi-trash me-1" />
-                      Hapus
-                    </button>
-                  </>
-                )}
+              </div>
+
+              {/* Row 2: description */}
+              {a.description && <p className="agenda-description-row line-clamp-2 mb-0">{a.description}</p>}
+
+              {/* Row 3: recipients summary + reminder schedule summary */}
+              <div className="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                <span className="agenda-meta" title={recipients.tooltip}>
+                  <i className="bi bi-people me-1" />
+                  {recipients.line}
+                </span>
+                <span className="agenda-meta d-inline-flex align-items-center gap-1" title={reminderTooltip}>
+                  {a.remindAt.length > 0 && (
+                    <span
+                      className={`agenda-reminder-dot${
+                        sentCount === a.remindAt.length ? " agenda-reminder-dot-done" : sentCount > 0 ? " agenda-reminder-dot-partial" : ""
+                      }`}
+                    />
+                  )}
+                  {reminderSummary(a.remindAt, a.dueAt)}
+                </span>
               </div>
             </div>
           </div>

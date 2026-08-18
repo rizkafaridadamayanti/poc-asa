@@ -1644,9 +1644,101 @@ h1, h2, h3, h4, h5, h6,
   border-left: 4px solid var(--status-success);
 }
 
-.agenda-description {
+.agenda-card-body {
+  line-height: 1.5;
+}
+
+.agenda-card-body > * + * {
+  margin-top: 0.6rem;
+}
+
+.agenda-title {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--color-text-primary);
+}
+
+.agenda-due-date {
   font-weight: 400;
+  font-size: 0.8125rem;
   color: var(--color-text-secondary);
+}
+
+.agenda-description-row {
+  font-weight: 400;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.agenda-meta {
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+/* Icon-only Edit/Hapus/Pulihkan buttons for the agenda card header — 32px
+   click target, neutral by default, colored only on hover/for destructive
+   actions so the row stays calm at a glance. */
+.agenda-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--color-card-border);
+  background: #fff;
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  transition: color 120ms ease, border-color 120ms ease, background-color 120ms ease;
+}
+
+.agenda-icon-btn:hover:not(:disabled) {
+  color: var(--color-secondary);
+  border-color: var(--color-secondary);
+  background: var(--color-accent-soft-bg);
+}
+
+.agenda-icon-btn:disabled {
+  opacity: 0.5;
+}
+
+.agenda-icon-btn-danger {
+  color: var(--status-danger);
+}
+
+.agenda-icon-btn-danger:hover:not(:disabled) {
+  color: #fff;
+  background: var(--status-danger);
+  border-color: var(--status-danger);
+}
+
+.agenda-icon-btn-success {
+  color: var(--status-success);
+}
+
+.agenda-icon-btn-success:hover:not(:disabled) {
+  color: #fff;
+  background: var(--status-success);
+  border-color: var(--status-success);
+}
+
+.agenda-reminder-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--info-slate);
+  flex-shrink: 0;
+}
+
+.agenda-reminder-dot-partial {
+  background: var(--status-warning);
+}
+
+.agenda-reminder-dot-done {
+  background: var(--status-success);
 }
 
 .kelola-search-group .form-control,
