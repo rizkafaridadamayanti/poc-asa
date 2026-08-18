@@ -1,10 +1,10 @@
 /** Single source of truth for the app's brand accent — used by the sidebar nav
- * and each page's header. The theme is navy + white as the brand identity;
- * green/amber/red are reserved for status meaning (success/warning/danger)
- * elsewhere, not used here — so every section shares the same navy instead of
- * each page carrying its own hue. */
-const PRIMARY = "#1e3a5f"
-const NEUTRAL = "#64748b"
+ * and each page's header. The theme is eco-green as the brand identity; the
+ * status colors (success/warning/danger) are reserved for status meaning
+ * elsewhere, not used here — so every section shares the same primary green
+ * instead of each page carrying its own hue. */
+const PRIMARY = "var(--color-primary)"
+const NEUTRAL = "var(--color-secondary)"
 
 export const NAV_COLORS = {
   dashboard: PRIMARY,

@@ -154,10 +154,10 @@ type ScopeCounts = { pusat: number; dusun: number; anggota: number; unreviewed: 
 function GroupsDonut({ counts }: { counts: ScopeCounts }) {
   const total = counts.pusat + counts.dusun + counts.anggota + counts.unreviewed
   const segments = [
-    { label: "Pusat", value: counts.pusat, color: "#1e3a5f" },
-    { label: "Dusun", value: counts.dusun, color: "#64748b" },
-    { label: "Anggota", value: counts.anggota, color: "#cbd5e1" },
-    { label: "Belum diatur", value: counts.unreviewed, color: "#d97706" },
+    { label: "Pusat", value: counts.pusat, color: "var(--color-primary)" },
+    { label: "Dusun", value: counts.dusun, color: "var(--color-secondary)" },
+    { label: "Anggota", value: counts.anggota, color: "color-mix(in srgb, var(--color-accent) 40%, white)" },
+    { label: "Belum diatur", value: counts.unreviewed, color: "var(--status-warning)" },
   ].filter((s) => s.value > 0)
 
   const radius = 40
@@ -169,7 +169,7 @@ function GroupsDonut({ counts }: { counts: ScopeCounts }) {
     <div className="donut-ring flex-shrink-0">
       <svg viewBox="0 0 100 100" className="donut-ring-svg">
         {total === 0 ? (
-          <circle cx="50" cy="50" r={radius} fill="none" stroke="#e9ecf2" strokeWidth={strokeWidth} />
+          <circle cx="50" cy="50" r={radius} fill="none" stroke="var(--color-card-border)" strokeWidth={strokeWidth} />
         ) : (
           segments.map((s) => {
             const length = (s.value / total) * circumference
@@ -488,7 +488,7 @@ export function Dashboard() {
                 <div className="d-flex align-items-start gap-3 flex-wrap">
                   <div
                     className="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0"
-                    style={{ width: 48, height: 48, backgroundColor: "color-mix(in srgb, #16a34a 15%, white)", color: "#166534" }}
+                    style={{ width: 48, height: 48, backgroundColor: "color-mix(in srgb, var(--status-success) 15%, white)", color: "var(--status-success-soft-text)" }}
                   >
                     <i className="bi bi-whatsapp fs-4" />
                   </div>
@@ -555,7 +555,7 @@ export function Dashboard() {
                 label="Messages"
                 subtitle="Total pesan masuk tercatat"
                 value={status.messageCount}
-                color="#1e3a5f"
+                color="var(--color-primary)"
                 fraction={status.messageCount / statMax}
                 pillText={`${status.messageCount} pesan`}
               />
@@ -566,7 +566,7 @@ export function Dashboard() {
                 label="Summaries"
                 subtitle="Ringkasan harian dibuat"
                 value={status.summaryCount}
-                color="#1e3a5f"
+                color="var(--color-primary)"
                 fraction={status.summaryCount / statMax}
                 pillText={`${status.summaryCount} ringkasan`}
               />
@@ -577,7 +577,7 @@ export function Dashboard() {
                 label="Participants"
                 subtitle="Kontak aktif terekam"
                 value={status.participantCount}
-                color="#1e3a5f"
+                color="var(--color-primary)"
                 fraction={status.participantCount / statMax}
                 pillText={`${status.participantCount} kontak`}
               />

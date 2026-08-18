@@ -19,9 +19,9 @@ const SCOPE_BADGE: Record<GroupScope, string> = {
 }
 
 const SCOPE_DOT: Record<GroupScope, string> = {
-  pusat: "#334155",
-  dusun: "#64748b",
-  anggota: "#cbd5e1",
+  pusat: "var(--color-primary)",
+  dusun: "var(--color-secondary)",
+  anggota: "color-mix(in srgb, var(--color-accent) 40%, white)",
 }
 
 type ScopeFilter = GroupScope | "unreviewed" | "all"
@@ -38,7 +38,7 @@ const FILTER_DOT: Partial<Record<ScopeFilter, string>> = {
   pusat: SCOPE_DOT.pusat,
   dusun: SCOPE_DOT.dusun,
   anggota: SCOPE_DOT.anggota,
-  unreviewed: "#cbd5e1",
+  unreviewed: "var(--status-warning)",
 }
 
 export function Groups() {
