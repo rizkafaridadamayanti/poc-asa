@@ -1630,6 +1630,25 @@ h1, h2, h3, h4, h5, h6,
   overflow: hidden;
 }
 
+/* Agenda cards: a colored left border echoes the due-date badge
+   (red/amber/green) as a second, at-a-glance signal down the whole list. */
+.agenda-card-overdue {
+  border-left: 4px solid var(--status-danger);
+}
+
+.agenda-card-soon {
+  border-left: 4px solid var(--status-warning);
+}
+
+.agenda-card-ok {
+  border-left: 4px solid var(--status-success);
+}
+
+.agenda-description {
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
 .kelola-search-group .form-control,
 .kelola-search-group .input-group-text {
   border-color: #d4e4cb;

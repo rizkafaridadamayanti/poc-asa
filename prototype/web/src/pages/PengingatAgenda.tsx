@@ -41,6 +41,25 @@ function relativeDue(dueAt: string): { text: string; status: DueStatus } {
   return { text: `${days} hari lagi`, status: "ok" }
 }
 
+// Describes a reminder's timing relative to the due date (e.g. "H-3",
+// "H+1", "Saat jatuh tempo") instead of the generic "Custom" label a
+// manually-picked datetime otherwise gets.
+function reminderOffsetLabel(remindAtIso: string, dueAtIso: string): string {
+  const days = Math.round(
+    (new Date(dueAtIso).getTime() - new Date(remindAtIso).getTime()) / (24 * 60 * 60 * 1000),
+  )
+  if (days === 0) return "Saat jatuh tempo"
+  return days > 0 ? `H-${days}` : `H+${Math.abs(days)}`
+}
+
+// Prefer a known group/participant name; otherwise format a raw phone-based
+// JID as +62... instead of showing the bare "628xxx@s.whatsapp.net" string.
+function formatAudienceEntry(jid: string, label: string): string {
+  if (label !== jid) return label
+  const numPart = jid.split("@")[0]
+  return /^\d+$/.test(numPart) ? `+${numPart}` : label
+}
+
 export function PengingatAgenda() {
   const [agendas, setAgendas] = useState<Agenda[]>([])
   const [viewMode, setViewMode] = useState<"active" | "trash">("active")
@@ -135,7 +154,8 @@ export function PengingatAgenda() {
 
   const addCustomReminder = () => {
     if (!customReminderAt) return
-    setReminders((prev) => [...prev, { at: customReminderAt, label: "Custom" }])
+    const label = form.dueAt ? reminderOffsetLabel(customReminderAt, form.dueAt) : "Custom"
+    setReminders((prev) => [...prev, { at: customReminderAt, label }])
     setCustomReminderAt("")
   }
 
@@ -383,11 +403,12 @@ export function PengingatAgenda() {
 
       {agendas.map((a) => {
         const due = relativeDue(a.dueAt)
+        const sentCount = a.remindAt.filter((r) => r.sent).length
         return (
-          <div key={a._id} className="card mb-3">
+          <div key={a._id} className={`card mb-3 agenda-card-${due.status}`}>
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-start gap-3 flex-wrap">
-                <strong className="fs-6">{a.title}</strong>
+                <strong className="fs-5">{a.title}</strong>
                 <span className={`badge rounded-pill ${DUE_BADGE[due.status]}`}>
                   {due.text}
                 </span>
@@ -395,22 +416,56 @@ export function PengingatAgenda() {
               <p className="text-muted small mb-2">
                 Jatuh tempo: {new Date(a.dueAt).toLocaleString("id-ID", { dateStyle: "full", timeStyle: "short" })}
               </p>
-              {a.description && <p className="my-2">{a.description}</p>}
-              <p className="text-muted small mb-2">
-                Penerima ({a.audience.length}): {a.audience.length > 0 ? a.audience.map(audienceLabel).join(", ") : "—"}
-              </p>
+              {a.description && <p className="agenda-description my-2">{a.description}</p>}
+              <div className="mb-2">
+                <div className="text-muted small mb-1">Penerima ({a.audience.length})</div>
+                {a.audience.length === 0 ? (
+                  <span className="text-muted small">—</span>
+                ) : a.audience.length > 2 ? (
+                  <div className="d-flex flex-wrap gap-1">
+                    {a.audience.map((jid) => (
+                      <span key={jid} className="badge badge-soft-slate">
+                        {formatAudienceEntry(jid, audienceLabel(jid))}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="agenda-description small">
+                    {a.audience.map((jid) => formatAudienceEntry(jid, audienceLabel(jid))).join(", ")}
+                  </span>
+                )}
+              </div>
               {a.remindAt.length > 0 && (
-                <div className="d-flex gap-2 flex-wrap mb-3">
-                  {a.remindAt.map((r, i) => (
-                    <span
-                      key={i}
-                      className={`stat-pill${r.sent ? " stat-pill-idea" : ""}`}
-                      title={new Date(r.at).toLocaleString("id-ID")}
-                    >
-                      <i className={`bi ${r.sent ? "bi-check-circle" : "bi-hourglass-split"}`} />
-                      {r.label || "Pengingat"}
+                <div className="mb-3">
+                  <div className="d-flex align-items-center gap-2 mb-2">
+                    <div className="stat-card-track flex-grow-1" style={{ maxWidth: "160px" }}>
+                      <div
+                        className="stat-card-fill"
+                        style={{
+                          width: `${Math.round((sentCount / a.remindAt.length) * 100)}%`,
+                          backgroundColor: "var(--color-accent)",
+                        }}
+                      />
+                    </div>
+                    <span className="text-muted small">
+                      {sentCount} dari {a.remindAt.length} reminder terkirim
                     </span>
-                  ))}
+                  </div>
+                  <div className="d-flex gap-2 flex-wrap">
+                    {a.remindAt.map((r, i) => {
+                      const label = r.label && r.label !== "Custom" ? r.label : reminderOffsetLabel(r.at, a.dueAt)
+                      return (
+                        <span
+                          key={i}
+                          className={`stat-pill${r.sent ? " stat-pill-accent" : ""}`}
+                          title={new Date(r.at).toLocaleString("id-ID")}
+                        >
+                          <i className={`bi ${r.sent ? "bi-check-circle" : "bi-hourglass-split"}`} />
+                          {label}
+                        </span>
+                      )
+                    })}
+                  </div>
                 </div>
               )}
               <div className="d-flex gap-2 flex-wrap">
@@ -436,7 +491,7 @@ export function PengingatAgenda() {
                 ) : (
                   <>
                     <button
-                      className="btn btn-outline-secondary btn-sm"
+                      className="btn btn-outline-accent btn-sm"
                       onClick={() => startEdit(a)}
                       disabled={busyId === a._id}
                     >
