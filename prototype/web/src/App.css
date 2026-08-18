@@ -1054,6 +1054,7 @@ h1, h2, h3, h4, h5, h6,
 .table-compact > thead > tr > th,
 .table-compact > tbody > tr > td {
   padding: 0.6rem 0.85rem;
+  line-height: 1.4;
 }
 
 .table-header-eco {
@@ -1084,6 +1085,7 @@ h1, h2, h3, h4, h5, h6,
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.82rem;
+  line-height: 1.4;
   color: var(--color-text-secondary);
 }
 
@@ -1091,6 +1093,7 @@ h1, h2, h3, h4, h5, h6,
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.4;
 }
 
 /* Friendly empty state: small icon + short text, instead of bare italic copy. */

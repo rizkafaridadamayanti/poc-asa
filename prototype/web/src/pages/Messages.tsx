@@ -339,8 +339,10 @@ export function Messages() {
                                 : "—"
                               : formatDate(m.timestamp)}
                           </td>
-                          <td className="table-jid" title={m.fromJid}>
-                            {m.fromJid}
+                          <td>
+                            <span className="table-jid" title={m.fromJid}>
+                              {m.fromJid}
+                            </span>
                           </td>
                           <td>
                             {m.isGroup ? (
