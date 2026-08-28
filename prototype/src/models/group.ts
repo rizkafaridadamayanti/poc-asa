@@ -15,6 +15,14 @@ const groupSchema = new Schema(
     dusunId: { type: String, default: null },
     /** "auto" = created from an inbound message or /api/groups/sync; "manual" = added via the form. */
     source: { type: String, enum: GROUP_SOURCES, default: "manual" },
+    /** WA JIDs of current group members, refreshed on each /api/groups/sync. */
+    participants: { type: [String], default: [] },
+    /** JID of the WhatsApp group's creator, from Baileys group metadata. */
+    ownerJid: { type: String, default: null },
+    /** When the WhatsApp group itself was created (not when we registered it). */
+    groupCreatedAt: { type: Date, default: null },
+    /** WhatsApp group description ("about"), if set. */
+    description: { type: String, default: "" },
   },
   { timestamps: true },
 )

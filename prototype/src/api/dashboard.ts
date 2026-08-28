@@ -8,7 +8,7 @@ import { GroupModel, GROUP_SCOPES, type GroupScope } from "../models/group.js"
 import { toJid } from "../jid.js"
 import { runDigest } from "../digest.js"
 import { buildSummaryDocx } from "../docExport.js"
-import { getContributiveStats, getPeakHours, getGroupsByDusun } from "../stats.js"
+import { getContributiveStats, getPeakHours, getGroupsByDusun, getMessagesByGroup } from "../stats.js"
 import { SentimentModel } from "../models/sentiment.js"
 import { sendOutbound } from "../sender.js"
 import { getSettings, updateSettings } from "../settings.js"
@@ -272,7 +272,8 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
         waJid: normalizedJid,
         name: name || "",
         scope,
-        dusunId: dusunId || "",
+        // dusunId only labels dusun/anggota groups; a pusat group is village-wide.
+        dusunId: scope === "pusat" ? null : dusunId || null,
       })
       return reply.code(201).send({ ok: true, group: doc })
     } catch {
@@ -291,7 +292,22 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
     if (patch.scope !== undefined && !GROUP_SCOPES.includes(patch.scope as GroupScope)) {
       return reply.code(400).send({ error: `scope must be one of ${GROUP_SCOPES.join(", ")}` })
     }
-    const doc = await GroupModel.findByIdAndUpdate(req.params.id, { $set: patch }, { new: true }).lean()
+
+    const update: Record<string, unknown> = {}
+    if (patch.name !== undefined) update.name = patch.name
+    if (patch.scope !== undefined) update.scope = patch.scope
+    if (patch.dusunId !== undefined) update.dusunId = patch.dusunId || null
+
+    // dusunId only belongs to dusun/anggota groups — never keep one on a pusat
+    // group, or it would skew the per-dusun stats.
+    if (patch.scope === "pusat") {
+      update.dusunId = null
+    } else if (patch.dusunId !== undefined && patch.scope === undefined) {
+      const current = await GroupModel.findById(req.params.id).select("scope").lean<{ scope?: string } | null>()
+      if (current?.scope === "pusat") update.dusunId = null
+    }
+
+    const doc = await GroupModel.findByIdAndUpdate(req.params.id, { $set: update }, { new: true }).lean()
     if (!doc) return reply.code(404).send({ error: "group not found" })
     return { ok: true, group: doc }
   })
@@ -315,7 +331,15 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
       for (const g of participating) {
         const res = await GroupModel.findOneAndUpdate(
           { waJid: g.id },
-          { $setOnInsert: { waJid: g.id, name: g.subject, scope: null, dusunId: null, source: "auto" } },
+          {
+            $set: {
+              participants: g.participants,
+              ownerJid: g.ownerJid,
+              groupCreatedAt: g.creation ? new Date(g.creation * 1000) : null,
+              description: g.desc ?? "",
+            },
+            $setOnInsert: { waJid: g.id, name: g.subject, scope: null, dusunId: null, source: "auto" },
+          },
           { upsert: true, setDefaultsOnInsert: true, rawResult: true },
         )
         if (!res.lastErrorObject?.updatedExisting) created++
@@ -371,6 +395,8 @@ export async function registerDashboardApi(app: FastifyInstance, deps: Dashboard
   app.get("/api/stats/contributive", async () => ({ rows: await getContributiveStats() }))
 
   app.get("/api/stats/peak-hours", async () => ({ rows: await getPeakHours() }))
+
+  app.get("/api/stats/messages-by-group", async () => ({ rows: await getMessagesByGroup() }))
 
   app.get("/api/stats/dusun", async () => ({ rows: await getGroupsByDusun() }))
 

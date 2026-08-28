@@ -250,12 +250,27 @@ export function createBaileysBridge(opts: BaileysBridgeOptions): WaBridge {
     async getGroupMetadata(jid: string) {
       if (!sock || !connected) throw new Error("WA not connected")
       const meta = await sock.groupMetadata(jid)
-      return { subject: meta.subject }
+      // Prefer the phone-number JID (@s.whatsapp.net) over the LID (@lid) form,
+      // since that's what inbound message fromJid is normalized to (see mapInbound).
+      return {
+        subject: meta.subject,
+        participants: meta.participants.map((p) => p.jid || p.id),
+        ownerJid: meta.ownerJid || meta.owner || null,
+        creation: meta.creation ?? null,
+        desc: meta.desc ?? null,
+      }
     },
     async listParticipatingGroups() {
       if (!sock || !connected) throw new Error("WA not connected")
       const groups = await sock.groupFetchAllParticipating()
-      return Object.values(groups).map((g) => ({ id: g.id, subject: g.subject }))
+      return Object.values(groups).map((g) => ({
+        id: g.id,
+        subject: g.subject,
+        participants: g.participants.map((p) => p.jid || p.id),
+        ownerJid: g.ownerJid || g.owner || null,
+        creation: g.creation ?? null,
+        desc: g.desc ?? null,
+      }))
     },
   }
 }

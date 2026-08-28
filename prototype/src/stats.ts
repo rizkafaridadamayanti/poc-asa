@@ -4,6 +4,7 @@ import { GroupModel } from "./models/group.js"
 export type ContributiveRow = { waJid: string; messageCount: number; ideaCount: number }
 export type PeakHourRow = { hour: number; count: number }
 export type DusunRow = { dusunId: string; groupCount: number }
+export type GroupActivityRow = { chatJid: string; messageCount: number }
 
 const JAKARTA_TZ = "Asia/Jakarta"
 
@@ -36,9 +37,20 @@ export async function getPeakHours(): Promise<PeakHourRow[]> {
   return rows.map((r) => ({ hour: r._id, count: r.count }))
 }
 
+export async function getMessagesByGroup(): Promise<GroupActivityRow[]> {
+  const rows = await MessageModel.aggregate([
+    { $match: { trash: { $ne: true }, isGroup: true } },
+    { $group: { _id: "$chatJid", messageCount: { $sum: 1 } } },
+    { $sort: { messageCount: -1 } },
+  ])
+  return rows.map((r) => ({ chatJid: r._id, messageCount: r.messageCount }))
+}
+
 export async function getGroupsByDusun(): Promise<DusunRow[]> {
+  // pusat groups are village-wide, not tied to a dusun — exclude them even if a
+  // stale dusunId is still on the record.
   const rows = await GroupModel.aggregate([
-    { $match: { dusunId: { $nin: [null, ""] } } },
+    { $match: { dusunId: { $nin: [null, ""] }, scope: { $ne: "pusat" } } },
     { $group: { _id: "$dusunId", groupCount: { $sum: 1 } } },
     { $sort: { _id: 1 } },
   ])

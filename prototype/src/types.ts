@@ -21,8 +21,23 @@ export type WaBridge = {
   onMessage(handler: (msg: InboundMessage) => void): void
   isConnected(): boolean
   getDeviceInfo(): WaDevice | null
-  getGroupMetadata(jid: string): Promise<{ subject: string }>
-  listParticipatingGroups(): Promise<Array<{ id: string; subject: string }>>
+  getGroupMetadata(jid: string): Promise<{
+    subject: string
+    participants: string[]
+    ownerJid: string | null
+    creation: number | null
+    desc: string | null
+  }>
+  listParticipatingGroups(): Promise<
+    Array<{
+      id: string
+      subject: string
+      participants: string[]
+      ownerJid: string | null
+      creation: number | null
+      desc: string | null
+    }>
+  >
 }
 
 export type AppConfig = {

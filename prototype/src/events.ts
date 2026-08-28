@@ -5,6 +5,8 @@ export type BridgeEvent =
   | { type: "qr"; qr: string }
   | { type: "connection"; connected: boolean; reason?: string; device?: WaDevice | null }
   | { type: "inbound"; message: InboundMessage }
+  | { type: "spam-alert" }
+  | { type: "idea" }
 
 class BridgeEventBus extends EventEmitter {
   emitEvent(event: BridgeEvent): boolean {

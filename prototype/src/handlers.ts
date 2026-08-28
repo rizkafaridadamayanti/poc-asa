@@ -4,9 +4,11 @@ import { GroupModel } from "./models/group.js"
 import { SpamAlertModel } from "./models/spamAlert.js"
 import { AnonymousIdeaModel } from "./models/anonymousIdea.js"
 import { checkSpam, SPAM_ALERT_THRESHOLD, type SpamCheckResult } from "./spam.js"
+import { getGroupScope } from "./acl.js"
 import { answerQuestion } from "./qa.js"
 import { sendOutbound } from "./sender.js"
 import { getSettings } from "./settings.js"
+import { bridgeEvents } from "./events.js"
 import type { InboundMessage, WaBridge } from "./types.js"
 import type { LlmClient } from "./llm.js"
 import type { Logger } from "./logger.js"
@@ -33,16 +35,33 @@ async function autoRegisterGroup(bridge: WaBridge, chatJid: string, log: Logger)
     if (known) return
 
     let name = ""
+    let ownerJid: string | null = null
+    let groupCreatedAt: Date | null = null
+    let description = ""
     try {
       const meta = await bridge.getGroupMetadata(chatJid)
       name = meta.subject
+      ownerJid = meta.ownerJid
+      groupCreatedAt = meta.creation ? new Date(meta.creation * 1000) : null
+      description = meta.desc ?? ""
     } catch (err) {
       log.warn({ err, chatJid }, "auto-register: could not fetch group metadata, using blank name")
     }
 
     const res = await GroupModel.findOneAndUpdate(
       { waJid: chatJid },
-      { $setOnInsert: { waJid: chatJid, name, scope: null, dusunId: null, source: "auto" } },
+      {
+        $setOnInsert: {
+          waJid: chatJid,
+          name,
+          scope: null,
+          dusunId: null,
+          source: "auto",
+          ownerJid,
+          groupCreatedAt,
+          description,
+        },
+      },
       { upsert: true, setDefaultsOnInsert: true, rawResult: true },
     )
     if (!res.lastErrorObject?.updatedExisting) {
@@ -73,10 +92,16 @@ async function handleSpamAlert(
       notified: false,
       status: "open",
     })
+    // Emitted only after the DB write actually lands, so the dashboard's badge
+    // count never races ahead of (or lags behind) the real "open" alert count.
+    bridgeEvents.emitEvent({ type: "spam-alert" })
 
+    // The WA notification is deliberately detail-free: forwarding the raw spam
+    // text / sender number over WhatsApp re-exposes the scam (and can trip WA's
+    // own spam filters on the bot). Full detail lives in the dashboard.
     const { reportToJid } = getSettings()
-    const preview = msg.text.length > 200 ? `${msg.text.slice(0, 200)}…` : msg.text
-    const alertText = `*Spam/Fraud Alert*\nScore: ${spam.score}/100\nDari: ${msg.fromJid}\nDi: ${msg.chatJid}\nAlasan: ${spam.reasons.join(", ")}\n\nPesan:\n${preview}`
+    const alertText =
+      "*Peringatan Keamanan*\nSistem mendeteksi dan menahan sebuah pesan yang terindikasi spam/penipuan."
     await sendOutbound(bridge, reportToJid, alertText, "spam-alert")
     await SpamAlertModel.updateOne({ messageId: msg.messageId }, { $set: { notified: true } })
   } catch (err) {
@@ -92,6 +117,7 @@ async function handleAnonymousIdea(
 ): Promise<void> {
   try {
     await AnonymousIdeaModel.create({ text: rawText.trim() })
+    bridgeEvents.emitEvent({ type: "idea" })
     await sendOutbound(
       bridge,
       replyToJid,
@@ -105,21 +131,24 @@ async function handleAnonymousIdea(
 
 async function handleAskCommand(
   bridge: WaBridge,
-  replyToJid: string,
+  groupJid: string,
   question: string,
   llm: LlmClient,
   log: Logger,
 ): Promise<void> {
   try {
-    // DM Q&A defaults to the lowest ACL scope — japri can come from any member, not just Pusat.
-    const { answer } = await answerQuestion({ question, llm, requesterScope: "anggota" })
-    await sendOutbound(bridge, replyToJid, answer, "qa-reply")
+    // /tanya is group-only. The answer is grounded in that group's own history
+    // and inherits its ACL scope: a pusat group can use pusat context, an
+    // anggota group cannot. Japri /tanya is refused before reaching here.
+    const requesterScope = await getGroupScope(groupJid)
+    const { answer } = await answerQuestion({ question, llm, requesterScope, scopeGroupJid: groupJid })
+    await sendOutbound(bridge, groupJid, answer, "qa-reply")
   } catch (err) {
     log.error({ err }, "qa command failed")
     try {
       await sendOutbound(
         bridge,
-        replyToJid,
+        groupJid,
         "Maaf, lagi ada gangguan jawab pertanyaan. Coba lagi nanti ya.",
         "qa-reply",
       )
@@ -179,14 +208,25 @@ export function createInboundHandler(log: Logger, bridge: WaBridge, llm: LlmClie
         void autoRegisterGroup(bridge, msg.chatJid, log)
       }
 
-      if (!msg.isGroup) {
-        const ideaMatch = IDEA_CMD_RE.exec(msg.text)
-        const askMatch = ASK_CMD_RE.exec(msg.text)
-        if (ideaMatch) {
-          void handleAnonymousIdea(bridge, msg.fromJid, ideaMatch[1], log)
-        } else if (askMatch) {
-          void handleAskCommand(bridge, msg.fromJid, askMatch[1], llm, log)
+      const ideaMatch = IDEA_CMD_RE.exec(msg.text)
+      const askMatch = ASK_CMD_RE.exec(msg.text)
+      if (askMatch) {
+        if (msg.isGroup) {
+          // Answered inside the group, grounded in that group's history and ACL scope.
+          void handleAskCommand(bridge, msg.chatJid, askMatch[1], llm, log)
+        } else {
+          // Japri /tanya is not served — data is only ever exposed inside a group,
+          // where the group's scope defines what the answer may draw from.
+          void sendOutbound(
+            bridge,
+            msg.fromJid,
+            "Perintah /tanya hanya bisa dipakai di dalam grup.",
+            "qa-reply",
+          )
         }
+      } else if (ideaMatch && !msg.isGroup) {
+        // /ide stays DM-only: submitting it from a group would not be anonymous.
+        void handleAnonymousIdea(bridge, msg.fromJid, ideaMatch[1], log)
       }
     } catch (err) {
       log.error({ err, messageId: msg.messageId }, "inbound store failed")

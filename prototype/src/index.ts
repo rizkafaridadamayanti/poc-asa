@@ -1,6 +1,7 @@
 import { loadConfig } from "./config.js"
 import { createLogger } from "./logger.js"
 import { connectDb, disconnectDb } from "./db.js"
+import { GroupModel } from "./models/group.js"
 import { createBaileysBridge } from "./bridge.js"
 import { createInboundHandler } from "./handlers.js"
 import { createLlmClient } from "./llm.js"
@@ -19,6 +20,17 @@ async function main() {
   const log = createLogger(cfg.logLevel)
 
   await connectDb(cfg.mongodbUri, cfg.dbName, log)
+
+  // dusunId only labels dusun/anggota groups. Strip any left on pusat groups so
+  // they can't skew the "groups per dusun" stats. Idempotent, cheap after first run.
+  const clearedDusun = await GroupModel.updateMany(
+    { scope: "pusat", dusunId: { $nin: [null, ""] } },
+    { $set: { dusunId: null } },
+  )
+  if (clearedDusun.modifiedCount > 0) {
+    log.info({ count: clearedDusun.modifiedCount }, "cleared stale dusunId from pusat groups")
+  }
+
   startPurgeJob(log, cfg.mediaDir)
 
   const bridge = createBaileysBridge({
