@@ -1,10 +1,12 @@
-export function EmptyState({ icon, text }: { icon: string; text: string }) {
+import type { LucideIcon } from "lucide-react"
+
+export function EmptyState({ icon: Icon, text }: { icon: LucideIcon; text: string }) {
   return (
-    <div className="empty-state">
-      <span className="empty-state-icon">
-        <i className={`bi ${icon}`} />
-      </span>
-      <p className="empty-state-text mb-0">{text}</p>
+    <div className="flex flex-col items-center justify-center gap-3 py-14 text-center">
+      <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
+        <Icon className="w-6 h-6 text-slate-400" />
+      </div>
+      <p className="text-sm text-slate-500 max-w-xs mb-0">{text}</p>
     </div>
   )
 }

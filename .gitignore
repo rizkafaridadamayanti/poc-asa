@@ -12,3 +12,7 @@ prototype/.env
 .idea/
 .vscode/
 *.tsbuildinfo
+
+# AI Studio scaffold export — reference only, not the live codebase
+asa-dashboard---whatsapp-bridge-karang-taruna.zip
+prototype/poc-asa/

@@ -1,0 +1,870 @@
+<title>ASA Dashboard Handbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#182019;
+    --paper:#F1F3EC;
+    --card:#FCFDF9;
+    --card-alt:#F7F9F2;
+    --line:#DCE1D4;
+    --accent:#2F5233;
+    --accent-strong:#1F3823;
+    --accent-soft:#E4ECE1;
+    --amber:#8A5D14;
+    --amber-ink:#6B4610;
+    --amber-soft:#F5E8D2;
+    --red:#8C3620;
+    --red-ink:#7A2E1B;
+    --red-soft:#F3DED7;
+    --slate:#5B6B5E;
+    --slate-soft:#E7EAE3;
+    --shadow: 0 1px 2px rgba(24,32,25,0.06), 0 8px 24px -12px rgba(24,32,25,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#E9EDE4;
+      --paper:#10160F;
+      --card:#172018;
+      --card-alt:#1B2620;
+      --line:#2A3527;
+      --accent:#7FB58A;
+      --accent-strong:#9BCBA4;
+      --accent-soft:#1E2C1F;
+      --amber:#E0A94B;
+      --amber-ink:#F0C57A;
+      --amber-soft:#2E2314;
+      --red:#E2937D;
+      --red-ink:#EDA893;
+      --red-soft:#331E18;
+      --slate:#9BA89C;
+      --slate-soft:#202B21;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 30px -16px rgba(0,0,0,0.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#E9EDE4;
+    --paper:#10160F;
+    --card:#172018;
+    --card-alt:#1B2620;
+    --line:#2A3527;
+    --accent:#7FB58A;
+    --accent-strong:#9BCBA4;
+    --accent-soft:#1E2C1F;
+    --amber:#E0A94B;
+    --amber-ink:#F0C57A;
+    --amber-soft:#2E2314;
+    --red:#E2937D;
+    --red-ink:#EDA893;
+    --red-soft:#331E18;
+    --slate:#9BA89C;
+    --slate-soft:#202B21;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 30px -16px rgba(0,0,0,0.6);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--accent-soft); }
+  a{ color:var(--accent-strong); }
+  code, .mono{
+    font-family:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  h1,h2,h3{
+    font-family:"Fraunces", Georgia, serif;
+    text-wrap:balance;
+    margin:0;
+  }
+
+  .wrap{ max-width:840px; margin:0 auto; padding:0 20px 96px; }
+
+  /* ---------- masthead ---------- */
+  .masthead{
+    max-width:840px; margin:0 auto; padding:64px 20px 28px;
+  }
+  .masthead .eyebrow{
+    display:flex; align-items:center; gap:10px;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.78rem; letter-spacing:0.08em; text-transform:uppercase;
+    color:var(--accent-strong); margin-bottom:18px;
+  }
+  .masthead .eyebrow .dot{
+    width:7px; height:7px; border-radius:50%; background:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);
+  }
+  .masthead h1{
+    font-size:clamp(2.1rem, 5vw, 3.1rem);
+    font-weight:600;
+    color:var(--ink);
+  }
+  .masthead p.lede{
+    max-width:62ch;
+    font-size:1.05rem;
+    color:var(--ink);
+    opacity:0.82;
+    margin-top:16px;
+  }
+  .masthead .meta-row{
+    display:flex; flex-wrap:wrap; gap:10px 22px;
+    margin-top:22px;
+    font-size:0.85rem;
+    color:var(--slate);
+  }
+  .masthead .meta-row strong{ color:var(--ink); font-weight:600; }
+
+  /* ---------- flow strip ---------- */
+  .flow{
+    max-width:840px; margin:0 auto; padding:8px 20px 40px;
+    display:flex; flex-wrap:wrap; align-items:center; gap:8px;
+  }
+  .flow-chip{
+    display:inline-flex; align-items:center; gap:7px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:7px 14px 7px 10px;
+    font-size:0.84rem;
+    font-weight:500;
+    box-shadow:var(--shadow);
+    white-space:nowrap;
+  }
+  .flow-chip .n{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:20px; height:20px; border-radius:50%;
+    background:var(--accent-soft); color:var(--accent-strong);
+    font-family:"IBM Plex Mono", monospace; font-size:0.68rem; font-weight:600;
+  }
+  .flow-arrow{ color:var(--line); font-size:1.1rem; flex-shrink:0; }
+  .flow-chip.auth .n{ background:var(--slate-soft); color:var(--slate); }
+
+  /* ---------- sticky section nav ---------- */
+  .tocbar{
+    position:sticky; top:0; z-index:20;
+    background:color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .tocbar-inner{
+    max-width:840px; margin:0 auto; padding:12px 20px;
+    display:flex; gap:8px; overflow-x:auto;
+    scrollbar-width:thin;
+  }
+  .tocbar-inner::-webkit-scrollbar{ height:5px; }
+  .tocbar-inner::-webkit-scrollbar-thumb{ background:var(--line); border-radius:3px; }
+  .tocbar a{
+    flex-shrink:0;
+    text-decoration:none;
+    font-size:0.8rem;
+    font-weight:500;
+    color:var(--slate);
+    background:var(--card);
+    border:1px solid var(--line);
+    padding:6px 12px;
+    border-radius:999px;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  .tocbar a:hover{ color:var(--accent-strong); border-color:var(--accent); }
+
+  /* ---------- persistent-chrome callout ---------- */
+  .chrome-box{
+    max-width:840px; margin:0 auto 8px; padding:0 20px;
+  }
+  .chrome-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:26px 28px;
+    box-shadow:var(--shadow);
+    margin-top:36px;
+  }
+  .chrome-card h2{ font-size:1.3rem; font-weight:600; margin-bottom:6px; }
+  .chrome-card .sub{ color:var(--slate); font-size:0.9rem; margin-bottom:18px; }
+  .chrome-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
+    gap:18px;
+  }
+  .chrome-grid h4{
+    font-size:0.72rem; text-transform:uppercase; letter-spacing:0.07em;
+    color:var(--accent-strong); font-weight:600; margin:0 0 8px;
+    font-family:"IBM Plex Mono", monospace;
+  }
+  .chrome-grid ul{ margin:0; padding-left:18px; font-size:0.92rem; }
+  .chrome-grid li{ margin-bottom:5px; }
+
+  /* ---------- section ---------- */
+  section.page{
+    max-width:840px; margin:0 auto; padding:56px 20px 0;
+    scroll-margin-top:64px;
+    border-top:1px solid var(--line);
+  }
+  section.page:first-of-type{ border-top:none; }
+  .page-head{
+    display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+    margin-bottom:8px;
+  }
+  .page-num{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.85rem; color:var(--accent-strong); font-weight:600;
+  }
+  .page-route{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:0.8rem; color:var(--slate);
+    background:var(--card-alt);
+    border:1px solid var(--line);
+    padding:2px 9px; border-radius:6px;
+  }
+  section.page h2{ font-size:1.65rem; font-weight:600; margin:6px 0 10px; }
+  section.page > p.desc{ color:var(--ink); opacity:0.85; max-width:64ch; margin-bottom:26px; }
+
+  .block{ margin-bottom:26px; }
+  .block h3{
+    font-family:"IBM Plex Sans", sans-serif;
+    font-size:0.72rem; text-transform:uppercase; letter-spacing:0.07em;
+    font-weight:600; color:var(--slate); margin-bottom:10px;
+  }
+  .block > ul{ margin:0; padding-left:20px; }
+  .block > ul li{ margin-bottom:7px; }
+  .block > ul li strong{ font-weight:600; }
+
+  .tbl-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
+  table{ width:100%; border-collapse:collapse; font-size:0.88rem; background:var(--card); }
+  thead th{
+    text-align:left; font-weight:600; font-size:0.72rem;
+    text-transform:uppercase; letter-spacing:0.05em; color:var(--slate);
+    padding:10px 14px; border-bottom:1px solid var(--line);
+    background:var(--card-alt);
+    white-space:nowrap;
+  }
+  tbody td{
+    padding:11px 14px; border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  tbody tr:last-child td{ border-bottom:none; }
+  td.field{ font-family:"IBM Plex Mono", monospace; font-size:0.84rem; white-space:nowrap; }
+
+  .chip{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:0.72rem; font-weight:600; letter-spacing:0.02em;
+    padding:3px 9px; border-radius:999px; white-space:nowrap;
+    font-family:"IBM Plex Sans", sans-serif;
+  }
+  .chip-primary{ background:var(--accent); color:#fff; }
+  .chip-outline{ background:transparent; border:1px solid var(--accent); color:var(--accent-strong); }
+  .chip-secondary{ background:var(--slate-soft); color:var(--slate); border:1px solid var(--line); }
+  .chip-success{ background:transparent; border:1px solid var(--accent); color:var(--accent-strong); }
+  .chip-danger{ background:transparent; border:1px solid var(--red); color:var(--red-ink); }
+  .chip-danger-solid{ background:var(--red); color:#fff; }
+  .chip-link{ background:transparent; color:var(--slate); text-decoration:underline; }
+
+  .badge-demo{
+    display:inline-flex; align-items:center; gap:5px;
+    font-size:0.72rem; font-weight:600; padding:3px 10px; border-radius:999px;
+  }
+  .badge-green{ background:var(--accent-soft); color:var(--accent-strong); }
+  .badge-amber{ background:var(--amber-soft); color:var(--amber-ink); }
+  .badge-red{ background:var(--red-soft); color:var(--red-ink); }
+  .badge-slate{ background:var(--slate-soft); color:var(--slate); }
+
+  .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:26px; }
+  @media (max-width:640px){ .two-col{ grid-template-columns:1fr; } }
+
+  .note{
+    font-size:0.85rem; color:var(--slate);
+    border-left:2px solid var(--line);
+    padding-left:12px; margin-top:4px;
+  }
+
+  footer.colophon{
+    max-width:840px; margin:64px auto 0; padding:24px 20px 0;
+    border-top:1px solid var(--line);
+    color:var(--slate); font-size:0.82rem;
+  }
+
+  @media (prefers-reduced-motion:no-preference){
+    section.page{ }
+  }
+</style>
+
+<header class="masthead">
+  <div class="eyebrow"><span class="dot"></span> Referensi internal · ASA Karang Taruna</div>
+  <h1>Peta lengkap setiap layar, form, dan tombol di ASA Dashboard</h1>
+  <p class="lede">
+    ASA Dashboard adalah panel admin untuk bot WhatsApp Karang Taruna — mulai dari login
+    sampai menu terakhir di sidebar. Dokumen ini merunut tiap halaman satu per satu: apa yang
+    tampil, form apa yang diisi, dan tombol mana yang melakukan apa.
+  </p>
+  <div class="meta-row">
+    <span><strong>11</strong> layar</span>
+    <span><strong>2</strong> gerbang autentikasi</span>
+    <span><strong>9</strong> menu sidebar</span>
+    <span>Sumber: <code>prototype/web/src/pages</code></span>
+  </div>
+</header>
+
+<div class="flow">
+  <span class="flow-chip auth"><span class="n">1</span>Login</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-chip auth"><span class="n">2</span>Register</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-chip"><span class="n">3</span>Dashboard</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-chip"><span class="n">4</span>Messages</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-chip"><span class="n">5</span>Summaries</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-chip"><span class="n">6</span>Groups</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-chip"><span class="n">7</span>Infografis</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-chip"><span class="n">8</span>Kelola Pesan</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-chip"><span class="n">9</span>Pengingat Agenda</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-chip"><span class="n">10</span>Spam Alert</span>
+  <span class="flow-arrow">→</span>
+  <span class="flow-chip"><span class="n">11</span>Antrian Ide</span>
+</div>
+
+<nav class="tocbar">
+  <div class="tocbar-inner">
+    <a href="#chrome">Kerangka tetap</a>
+    <a href="#login">01 Login</a>
+    <a href="#register">02 Register</a>
+    <a href="#dashboard">03 Dashboard</a>
+    <a href="#messages">04 Messages</a>
+    <a href="#summaries">05 Summaries</a>
+    <a href="#groups">06 Groups</a>
+    <a href="#infografis">07 Infografis</a>
+    <a href="#kelola-pesan">08 Kelola Pesan</a>
+    <a href="#pengingat-agenda">09 Pengingat Agenda</a>
+    <a href="#spam-alerts">10 Spam Alert</a>
+    <a href="#antrian-ide">11 Antrian Ide</a>
+  </div>
+</nav>
+
+<div class="chrome-box">
+  <div class="chrome-card" id="chrome">
+    <h2>Kerangka tetap (setelah login)</h2>
+    <div class="sub">Muncul di semua 9 menu sidebar — tidak berubah antar halaman.</div>
+    <div class="chrome-grid">
+      <div>
+        <h4>Topbar</h4>
+        <ul>
+          <li>Logo + judul <strong>ASA Dashboard</strong> / subjudul "WhatsApp Bridge — Karang Taruna"</li>
+          <li>Badge status: <span class="badge-demo badge-green">● WA Connected</span> / <span class="badge-demo badge-red">WA Disconnected</span> / <span class="badge-demo badge-slate">Syncing…</span></li>
+          <li>Tanggal hari ini (format Indonesia)</li>
+          <li>Menu akun (avatar inisial + nama + role "ADMIN PUSAT") → <strong>Logout</strong></li>
+          <li>Tombol hamburger (mobile) buka sidebar sebagai offcanvas</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Sidebar</h4>
+        <ul>
+          <li>9 tautan menu (Dashboard → Antrian Ide), tiap item warna ikon beda</li>
+          <li>Tombol collapse/expand (ikon panah, tersimpan di <code>localStorage</code>)</li>
+          <li>Tombol <strong>Logout</strong> di bagian bawah</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Notifikasi live (toast)</h4>
+        <ul>
+          <li>"WhatsApp connected" / "WhatsApp disconnected" saat status bot berubah</li>
+          <li>"New message from …" tiap ada pesan masuk baru (real-time via SSE)</li>
+          <li>Toast error kalau koneksi live terputus</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- 01 LOGIN -->
+  <section class="page" id="login">
+    <div class="page-head">
+      <span class="page-num">01</span>
+      <span class="page-route">/login</span>
+    </div>
+    <h2>Login</h2>
+    <p class="desc">Gerbang masuk. Kartu tunggal di tengah layar, tanpa sidebar/topbar.</p>
+
+    <div class="two-col">
+      <div class="block">
+        <h3>Yang tampil</h3>
+        <ul>
+          <li>Ikon WhatsApp + judul "ASA Dashboard"</li>
+          <li>Alert merah kalau login gagal (pesan error dari server)</li>
+          <li>Tautan ke halaman Register</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Form</h3>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
+          <tbody>
+            <tr><td class="field">Username</td><td>text</td><td>Wajib, auto-focus saat halaman dibuka</td></tr>
+            <tr><td class="field">Password</td><td>password</td><td>Wajib</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="block">
+      <h3>Tombol</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Label</th><th>Jenis</th><th>Efek</th></tr></thead>
+        <tbody>
+          <tr><td>Login</td><td><span class="chip chip-primary">Primer</span></td><td>Submit form; teks berubah "Logging in…" saat proses, lalu redirect ke Dashboard</td></tr>
+          <tr><td>Register (tautan)</td><td><span class="chip chip-link">Tautan</span></td><td>Pindah ke halaman Register</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- 02 REGISTER -->
+  <section class="page" id="register">
+    <div class="page-head">
+      <span class="page-num">02</span>
+      <span class="page-route">/register</span>
+    </div>
+    <h2>Register</h2>
+    <p class="desc">Pendaftaran akun mandiri — tidak ada akun default/seed, semua akun dibuat lewat sini.</p>
+
+    <div class="two-col">
+      <div class="block">
+        <h3>Validasi</h3>
+        <ul>
+          <li>Password &amp; Confirm Password harus sama persis</li>
+          <li>Password minimal <strong>6 karakter</strong></li>
+          <li>Username harus unik (dicek di server)</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Form</h3>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
+          <tbody>
+            <tr><td class="field">Username</td><td>text</td><td>Wajib, auto-focus</td></tr>
+            <tr><td class="field">Password</td><td>password</td><td>Wajib, min. 6 karakter</td></tr>
+            <tr><td class="field">Confirm Password</td><td>password</td><td>Wajib, harus cocok dengan Password</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="block">
+      <h3>Tombol</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Label</th><th>Jenis</th><th>Efek</th></tr></thead>
+        <tbody>
+          <tr><td>Register</td><td><span class="chip chip-primary">Primer</span></td><td>Buat akun baru, langsung login, redirect ke Dashboard</td></tr>
+          <tr><td>Login (tautan)</td><td><span class="chip chip-link">Tautan</span></td><td>Kembali ke halaman Login</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- 03 DASHBOARD -->
+  <section class="page" id="dashboard">
+    <div class="page-head">
+      <span class="page-num">03</span>
+      <span class="page-route">/</span>
+    </div>
+    <h2>Dashboard</h2>
+    <p class="desc">"Selamat pagi/siang/sore/malam, {nama}!" — ringkasan aktivitas bot hari ini.</p>
+
+    <div class="block">
+      <h3>Yang tampil</h3>
+      <ul>
+        <li><strong>Kartu koneksi bot</strong> — kalau belum tersambung: instruksi + <strong>QR code</strong> untuk discan dari WhatsApp (Setelan → Perangkat Tertaut), tombol <strong>Refresh QR</strong>. Kalau sudah tersambung: badge "Connected", nomor &amp; nama perangkat, ikon platform (Android/iPhone)</li>
+        <li>3 <strong>stat card</strong> (muncul hanya saat bot connected): total pesan masuk, jumlah ringkasan dibuat, jumlah kontak aktif — tiap kartu punya progress bar</li>
+        <li><strong>Peak chat hours</strong> — mini grafik batang 24 jam + tautan "Lihat detail" ke Infografis</li>
+        <li>Kartu <strong>"Getting started"</strong> — tips memakai Send/Messages/Digest</li>
+        <li><strong>Distribusi Grup</strong> — donut chart (Pusat / Dusun / Anggota / Belum diatur)</li>
+        <li><strong>Kalender aktivitas</strong> — kalender bulan berjalan, navigasi bulan sebelumnya/berikutnya, tanggal dengan aktivitas ditandai titik (pesan terkirim / terjadwal) — klik tanggal buka modal detail aktivitas hari itu</li>
+        <li>Kartu <strong>Sentiment Harian Pusat</strong> — laporan sentimen harian terakhir dari AI (kalau ada)</li>
+      </ul>
+    </div>
+    <div class="block">
+      <h3>Tombol &amp; interaksi</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Label</th><th>Jenis</th><th>Efek</th></tr></thead>
+        <tbody>
+          <tr><td>Refresh QR</td><td><span class="chip chip-primary">Primer</span></td><td>Minta ulang QR code terbaru dari server</td></tr>
+          <tr><td>‹ / › (navigasi kalender)</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Pindah bulan sebelumnya/berikutnya</td></tr>
+          <tr><td>Klik tanggal aktif</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Buka modal "Aktivitas {tanggal}" — daftar pesan terkirim &amp; item terjadwal hari itu</td></tr>
+          <tr><td>Lihat detail (Peak hours)</td><td><span class="chip chip-link">Tautan</span></td><td>Pindah ke halaman Infografis</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- 04 MESSAGES -->
+  <section class="page" id="messages">
+    <div class="page-head">
+      <span class="page-num">04</span>
+      <span class="page-route">/messages</span>
+    </div>
+    <h2>Messages</h2>
+    <p class="desc">Kotak masuk pesan WhatsApp (grup &amp; DM), dengan mode Aktif dan Riwayat (trash).</p>
+
+    <div class="two-col">
+      <div class="block">
+        <h3>Panel filter</h3>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
+          <tbody>
+            <tr><td class="field">Chat / Group</td><td>select</td><td>Filter per grup/kontak terdaftar</td></tr>
+            <tr><td class="field">Cari pesan</td><td>search</td><td>Cari isi pesan/pengirim, debounce 300ms</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="block">
+        <h3>Tab &amp; kolom tabel</h3>
+        <ul>
+          <li>Tab <strong>Pesan Aktif</strong> / <strong>Riwayat</strong></li>
+          <li>Kolom: Time (atau "Dihapus" di Riwayat), From, Chat (badge Grup/Personal), Text (dengan badge tipe media), Aksi</li>
+          <li>Pesan baru masuk otomatis muncul di atas tabel (live, tanpa refresh)</li>
+        </ul>
+      </div>
+    </div>
+    <div class="block">
+      <h3>Tombol &amp; aksi</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Label</th><th>Jenis</th><th>Efek</th></tr></thead>
+        <tbody>
+          <tr><td>Bersihkan</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Reset filter Chat &amp; pencarian</td></tr>
+          <tr><td>Reset Semua Pesan</td><td><span class="chip chip-danger">Bahaya</span></td><td>Aktif → pindahkan semua ke Riwayat; Riwayat → hapus semua permanen (dengan konfirmasi)</td></tr>
+          <tr><td>👁 Lihat detail</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Buka modal: waktu, pengirim, chat, tipe, isi pesan, preview media</td></tr>
+          <tr><td>🗑 Hapus</td><td><span class="chip chip-danger">Bahaya</span></td><td>(mode Aktif) Pindahkan pesan ke Riwayat, minta konfirmasi</td></tr>
+          <tr><td>↺ Pulihkan</td><td><span class="chip chip-success">Sukses</span></td><td>(mode Riwayat) Kembalikan pesan ke Messages</td></tr>
+          <tr><td>🗑 Hapus permanen</td><td><span class="chip chip-danger">Bahaya</span></td><td>(mode Riwayat) Hapus pesan + file media selamanya, minta konfirmasi</td></tr>
+          <tr><td>Previous / Next</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Navigasi halaman (20 pesan/halaman)</td></tr>
+        </tbody>
+      </table></div>
+      <p class="note">Semua aksi hapus/reset melewati modal konfirmasi bertahap — tidak ada yang langsung permanen dari mode Aktif.</p>
+    </div>
+  </section>
+
+  <!-- 05 SUMMARIES -->
+  <section class="page" id="summaries">
+    <div class="page-head">
+      <span class="page-num">05</span>
+      <span class="page-route">/summaries</span>
+    </div>
+    <h2>Summaries</h2>
+    <p class="desc">Ringkasan harian chat yang dibuat otomatis oleh AI. Catatan dominasi bicara di sini adalah sinyal, bukan vonis.</p>
+
+    <div class="block">
+      <h3>Form filter</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
+        <tbody>
+          <tr><td class="field">Group</td><td>select</td><td>Semua grup atau salah satu</td></tr>
+          <tr><td class="field">From / To</td><td>date</td><td>Rentang tanggal periode ringkasan</td></tr>
+          <tr><td class="field">Keyword</td><td>text</td><td>Cari di isi ringkasan</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="two-col">
+      <div class="block">
+        <h3>Tiap kartu ringkasan</h3>
+        <ul>
+          <li>Periode tanggal + jumlah pesan sumber</li>
+          <li>Preview markdown (2 baris, clamped)</li>
+          <li>Badge Read / Important (di modal detail)</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Panel samping</h3>
+        <ul>
+          <li><strong>AI Chat</strong> — tanya-jawab bebas soal data grup</li>
+          <li><strong>Run Digest</strong> — buat ringkasan on-demand, hasil langsung dikirim ke WA <code>REPORT_TO_JID</code></li>
+        </ul>
+      </div>
+    </div>
+    <div class="block">
+      <h3>Tombol</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Label</th><th>Jenis</th><th>Efek</th></tr></thead>
+        <tbody>
+          <tr><td>Apply filters</td><td><span class="chip chip-primary">Primer</span></td><td>Terapkan filter di atas</td></tr>
+          <tr><td>Lihat Detail</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Buka isi lengkap ringkasan (markdown penuh)</td></tr>
+          <tr><td>Mark / Unmark important</td><td><span class="chip chip-primary">Primer</span> / <span class="chip chip-secondary">Sekunder</span></td><td>Tandai ringkasan penting (toggle)</td></tr>
+          <tr><td>Hapus</td><td><span class="chip chip-danger">Bahaya</span></td><td>(Aktif) Pindahkan ke Riwayat</td></tr>
+          <tr><td>Pulihkan</td><td><span class="chip chip-success">Sukses</span></td><td>(Riwayat) Kembalikan ke Aktif</td></tr>
+          <tr><td>Hapus Permanen</td><td><span class="chip chip-danger">Bahaya</span></td><td>(Riwayat) Hapus selamanya, dengan konfirmasi</td></tr>
+          <tr><td>Export .docx</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Unduh ringkasan sebagai dokumen Word</td></tr>
+          <tr><td>Run Yesterday</td><td><span class="chip chip-primary">Primer</span></td><td>Buat ringkasan dari pesan kemarin, kirim ke WA</td></tr>
+          <tr><td>Run Last 24h</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Buat ringkasan dari 24 jam terakhir, kirim ke WA</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- 06 GROUPS -->
+  <section class="page" id="groups">
+    <div class="page-head">
+      <span class="page-num">06</span>
+      <span class="page-route">/groups</span>
+    </div>
+    <h2>Groups</h2>
+    <p class="desc">Manajemen grup WhatsApp yang diikuti bot, dan pemetaannya ke struktur organisasi (Pusat/Dusun/Anggota).</p>
+
+    <div class="two-col">
+      <div class="block">
+        <h3>Form "Add group"</h3>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
+          <tbody>
+            <tr><td class="field">WA Group JID</td><td>text</td><td>Wajib. JID lengkap atau nomor HP, otomatis dinormalisasi</td></tr>
+            <tr><td class="field">Name</td><td>text</td><td>Nama tampilan grup/kontak</td></tr>
+            <tr><td class="field">Scope</td><td>select</td><td>Pusat / Dusun / Anggota</td></tr>
+            <tr><td class="field">Dusun ID</td><td>text</td><td>Diisi kalau scope-nya Dusun</td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">Grup baru dari pesan masuk terdaftar otomatis (scope perlu ditinjau manual) — form ini untuk kontak/grup lama.</p>
+      </div>
+      <div class="block">
+        <h3>Per baris grup</h3>
+        <ul>
+          <li>Nama + tag "(auto)" kalau terdaftar otomatis</li>
+          <li>WA JID, dusun (klik pensil untuk edit inline)</li>
+          <li>Badge "Belum diatur" kalau scope kosong</li>
+          <li>Dropdown Scope langsung di baris</li>
+        </ul>
+      </div>
+    </div>
+    <div class="block">
+      <h3>Filter &amp; tombol</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Label</th><th>Jenis</th><th>Efek</th></tr></thead>
+        <tbody>
+          <tr><td>Add group</td><td><span class="chip chip-primary">Primer</span></td><td>Simpan grup/kontak baru ke daftar</td></tr>
+          <tr><td>Filter scope (dropdown)</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Semua / Pusat / Dusun / Anggota / Belum diatur — tiap opsi tampil jumlahnya</td></tr>
+          <tr><td>Cari nama, JID, atau dusun…</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Pencarian langsung di daftar</td></tr>
+          <tr><td>Sync</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Tarik daftar grup langsung dari WhatsApp, daftarkan yang belum ada</td></tr>
+          <tr><td>✓ / ✕ (edit dusun)</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Simpan / batalkan nama dusun yang diedit inline</td></tr>
+          <tr><td>🗑 (hapus baris)</td><td><span class="chip chip-danger">Bahaya</span></td><td>Hapus registrasi grup (konfirmasi browser)</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- 07 INFOGRAFIS -->
+  <section class="page" id="infografis">
+    <div class="page-head">
+      <span class="page-num">07</span>
+      <span class="page-route">/infografis</span>
+    </div>
+    <h2>Infografis</h2>
+    <p class="desc">Halaman statistik murni — tidak ada form atau aksi tulis, semuanya baca-saja.</p>
+    <div class="block">
+      <h3>Yang tampil</h3>
+      <ul>
+        <li><strong>Peak chat hours</strong> — grafik batang 24 jam lengkap dengan sumbu-Y dan tooltip per jam</li>
+        <li><strong>Active vs contributive</strong> — tabel partisipan: jumlah pesan (ikon chat) &amp; jumlah pesan bertanda ide (ikon bohlam)</li>
+        <li><strong>Groups by dusun</strong> — tabel jumlah grup per dusun</li>
+      </ul>
+      <p class="note">Tidak ada tombol interaktif di halaman ini selain hover tooltip pada grafik batang.</p>
+    </div>
+  </section>
+
+  <!-- 08 KELOLA PESAN -->
+  <section class="page" id="kelola-pesan">
+    <div class="page-head">
+      <span class="page-num">08</span>
+      <span class="page-route">/informasi-baru</span>
+    </div>
+    <h2>Kelola Pesan</h2>
+    <p class="desc">Tulis info beasiswa / magang / inovasi, lalu kirim langsung, jadwalkan, atau simpan draft — sekali kirim, beda dari Pengingat Agenda yang berulang.</p>
+
+    <div class="block">
+      <h3>Form (dibuka lewat drawer "New info")</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
+        <tbody>
+          <tr><td class="field">Type</td><td>select</td><td>Beasiswa / Magang-Loker / Inovasi</td></tr>
+          <tr><td class="field">Title</td><td>text</td><td>Judul info</td></tr>
+          <tr><td class="field">Body</td><td>textarea</td><td>Detail, syarat, link pendaftaran</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="two-col">
+      <div class="block">
+        <h3>Status item</h3>
+        <ul>
+          <li><span class="badge-demo badge-amber">Draft</span> — belum dikirim/dijadwalkan</li>
+          <li><span class="badge-demo badge-amber">Scheduled</span> — menunggu jadwal kirim</li>
+          <li><span class="badge-demo badge-green">Sent</span> — sudah terkirim</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Filter &amp; tab</h3>
+        <ul>
+          <li>Tab Aktif / Riwayat</li>
+          <li>Chip status: All / Draft / Terjadwal / Sent</li>
+          <li>Pencarian judul/kategori</li>
+        </ul>
+      </div>
+    </div>
+    <div class="block">
+      <h3>Tombol &amp; aksi</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Label</th><th>Jenis</th><th>Efek</th></tr></thead>
+        <tbody>
+          <tr><td>New info</td><td><span class="chip chip-primary">Primer</span></td><td>Buka drawer form kosong</td></tr>
+          <tr><td>Simpan Draft</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Simpan tanpa mengirim</td></tr>
+          <tr><td>Kirim Langsung</td><td><span class="chip chip-primary">Primer</span></td><td>Buka modal pilih penerima (grup/kontak) → kirim sekarang lewat WA</td></tr>
+          <tr><td>Jadwalkan</td><td><span class="chip chip-outline">Primer (outline)</span></td><td>Buka modal pilih penerima + tanggal/jam kirim</td></tr>
+          <tr><td>Kirim Sekarang</td><td><span class="chip chip-primary">Primer</span></td><td>(item Scheduled) Kirim sekarang juga, lewati jadwal</td></tr>
+          <tr><td>Batalkan Jadwal</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Kembalikan item terjadwal ke Draft</td></tr>
+          <tr><td>Edit</td><td><span class="chip chip-secondary">Sekunder</span></td><td>(Draft) Buka drawer isi form yang sudah ada</td></tr>
+          <tr><td>Lihat Detail</td><td><span class="chip chip-outline">Aksen</span></td><td>Modal: tipe, status, tanggal, isi lengkap, daftar target</td></tr>
+          <tr><td>Delete / Hapus Permanen</td><td><span class="chip chip-danger">Bahaya</span></td><td>Aktif → pindah Riwayat; Riwayat → hapus selamanya (konfirmasi)</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="block">
+      <h3>Modal pengiriman</h3>
+      <p style="margin:0;">Pemilih penerima (grup/kontak, multi-select) + untuk Jadwalkan: input tanggal &amp; jam. Setelah dikirim, tampil ringkasan "terkirim ke N penerima" dan daftar yang gagal (jika ada).</p>
+    </div>
+  </section>
+
+  <!-- 09 PENGINGAT AGENDA -->
+  <section class="page" id="pengingat-agenda">
+    <div class="page-head">
+      <span class="page-num">09</span>
+      <span class="page-route">/pengingat-agenda</span>
+    </div>
+    <h2>Pengingat Agenda</h2>
+    <p class="desc">Jadwalkan rapat/kegiatan sekali dengan beberapa pengingat otomatis (H-3, H-1, dst) — beda dari Kelola Pesan yang cuma sekali kirim.</p>
+
+    <div class="block">
+      <h3>Form (drawer "Agenda baru")</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Field</th><th>Tipe</th><th>Keterangan</th></tr></thead>
+        <tbody>
+          <tr><td class="field">Judul</td><td>text</td><td>Wajib</td></tr>
+          <tr><td class="field">Deskripsi</td><td>textarea</td><td>Agenda, lokasi, catatan</td></tr>
+          <tr><td class="field">Jatuh tempo</td><td>datetime-local</td><td>Wajib</td></tr>
+          <tr><td class="field">Pengingat</td><td>preset + custom</td><td>Tombol cepat H-3 / H-1 / Saat jatuh tempo, atau pilih tanggal-jam sendiri lewat "Custom" — tiap pengingat jadi pill yang bisa dihapus</td></tr>
+          <tr><td class="field">Penerima</td><td>picker</td><td>Wajib pilih minimal satu (grup/kontak)</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="two-col">
+      <div class="block">
+        <h3>Status jatuh tempo (per kartu)</h3>
+        <ul>
+          <li><span class="badge-demo badge-green">X hari lagi</span> — masih lebih dari 3 hari</li>
+          <li><span class="badge-demo badge-amber">Hari ini / Besok / N hari lagi</span> — ≤3 hari</li>
+          <li><span class="badge-demo badge-red">Sudah lewat</span> — melewati jatuh tempo</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Info per kartu agenda</h3>
+        <ul>
+          <li>Ringkasan penerima ("N penerima · Nama, +M lainnya")</li>
+          <li>Ringkasan jadwal pengingat (mis. "H-3, H-1")</li>
+          <li>Titik indikator: belum ada / sebagian / semua pengingat terkirim</li>
+        </ul>
+      </div>
+    </div>
+    <div class="block">
+      <h3>Filter &amp; tombol</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Label</th><th>Jenis</th><th>Efek</th></tr></thead>
+        <tbody>
+          <tr><td>Tab Aktif / Riwayat</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Soft-delete, terpisah dari filter tanggal</td></tr>
+          <tr><td>Chip Semua / Akan datang / Sudah lewat</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Filter berdasarkan tanggal jatuh tempo (client-side)</td></tr>
+          <tr><td>Agenda baru</td><td><span class="chip chip-primary">Primer</span></td><td>Buka drawer form kosong</td></tr>
+          <tr><td>Buat agenda / Simpan perubahan</td><td><span class="chip chip-primary">Primer</span></td><td>Submit form (baru atau edit)</td></tr>
+          <tr><td>✎ Edit</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Buka drawer terisi data agenda</td></tr>
+          <tr><td>🗑 Hapus</td><td><span class="chip chip-danger">Bahaya</span></td><td>(Aktif) Pindah ke Riwayat</td></tr>
+          <tr><td>↺ Pulihkan</td><td><span class="chip chip-success">Sukses</span></td><td>(Riwayat) Kembalikan ke Aktif</td></tr>
+          <tr><td>🗑 Hapus permanen</td><td><span class="chip chip-danger">Bahaya</span></td><td>(Riwayat) Hapus selamanya, dengan konfirmasi</td></tr>
+          <tr><td>+N penerima</td><td><span class="chip chip-link">Tautan</span></td><td>&gt;5 penerima → buka modal daftar lengkap; ≤5 → tooltip hover</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- 10 SPAM ALERT -->
+  <section class="page" id="spam-alerts">
+    <div class="page-head">
+      <span class="page-num">10</span>
+      <span class="page-route">/spam-alerts</span>
+    </div>
+    <h2>Spam / Fraud Alert</h2>
+    <p class="desc">Pesan yang lolos heuristik spam-fraud (skor ≥ 50) — otomatis dikirim ke Pusat lewat WA, halaman ini untuk menindaklanjuti.</p>
+
+    <div class="two-col">
+      <div class="block">
+        <h3>Tiap kartu alert</h3>
+        <ul>
+          <li>Badge skor ("Skor 72/100")</li>
+          <li>Isi pesan lengkap + pengirim + chat asal</li>
+          <li>Tag alasan heuristik (mis. "link mencurigakan")</li>
+          <li>Penanda "sudah dikirim ke Pusat" kalau notifikasi WA sudah terkirim</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Filter</h3>
+        <ul>
+          <li><span class="badge-demo badge-red">Baru</span> (open, default)</li>
+          <li><span class="badge-demo badge-red">Dikonfirmasi</span> spam</li>
+          <li><span class="badge-demo badge-green">Bukan Spam</span> (dismissed)</li>
+          <li>Semua</li>
+        </ul>
+      </div>
+    </div>
+    <div class="block">
+      <h3>Tombol (khusus status "Baru")</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Label</th><th>Jenis</th><th>Efek</th></tr></thead>
+        <tbody>
+          <tr><td>Konfirmasi Spam</td><td><span class="chip chip-danger">Bahaya</span></td><td>Tandai sebagai spam terkonfirmasi, keluar dari daftar "Baru"</td></tr>
+          <tr><td>Bukan Spam</td><td><span class="chip chip-success">Sukses</span></td><td>Tandai sebagai bukan spam (dismissed), keluar dari daftar "Baru"</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- 11 ANTRIAN IDE -->
+  <section class="page" id="antrian-ide">
+    <div class="page-head">
+      <span class="page-num">11</span>
+      <span class="page-route">/antrian-ide</span>
+    </div>
+    <h2>Antrian Ide Anonim</h2>
+    <p class="desc">Kanal privat untuk anggota yang tidak nyaman usul di grup terbuka — kirim DM ke bot dengan <code>/ide &lt;teks&gt;</code>. Pengirim tidak pernah disimpan.</p>
+
+    <div class="block">
+      <h3>Yang tampil</h3>
+      <ul>
+        <li>Tiap kartu: badge status (<span class="badge-demo badge-slate">Baru</span> / <span class="badge-demo badge-amber">Ditinjau</span>), waktu masuk, isi ide — <strong>tanpa identitas pengirim sama sekali</strong></li>
+      </ul>
+    </div>
+    <div class="block">
+      <h3>Filter &amp; tombol</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Label</th><th>Jenis</th><th>Efek</th></tr></thead>
+        <tbody>
+          <tr><td>Baru / Ditinjau / Semua</td><td><span class="chip chip-secondary">Sekunder</span></td><td>Filter tab</td></tr>
+          <tr><td>Tandai ditinjau</td><td><span class="chip chip-secondary">Sekunder</span></td><td>(hanya untuk status Baru) Pindahkan ide ke status Ditinjau</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="colophon">
+  Disusun dari kode sumber di <code>prototype/web/src/pages/*.tsx</code> — ASA Karang Taruna, WhatsApp Bridge Dashboard.
+</footer>

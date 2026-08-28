@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { Download } from "lucide-react"
 import { api } from "../api.js"
 
 export function MediaPreview({
@@ -34,25 +35,29 @@ export function MediaPreview({
     }
   }, [messageId])
 
-  if (error) return <p className="text-danger small mb-0">{error}</p>
-  if (!url) return <p className="text-muted small mb-0">Memuat media…</p>
+  if (error) return <p className="text-rose-600 text-sm mb-0">{error}</p>
+  if (!url) return <p className="text-slate-400 text-sm mb-0">Memuat media…</p>
 
   if (mediaType === "image") {
-    return <img src={url} alt="Lampiran" className="img-fluid rounded" />
+    return <img src={url} alt="Lampiran" className="max-w-full rounded-xl" />
   }
   if (mediaType === "video") {
     return (
       // eslint-disable-next-line jsx-a11y/media-has-caption
-      <video src={url} controls className="w-100 rounded" />
+      <video src={url} controls className="w-full rounded-xl" />
     )
   }
   if (mediaType === "audio") {
     // eslint-disable-next-line jsx-a11y/media-has-caption
-    return <audio src={url} controls className="w-100" />
+    return <audio src={url} controls className="w-full" />
   }
   return (
-    <a href={url} download className="btn btn-outline-secondary btn-sm">
-      <i className="bi bi-download me-1" />
+    <a
+      href={url}
+      download
+      className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+    >
+      <Download className="w-3.5 h-3.5" />
       Unduh berkas{mimetype ? ` (${mimetype})` : ""}
     </a>
   )

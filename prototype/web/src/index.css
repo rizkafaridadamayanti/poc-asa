@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+/* ============================================================================
+ * REBRAND: biru -> hijau zaitun tua (primary #667714).
+ * Card tetap putih; hanya latar halaman/panel yang jadi abu netral.
+ * Meng-override token warna default Tailwind, jadi setiap utility (bg-blue-*,
+ * text-blue-*, bg-white, bg-slate-50, ...) otomatis ikut berubah.
+ * ==========================================================================*/
+@theme {
+  --color-blue-50: #f4f6e6;
+  --color-blue-100: #e8edc7;
+  --color-blue-200: #d3dc9c;
+  --color-blue-300: #b6c56a;
+  --color-blue-400: #97aa41;
+  --color-blue-500: #7c8f1e;
+  --color-blue-600: #667714;
+  --color-blue-700: #4f5d13;
+  --color-blue-800: #3f4a14;
+  --color-blue-900: #353f16;
+  --color-blue-950: #1c220a;
+
+  /* Card / modal / input tetap putih; latar halaman & panel jadi abu netral. */
+  --color-white: #ffffff;
+  --color-slate-50: #f2f1f0;
+  --color-slate-100: #e7e6e4;
+}
+
+@layer base {
+  body {
+    background-color: #f2f1f0;
+    color: #0f172a;
+    /* checkbox / radio / range native ikut warna brand */
+    accent-color: #667714;
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #ededec;
+}
+::-webkit-scrollbar-thumb {
+  background: #cececb;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #b0b0ac;
+}

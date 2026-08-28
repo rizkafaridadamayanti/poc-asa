@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
+import { Phone, Users, Search, CheckCheck } from "lucide-react"
 import { api, type Group, type Participant } from "../api.js"
 
 type Tab = "number" | "group"
@@ -62,32 +63,34 @@ export function RecipientPicker({
 
   return (
     <div>
-      <div className="btn-group mb-3">
+      <div className="inline-flex rounded-xl bg-slate-100 p-1 mb-3">
         <button
           type="button"
-          className={`btn btn-sm ${tab === "number" ? "btn-primary" : "btn-outline-primary"}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+            tab === "number" ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+          }`}
           onClick={() => setTab("number")}
         >
-          <i className="bi bi-telephone me-1" />
+          <Phone className="w-3.5 h-3.5" />
           Nomor {numberCount > 0 && `(${numberCount})`}
         </button>
         <button
           type="button"
-          className={`btn btn-sm ${tab === "group" ? "btn-primary" : "btn-outline-primary"}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+            tab === "group" ? "bg-white text-blue-700 shadow-sm" : "text-slate-500 hover:text-slate-700"
+          }`}
           onClick={() => setTab("group")}
         >
-          <i className="bi bi-people me-1" />
+          <Users className="w-3.5 h-3.5" />
           Grup {groupCount > 0 && `(${groupCount})`}
         </button>
       </div>
 
-      <div className="d-flex gap-2 mb-3">
-        <div className="input-group">
-          <span className="input-group-text bg-white">
-            <i className="bi bi-search text-muted" />
-          </span>
+      <div className="flex gap-2 mb-3">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
-            className="form-control"
+            className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
             placeholder={tab === "number" ? "Cari nama atau nomor…" : "Cari nama grup…"}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -95,48 +98,58 @@ export function RecipientPicker({
         </div>
         <button
           type="button"
-          className="btn btn-outline-secondary text-nowrap"
+          className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer whitespace-nowrap"
           onClick={tab === "number" ? toggleAllNumbers : toggleAllGroups}
           title="Pilih/batalkan semua"
         >
-          <i className="bi bi-check2-all me-1" />
+          <CheckCheck className="w-3.5 h-3.5" />
           {(tab === "number" ? allNumbersSelected : allGroupsSelected) ? "Batalkan semua" : "Pilih semua"}
         </button>
       </div>
 
-      <div style={{ maxHeight: "280px", overflowY: "auto" }}>
+      <div className="max-h-72 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100">
         {tab === "number" ? (
           <>
-            {filteredParticipants.length === 0 && <p className="text-muted fst-italic">Tidak ada kontak yang cocok.</p>}
+            {filteredParticipants.length === 0 && (
+              <p className="text-slate-400 text-sm italic px-3 py-4">Tidak ada kontak yang cocok.</p>
+            )}
             {filteredParticipants.map((p) => (
-              <label key={p._id} className="d-flex align-items-center gap-2 py-2 px-2 border-bottom" style={{ cursor: "pointer" }}>
+              <label
+                key={p._id}
+                className="flex items-center gap-3 py-2.5 px-3 hover:bg-slate-50 cursor-pointer"
+              >
                 <input
                   type="checkbox"
-                  className="form-check-input"
+                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                   checked={selected.has(p.waJid)}
                   onChange={() => toggleOne(p.waJid)}
                 />
-                <span>
-                  <span className="d-block">{p.displayName || p.waJid.split("@")[0]}</span>
-                  {p.displayName && <span className="text-muted small">{p.waJid.split("@")[0]}</span>}
+                <span className="text-sm">
+                  <span className="block font-medium text-slate-800">{p.displayName || p.waJid.split("@")[0]}</span>
+                  {p.displayName && <span className="text-slate-400 text-xs">{p.waJid.split("@")[0]}</span>}
                 </span>
               </label>
             ))}
           </>
         ) : (
           <>
-            {filteredGroups.length === 0 && <p className="text-muted fst-italic">Tidak ada grup yang cocok.</p>}
+            {filteredGroups.length === 0 && (
+              <p className="text-slate-400 text-sm italic px-3 py-4">Tidak ada grup yang cocok.</p>
+            )}
             {filteredGroups.map((g) => (
-              <label key={g._id} className="d-flex align-items-center gap-2 py-2 px-2 border-bottom" style={{ cursor: "pointer" }}>
+              <label
+                key={g._id}
+                className="flex items-center gap-3 py-2.5 px-3 hover:bg-slate-50 cursor-pointer"
+              >
                 <input
                   type="checkbox"
-                  className="form-check-input"
+                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                   checked={selected.has(g.waJid)}
                   onChange={() => toggleOne(g.waJid)}
                 />
-                <span>
-                  <span className="d-block">{g.name || g.waJid}</span>
-                  {g.name && <span className="text-muted small">{g.waJid}</span>}
+                <span className="text-sm">
+                  <span className="block font-medium text-slate-800">{g.name || g.waJid}</span>
+                  {g.name && <span className="text-slate-400 text-xs">{g.waJid}</span>}
                 </span>
               </label>
             ))}

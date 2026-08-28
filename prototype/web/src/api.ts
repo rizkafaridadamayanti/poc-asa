@@ -158,6 +158,10 @@ export type Group = {
   scope: GroupScope | null
   dusunId: string | null
   source: GroupSource
+  participants: string[]
+  ownerJid: string | null
+  groupCreatedAt: string | null
+  description: string
   createdAt: string
   updatedAt: string
 }
@@ -175,6 +179,7 @@ export type Participant = {
 export type ContributiveRow = { waJid: string; messageCount: number; ideaCount: number }
 export type PeakHourRow = { hour: number; count: number }
 export type DusunRow = { dusunId: string; groupCount: number }
+export type GroupActivityRow = { chatJid: string; messageCount: number }
 
 export type Sentiment = {
   _id: string
@@ -394,6 +399,7 @@ export const api = {
   contributiveStats: () => fetchJson<{ rows: ContributiveRow[] }>("/api/stats/contributive"),
 
   peakHours: () => fetchJson<{ rows: PeakHourRow[] }>("/api/stats/peak-hours"),
+  messagesByGroup: () => fetchJson<{ rows: GroupActivityRow[] }>("/api/stats/messages-by-group"),
 
   dusunStats: () => fetchJson<{ rows: DusunRow[] }>("/api/stats/dusun"),
 

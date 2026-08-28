@@ -1,22 +1,16 @@
-/** Single source of truth for the app's brand accent — used by the sidebar nav
- * and each page's header. The theme is eco-green as the brand identity; the
- * status colors (success/warning/danger) are reserved for status meaning
- * elsewhere, not used here — so every section shares the same primary green
- * instead of each page carrying its own hue. */
-const PRIMARY = "var(--color-primary)"
-const NEUTRAL = "var(--color-secondary)"
-
+/** Single source of truth for each section's accent color, matching the
+ * Tailwind palette used across the sidebar nav, page headers, and charts. */
 export const NAV_COLORS = {
-  dashboard: PRIMARY,
-  messages: PRIMARY,
-  riwayat: NEUTRAL,
-  summaries: PRIMARY,
-  groups: PRIMARY,
-  infografis: PRIMARY,
-  digest: PRIMARY,
-  informasiBaru: PRIMARY,
-  qa: PRIMARY,
-  pengingatAgenda: PRIMARY,
-  spamAlerts: PRIMARY,
-  antrianIde: PRIMARY,
+  dashboard: "#667714",
+  messages: "#667714",
+  riwayat: "#64748b",
+  summaries: "#667714",
+  groups: "#059669",
+  infografis: "#d97706",
+  digest: "#667714",
+  informasiBaru: "#667714",
+  qa: "#667714",
+  pengingatAgenda: "#9333ea",
+  spamAlerts: "#e11d48",
+  antrianIde: "#0d9488",
 } as const

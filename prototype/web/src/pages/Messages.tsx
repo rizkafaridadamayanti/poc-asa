@@ -1,12 +1,21 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useOutletContext } from "react-router-dom"
+import {
+  Search,
+  Trash2,
+  RotateCcw,
+  Eye,
+  X,
+  MessageSquare,
+  Users,
+  User,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react"
 import { api, type Group, type Message } from "../api.js"
-import { PageHeader } from "../components/PageHeader.js"
-import { Modal } from "../components/Modal.js"
+import { ConfirmModal } from "../components/ConfirmModal.js"
 import { MediaPreview } from "../components/MediaPreview.js"
-import { MEDIA_TYPE_INFO, MediaTypeBadge, truncateWords } from "../messageUtils.js"
-import { NAV_COLORS } from "../navColors.js"
-import { EmptyState } from "../components/EmptyState.js"
+import { MediaTypeBadge, truncateWords } from "../messageUtils.js"
 
 type ViewMode = "active" | "trash"
 
@@ -23,7 +32,6 @@ export function Messages() {
   const [chatFilter, setChatFilter] = useState("")
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
-  const [filterPanelOpen, setFilterPanelOpen] = useState(true)
   const limit = 20
 
   const [viewingMessage, setViewingMessage] = useState<Message | null>(null)
@@ -36,13 +44,7 @@ export function Messages() {
     if (!opts.silent) setLoading(true)
     if (!opts.silent) setError(null)
     try {
-      const res = await api.messages(
-        limit,
-        newOffset,
-        chatFilter || undefined,
-        debouncedSearch || undefined,
-        viewMode === "trash",
-      )
+      const res = await api.messages(limit, newOffset, chatFilter || undefined, debouncedSearch || undefined, viewMode === "trash")
       setMessages(res.messages)
       setTotal(res.total)
       setOffset(res.offset)
@@ -64,11 +66,23 @@ export function Messages() {
   }, [chatFilter, debouncedSearch, viewMode])
 
   useEffect(() => {
-    api
-      .groups()
-      .then((res) => setGroups(res.groups))
-      .catch(() => {})
+    api.groups().then((res) => setGroups(res.groups)).catch(() => {})
   }, [])
+
+  // For personal (DM) messages: which of the bot's known groups is this sender
+  // also a member of, per the participant roster pulled from WhatsApp on Sync.
+  const groupsByParticipant = useMemo(() => {
+    const map = new Map<string, string[]>()
+    for (const g of groups) {
+      for (const jid of g.participants ?? []) {
+        const list = map.get(jid)
+        const label = g.name || g.waJid
+        if (list) list.push(label)
+        else map.set(jid, [label])
+      }
+    }
+    return map
+  }, [groups])
 
   useEffect(() => {
     if (!lastInbound || viewMode !== "active") return
@@ -80,11 +94,6 @@ export function Messages() {
       return [{ ...msg, chatName: group?.name || null }, ...prev]
     })
     setTotal((t) => t + 1)
-    // The SSE event fires straight from the WA bridge, before the message is
-    // even written to Mongo — it has no real _id yet, so actions like "view
-    // detail" (media fetch) or delete would 404/500 against it. Silently
-    // reconcile with the DB shortly after so the row picks up its real _id
-    // without the user needing to reload.
     if (offset === 0) {
       const t = setTimeout(() => load(0, { silent: true }), 800)
       return () => clearTimeout(t)
@@ -92,13 +101,13 @@ export function Messages() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastInbound])
 
-  const formatDate = (ts: number) => new Date(ts * 1000).toLocaleString()
+  const formatTime = (ts: number) =>
+    new Date(ts * 1000).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
   const hasFilters = chatFilter !== "" || search !== ""
   const clearFilters = () => {
     setChatFilter("")
     setSearch("")
   }
-
   const switchView = (mode: ViewMode) => {
     setViewMode(mode)
     setInfo(null)
@@ -175,405 +184,342 @@ export function Messages() {
     }
   }
 
-  const themeColor = viewMode === "trash" ? NAV_COLORS.riwayat : NAV_COLORS.messages
-  const emptyText =
-    viewMode === "trash"
-      ? hasFilters
-        ? "Tidak ada pesan di riwayat yang cocok dengan filter."
-        : "Riwayat kosong."
-      : hasFilters
-        ? "Tidak ada pesan yang cocok dengan filter."
-        : "No messages yet."
+  const totalPages = Math.max(1, Math.ceil(total / limit))
+  const currentPage = Math.floor(offset / limit) + 1
 
   return (
-    <div>
-      <PageHeader
-        eyebrow={viewMode === "trash" ? "Riwayat" : "Pesan Masuk"}
-        color={themeColor}
-        title={viewMode === "trash" ? "Riwayat Pesan" : "Messages"}
-        subtitle={
-          viewMode === "trash"
-            ? "Pesan yang dihapus dari Messages singgah di sini. Pulihkan, hapus permanen satu per satu, atau Reset semuanya."
-            : undefined
-        }
-      />
-      {error && <div className="alert alert-danger">{error}</div>}
-      {info && <div className="alert alert-success">{info}</div>}
-
-      <div className="layout-split">
-        <div className={`layout-split-side filter-panel${filterPanelOpen ? "" : " filter-panel-collapsed"}`}>
-          <div className="card">
-            <div className="card-body">
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h6 className="mb-0 text-uppercase text-muted small fw-bold">Filter</h6>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline-secondary filter-panel-toggle"
-                  onClick={() => setFilterPanelOpen(false)}
-                  title="Sembunyikan filter"
-                >
-                  <i className="bi bi-chevron-left" />
-                </button>
-              </div>
-              <div className="mb-3">
-                <label htmlFor="chatFilter" className="form-label small">
-                  Chat / Group
-                </label>
-                <select
-                  id="chatFilter"
-                  className="form-select form-select-sm"
-                  value={chatFilter}
-                  onChange={(e) => setChatFilter(e.target.value)}
-                >
-                  <option value="">All chats</option>
-                  {groups.map((g) => (
-                    <option key={g._id} value={g.waJid}>
-                      {g.name || g.waJid}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-3">
-                <label htmlFor="search" className="form-label small">
-                  Cari pesan
-                </label>
-                <div className="input-group input-group-sm">
-                  <span className="input-group-text bg-white">
-                    <i className="bi bi-search filter-search-icon" />
-                  </span>
-                  <input
-                    id="search"
-                    type="search"
-                    className="form-control"
-                    placeholder="Cari isi pesan atau pengirim…"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                </div>
-              </div>
-              <button
-                className="btn btn-outline-clear btn-sm w-100"
-                onClick={clearFilters}
-                disabled={!hasFilters}
-              >
-                <i className="bi bi-x-lg me-1" />
-                Bersihkan
-              </button>
-            </div>
-          </div>
+    <div className="space-y-6 pb-12">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+            <span>Messages</span>
+            <span className="px-2 py-0.5 text-xs font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200 rounded-md">
+              Live Stream
+            </span>
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">
+            Monitoring komunikasi masuk WhatsApp secara real-time dari grup & jalur personal.
+          </p>
         </div>
 
-        <div className="layout-split-main">
-          <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-            <div className="d-flex align-items-center gap-2 flex-wrap">
-              {!filterPanelOpen && (
-                <button
-                  type="button"
-                  className="btn btn-outline-secondary btn-sm filter-panel-toggle"
-                  onClick={() => setFilterPanelOpen(true)}
-                  title="Tampilkan filter"
-                >
-                  <i className="bi bi-funnel me-1" />
-                  Filter
-                </button>
-              )}
-              <div className="segmented-tabs">
-                <button
-                  type="button"
-                  className={`segmented-tab${viewMode === "active" ? " active" : ""}`}
-                  onClick={() => switchView("active")}
-                >
-                  <i className="bi bi-inbox" />
-                  Pesan Aktif
-                </button>
-                <button
-                  type="button"
-                  className={`segmented-tab${viewMode === "trash" ? " active" : ""}`}
-                  onClick={() => switchView("trash")}
-                >
-                  <i className="bi bi-clock-history" />
-                  Riwayat
-                </button>
-              </div>
-            </div>
+        <div className="flex items-center gap-2.5">
+          <div className="p-1 bg-slate-100 border border-slate-200 rounded-xl flex items-center">
             <button
-              className="btn btn-outline-danger btn-sm"
-              onClick={() => setConfirmingReset(true)}
-              disabled={total === 0 && messages.length === 0}
+              onClick={() => switchView("active")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewMode === "active" ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+              }`}
             >
-              <i className="bi bi-exclamation-triangle me-1" />
-              Reset Semua Pesan
+              Pesan Aktif{viewMode === "active" ? ` (${total})` : ""}
+            </button>
+            <button
+              onClick={() => switchView("trash")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                viewMode === "trash" ? "bg-rose-600 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Riwayat{viewMode === "trash" ? ` (${total})` : ""}
             </button>
           </div>
+          <button
+            onClick={() => setConfirmingReset(true)}
+            disabled={total === 0}
+            className="px-3 py-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-40"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Reset Pesan</span>
+          </button>
+        </div>
+      </div>
 
-          {loading && <p className="text-muted">Loading…</p>}
-          {!loading && messages.length === 0 && <EmptyState icon="bi-inbox" text={emptyText} />}
-          {messages.length > 0 && (
-            <>
-              <div className="card">
-                <div className="table-responsive">
-                  <table className="table table-hover align-middle mb-0 table-compact table-fixed-cols">
-                    <colgroup>
-                      <col style={{ width: "15%" }} />
-                      <col style={{ width: "16%" }} />
-                      <col style={{ width: "18%" }} />
-                      <col style={{ width: "39%" }} />
-                      <col style={{ width: "12%" }} />
-                    </colgroup>
-                    <thead>
-                      <tr className="table-header-eco">
-                        <th className="text-nowrap">{viewMode === "trash" ? "Dihapus" : "Time"}</th>
-                        <th className="text-nowrap">From</th>
-                        <th className="text-nowrap">Chat</th>
-                        <th>Text</th>
-                        <th className="text-nowrap text-center">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {messages.map((m) => (
-                        <tr key={m._id}>
-                          <td className="text-nowrap text-muted small">
-                            {viewMode === "trash"
-                              ? m.trashedAt
-                                ? new Date(m.trashedAt).toLocaleString()
-                                : "—"
-                              : formatDate(m.timestamp)}
-                          </td>
-                          <td>
-                            <span className="table-jid" title={m.fromJid}>
-                              {m.fromJid}
-                            </span>
-                          </td>
-                          <td>
-                            {m.isGroup ? (
-                              <span
-                                className="badge chat-badge-group text-truncate d-inline-block"
-                                style={{ maxWidth: "100%" }}
-                                title={m.chatName || m.chatJid}
-                              >
-                                {m.chatName || m.chatJid}
-                              </span>
-                            ) : (
-                              <span className="d-flex align-items-center gap-1" style={{ minWidth: 0 }}>
-                                <span className="badge chat-badge-personal flex-shrink-0">Personal</span>
-                                <span className="table-jid text-muted small" title={m.chatJid}>
-                                  {m.chatJid}
-                                </span>
-                              </span>
-                            )}
-                          </td>
-                          <td className="table-text-cell" title={m.text || undefined}>
-                            {m.type !== "text" && <MediaTypeBadge type={m.type} />}
-                            {m.text ? truncateWords(m.text, 8) : null}
-                          </td>
-                          <td className="text-center text-nowrap">
+      {error && <div className="px-4 py-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm">{error}</div>}
+      {info && <div className="px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">{info}</div>}
+
+      <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-3">
+        <div className="w-full md:w-72">
+          <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Chat / Group</label>
+          <select
+            value={chatFilter}
+            onChange={(e) => setChatFilter(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-900 font-medium transition-colors cursor-pointer"
+          >
+            <option value="">Semua Chat &amp; Grup</option>
+            {groups.map((g) => (
+              <option key={g._id} value={g.waJid}>
+                {g.name || g.waJid}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="w-full flex-1">
+          <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Cari Pesan</label>
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari isi pesan atau pengirim…"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-900 placeholder-slate-400 transition-colors font-medium"
+            />
+          </div>
+        </div>
+        <div className="w-full md:w-auto self-end">
+          <button
+            onClick={clearFilters}
+            disabled={!hasFilters}
+            className="w-full md:w-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold border border-slate-200 transition-colors cursor-pointer disabled:opacity-40"
+          >
+            Bersihkan Filter
+          </button>
+        </div>
+      </div>
+
+      <div className="rounded-3xl bg-white border border-slate-200 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs text-slate-700">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px] tracking-wider">
+              <tr>
+                <th className="py-3 px-4 w-32">{viewMode === "trash" ? "Dihapus" : "Waktu"}</th>
+                <th className="py-3 px-4 w-40">Pengirim</th>
+                <th className="py-3 px-4 w-28">Tipe</th>
+                <th className="py-3 px-4 w-52">Chat / Group</th>
+                <th className="py-3 px-4">Isi Pesan</th>
+                <th className="py-3 px-4 text-right w-28">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400">Memuat…</td>
+                </tr>
+              ) : messages.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <MessageSquare className="w-8 h-8 opacity-40" />
+                      <span className="font-bold text-slate-700">
+                        {viewMode === "trash"
+                          ? hasFilters ? "Tidak ada pesan di riwayat yang cocok." : "Riwayat kosong."
+                          : hasFilters ? "Tidak ada pesan yang cocok." : "Belum ada pesan masuk."}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                messages.map((m) => (
+                  <tr key={m._id} className="hover:bg-blue-50/40 transition-colors group">
+                    <td className="py-3 px-4 font-mono text-[11px] text-slate-500 tabular-nums whitespace-nowrap">
+                      {viewMode === "trash"
+                        ? m.trashedAt
+                          ? new Date(m.trashedAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
+                          : "—"
+                        : formatTime(m.timestamp)}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="font-bold text-slate-900 truncate max-w-[160px] font-mono text-[11px]">
+                        {m.fromJid.split("@")[0]}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      {m.isGroup ? (
+                        <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase rounded bg-blue-50 text-blue-700 border border-blue-200 inline-flex items-center gap-1">
+                          <Users className="w-2.5 h-2.5" /> Grup
+                        </span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase rounded bg-slate-100 text-slate-600 border border-slate-200 inline-flex items-center gap-1">
+                          <User className="w-2.5 h-2.5" /> Personal
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="text-slate-800 font-medium text-xs truncate max-w-[190px]" title={m.chatName || m.chatJid}>
+                        {m.chatName || m.chatJid}
+                      </div>
+                      {!m.isGroup && (groupsByParticipant.get(m.fromJid)?.length ?? 0) > 0 && (
+                        <div className="text-[10px] text-emerald-600 truncate max-w-[190px]" title={groupsByParticipant.get(m.fromJid)!.join(", ")}>
+                          Juga di: {groupsByParticipant.get(m.fromJid)!.join(", ")}
+                        </div>
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        {m.type !== "text" && <MediaTypeBadge type={m.type} />}
+                        <p className="line-clamp-2 text-slate-700 leading-relaxed text-xs">
+                          {m.text ? truncateWords(m.text, 10, 90) : <em className="text-slate-400">(tanpa teks)</em>}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => setViewingMessage(m)}
+                          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                          title="Lihat detail"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        {viewMode === "active" ? (
+                          <button
+                            onClick={() => setConfirmingDeleteId(m._id)}
+                            disabled={busyId === m._id}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer disabled:opacity-40"
+                            title="Hapus"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        ) : (
+                          <>
                             <button
-                              className="btn btn-outline-secondary btn-sm me-1"
-                              onClick={() => setViewingMessage(m)}
-                              title="Lihat detail"
+                              onClick={() => handleRestore(m._id)}
+                              disabled={busyId === m._id}
+                              className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer disabled:opacity-40"
+                              title="Pulihkan"
                             >
-                              <i className="bi bi-eye" />
+                              <RotateCcw className="w-4 h-4" />
                             </button>
-                            {viewMode === "active" ? (
-                              <button
-                                className="btn btn-outline-danger btn-sm"
-                                onClick={() => setConfirmingDeleteId(m._id)}
-                                disabled={busyId === m._id}
-                                title="Hapus"
-                              >
-                                <i className="bi bi-trash" />
-                              </button>
-                            ) : (
-                              <>
-                                <button
-                                  className="btn btn-outline-success btn-sm me-1"
-                                  onClick={() => handleRestore(m._id)}
-                                  disabled={busyId === m._id}
-                                  title="Pulihkan"
-                                >
-                                  <i className="bi bi-arrow-counterclockwise" />
-                                </button>
-                                <button
-                                  className="btn btn-outline-danger btn-sm"
-                                  onClick={() => setConfirmingDeleteId(m._id)}
-                                  disabled={busyId === m._id}
-                                  title="Hapus permanen"
-                                >
-                                  <i className="bi bi-trash3" />
-                                </button>
-                              </>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-              <div className="d-flex align-items-center justify-content-center gap-3 mt-3">
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  disabled={offset === 0 || loading}
-                  onClick={() => load(Math.max(offset - limit, 0))}
-                >
-                  <i className="bi bi-chevron-left" /> Previous
-                </button>
-                <span className="text-muted small">
-                  {offset + 1}–{Math.min(offset + messages.length, total)} of {total}
-                </span>
-                <button
-                  className="btn btn-outline-secondary btn-sm"
-                  disabled={offset + messages.length >= total || loading}
-                  onClick={() => load(offset + limit)}
-                >
-                  Next <i className="bi bi-chevron-right" />
-                </button>
-              </div>
-            </>
-          )}
+                            <button
+                              onClick={() => setConfirmingDeleteId(m._id)}
+                              disabled={busyId === m._id}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer disabled:opacity-40"
+                              title="Hapus permanen"
+                            >
+                              <Trash2 className="w-4 h-4 text-rose-500" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+          <div>
+            Menampilkan <span className="font-bold text-slate-800">{total > 0 ? offset + 1 : 0}</span>–
+            <span className="font-bold text-slate-800">{Math.min(offset + messages.length, total)}</span> dari{" "}
+            <span className="font-bold text-slate-800">{total}</span> pesan
+          </div>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => load(Math.max(offset - limit, 0))}
+              disabled={offset === 0 || loading}
+              className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-200 text-slate-600 disabled:opacity-40 transition-colors cursor-pointer"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <span className="px-2 font-mono font-bold text-slate-700">
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={() => load(offset + limit)}
+              disabled={offset + messages.length >= total || loading}
+              className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-200 text-slate-600 disabled:opacity-40 transition-colors cursor-pointer"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
       {viewingMessage && (
-        <Modal title="Detail Pesan" onClose={() => setViewingMessage(null)}>
-          <dl className="row mb-0">
-            <dt className="col-4">Waktu</dt>
-            <dd className="col-8">{formatDate(viewingMessage.timestamp)}</dd>
-            <dt className="col-4">Dari</dt>
-            <dd className="col-8">{viewingMessage.fromJid}</dd>
-            <dt className="col-4">Chat</dt>
-            <dd className="col-8">
-              {viewingMessage.isGroup ? viewingMessage.chatName || viewingMessage.chatJid : "Personal (DM)"}
-            </dd>
-            <dt className="col-4">Tipe</dt>
-            <dd className="col-8">{MEDIA_TYPE_INFO[viewingMessage.type]?.label ?? "Teks"}</dd>
-            {viewMode === "trash" && (
-              <>
-                <dt className="col-4">Dihapus</dt>
-                <dd className="col-8">
-                  {viewingMessage.trashedAt ? new Date(viewingMessage.trashedAt).toLocaleString() : "—"}
-                </dd>
-              </>
-            )}
-          </dl>
-          {viewingMessage.type !== "text" && viewingMessage.mediaFilename && (
-            <div className="mt-3">
-              <MediaPreview
-                messageId={viewingMessage._id}
-                mediaType={viewingMessage.type}
-                mimetype={viewingMessage.mediaMimetype}
-              />
-            </div>
-          )}
-          {viewingMessage.text && (
-            <div className="mt-3">
-              <div className="text-muted small mb-1">
-                {viewingMessage.type !== "text" ? "Keterangan" : "Isi pesan"}
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in"
+          onClick={() => setViewingMessage(null)}
+        >
+          <div
+            className="w-full max-w-lg bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4 text-slate-900 relative max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setViewingMessage(null)}
+              className="absolute top-5 right-5 p-1.5 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+              <div className="p-2.5 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600">
+                <MessageSquare className="w-5 h-5" />
               </div>
-              <p className="mb-0" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-                {viewingMessage.text}
-              </p>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Detail Pesan</h3>
+                <p className="text-xs text-slate-400 font-mono">{formatTime(viewingMessage.timestamp)}</p>
+              </div>
             </div>
-          )}
-        </Modal>
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Dari</span>
+                  <span className="font-mono text-slate-800 text-[11px]">{viewingMessage.fromJid}</span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Chat</span>
+                  <span className="font-bold text-slate-900 text-sm block">
+                    {viewingMessage.isGroup ? viewingMessage.chatName || viewingMessage.chatJid : "Personal (DM)"}
+                  </span>
+                </div>
+                {!viewingMessage.isGroup && (groupsByParticipant.get(viewingMessage.fromJid)?.length ?? 0) > 0 && (
+                  <div className="col-span-2">
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Juga anggota di</span>
+                    <span className="text-emerald-600 font-medium text-xs">
+                      {groupsByParticipant.get(viewingMessage.fromJid)!.join(", ")}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {viewingMessage.type !== "text" && viewingMessage.mediaFilename && (
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200">
+                  <MediaPreview
+                    messageId={viewingMessage._id}
+                    mediaType={viewingMessage.type}
+                    mimetype={viewingMessage.mediaMimetype}
+                  />
+                </div>
+              )}
+              {viewingMessage.text && (
+                <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
+                  <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">
+                    {viewingMessage.type !== "text" ? "Keterangan" : "Isi pesan"}
+                  </span>
+                  <p className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed font-medium">{viewingMessage.text}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
-      {confirmingDeleteId &&
-        (viewMode === "active" ? (
-          <Modal
-            title="Hapus pesan?"
-            onClose={() => setConfirmingDeleteId(null)}
-            footer={
-              <>
-                <button className="btn btn-outline-secondary" onClick={() => setConfirmingDeleteId(null)}>
-                  Batal
-                </button>
-                <button
-                  className="btn btn-danger"
-                  onClick={() => handleTrash(confirmingDeleteId)}
-                  disabled={busyId === confirmingDeleteId}
-                >
-                  {busyId === confirmingDeleteId ? "Menghapus…" : "Ya, hapus"}
-                </button>
-              </>
-            }
-          >
-            <p className="mb-0">
-              Pesan ini akan dipindahkan ke <strong>Riwayat</strong>. Kamu masih bisa menghapusnya permanen
-              dari sana nanti.
-            </p>
-          </Modal>
-        ) : (
-          <Modal
-            title="Hapus permanen?"
-            onClose={() => setConfirmingDeleteId(null)}
-            footer={
-              <>
-                <button className="btn btn-outline-secondary" onClick={() => setConfirmingDeleteId(null)}>
-                  Batal
-                </button>
-                <button
-                  className="btn btn-danger"
-                  onClick={() => handleDeletePermanent(confirmingDeleteId)}
-                  disabled={busyId === confirmingDeleteId}
-                >
-                  {busyId === confirmingDeleteId ? "Menghapus…" : "Ya, hapus permanen"}
-                </button>
-              </>
-            }
-          >
-            <p className="mb-0 text-danger">
-              <i className="bi bi-exclamation-triangle-fill me-2" />
-              Pesan ini (dan berkas media-nya, jika ada) akan dihapus permanen. Tindakan ini tidak bisa
-              dibatalkan.
-            </p>
-          </Modal>
-        ))}
+      <ConfirmModal
+        isOpen={confirmingDeleteId !== null}
+        onClose={() => setConfirmingDeleteId(null)}
+        onConfirm={() => confirmingDeleteId && (viewMode === "active" ? handleTrash(confirmingDeleteId) : handleDeletePermanent(confirmingDeleteId))}
+        busy={busyId === confirmingDeleteId}
+        title={viewMode === "active" ? "Hapus pesan?" : "Hapus permanen?"}
+        description={
+          viewMode === "active"
+            ? "Pesan ini akan dipindahkan ke Riwayat. Kamu masih bisa menghapusnya permanen dari sana nanti."
+            : "Pesan ini (dan berkas media-nya, jika ada) akan dihapus permanen. Tindakan ini tidak bisa dibatalkan."
+        }
+        confirmText={viewMode === "active" ? "Ya, hapus" : "Ya, hapus permanen"}
+        type={viewMode === "active" ? "warning" : "danger"}
+      />
 
-      {confirmingReset &&
-        (viewMode === "active" ? (
-          <Modal
-            title="Reset semua pesan?"
-            onClose={() => setConfirmingReset(false)}
-            footer={
-              <>
-                <button className="btn btn-outline-secondary" onClick={() => setConfirmingReset(false)}>
-                  Batal
-                </button>
-                <button className="btn btn-primary" onClick={handleReset} disabled={resetting}>
-                  {resetting ? "Memindahkan…" : "Ya, pindahkan ke Riwayat"}
-                </button>
-              </>
-            }
-          >
-            <p className="mb-0">
-              <i className="bi bi-info-circle me-2" />
-              Ini akan memindahkan <strong>SEMUA</strong> pesan aktif ke Riwayat. Belum permanen — kamu masih
-              bisa memulihkannya, atau menghapusnya permanen satu per satu (atau sekaligus) dari Riwayat.
-            </p>
-          </Modal>
-        ) : (
-          <Modal
-            title="Reset semua pesan?"
-            onClose={() => setConfirmingReset(false)}
-            footer={
-              <>
-                <button className="btn btn-outline-secondary" onClick={() => setConfirmingReset(false)}>
-                  Batal
-                </button>
-                <button className="btn btn-danger" onClick={handleReset} disabled={resetting}>
-                  {resetting ? "Menghapus…" : "Ya, hapus semua"}
-                </button>
-              </>
-            }
-          >
-            <p className="mb-0 text-danger">
-              <i className="bi bi-exclamation-triangle-fill me-2" />
-              Ini akan menghapus <strong>SEMUA</strong> pesan di Riwayat secara permanen, termasuk berkas
-              media-nya. Tindakan ini tidak bisa dibatalkan.
-            </p>
-          </Modal>
-        ))}
+      <ConfirmModal
+        isOpen={confirmingReset}
+        onClose={() => setConfirmingReset(false)}
+        onConfirm={handleReset}
+        busy={resetting}
+        title={viewMode === "active" ? "Pindahkan semua pesan aktif ke Riwayat?" : "Kosongkan semua Riwayat?"}
+        description={
+          viewMode === "active"
+            ? "Semua pesan aktif akan dipindahkan ke Riwayat. Belum permanen — masih bisa dipulihkan dari sana."
+            : "Semua pesan di Riwayat akan dihapus permanen, termasuk berkas medianya. Tindakan ini tidak bisa dibatalkan."
+        }
+        confirmText={viewMode === "active" ? "Ya, pindahkan" : "Ya, hapus semua"}
+        type="danger"
+      />
     </div>
   )
 }

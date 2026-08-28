@@ -10,8 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "bootstrap": "^5.3.8",
-    "bootstrap-icons": "^1.13.1",
+    "lucide-react": "^0.546.0",
     "qrcode.react": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -20,11 +19,12 @@
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
-    "@types/bootstrap": "^5.2.11",
+    "@tailwindcss/vite": "^4.1.14",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.1.14",
     "typescript": "^5.7.3",
     "vite": "^6.0.7"
   }

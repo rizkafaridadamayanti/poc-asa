@@ -14,20 +14,18 @@ export function PageHeader({
   action?: ReactNode
 }) {
   return (
-    <div className="page-header">
-      <div className="page-header-card">
-        <div className="d-flex align-items-start justify-content-between flex-wrap gap-3">
-          <div>
-            <div className="page-header-eyebrow" style={{ color }}>
-              {eyebrow}
-            </div>
-            <h2 className="mb-0">{title}</h2>
-            {subtitle && <p className="text-muted mb-0 mt-2 small">{subtitle}</p>}
-          </div>
-          {action}
+    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+      <div>
+        <div
+          className="text-[11px] font-extrabold uppercase tracking-widest mb-1"
+          style={{ color }}
+        >
+          {eyebrow}
         </div>
-        <div className="page-header-accent" style={{ backgroundColor: color }} />
+        <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{title}</h1>
+        {subtitle && <p className="text-sm text-slate-500 mt-1.5 max-w-2xl">{subtitle}</p>}
       </div>
+      {action}
     </div>
   )
 }

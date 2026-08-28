@@ -6,6 +6,8 @@ export type SseEvent =
   | { type: "qr"; qr: string }
   | { type: "connection"; connected: boolean; reason?: string; device?: WaDevice | null }
   | { type: "inbound"; message: Record<string, unknown> }
+  | { type: "spam-alert" }
+  | { type: "idea" }
 
 export function useEvents() {
   const [connected, setConnected] = useState<boolean | null>(null)
@@ -13,6 +15,8 @@ export function useEvents() {
   const [disconnectReason, setDisconnectReason] = useState<string | null>(null)
   const [device, setDevice] = useState<WaDevice | null>(null)
   const [lastInbound, setLastInbound] = useState<Record<string, unknown> | null>(null)
+  const [spamAlertTick, setSpamAlertTick] = useState(0)
+  const [ideaTick, setIdeaTick] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const esRef = useRef<EventSource | null>(null)
 
@@ -37,6 +41,10 @@ export function useEvents() {
           setQr(data.qr)
         } else if (data.type === "inbound") {
           setLastInbound(data.message)
+        } else if (data.type === "spam-alert") {
+          setSpamAlertTick((t) => t + 1)
+        } else if (data.type === "idea") {
+          setIdeaTick((t) => t + 1)
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err))
@@ -55,5 +63,5 @@ export function useEvents() {
 
   const dismissQr = () => setQr(null)
 
-  return { connected, qr, disconnectReason, device, lastInbound, error, dismissQr }
+  return { connected, qr, disconnectReason, device, lastInbound, spamAlertTick, ideaTick, error, dismissQr }
 }

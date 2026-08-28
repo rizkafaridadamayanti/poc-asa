@@ -1,12 +1,22 @@
 import { useEffect, useState } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import {
+  FileText,
+  Sparkles,
+  Search,
+  Star,
+  Download,
+  Trash2,
+  RotateCcw,
+  Calendar,
+  Clock,
+  Eye,
+  X,
+} from "lucide-react"
 import { api, type Group, type Summary } from "../api.js"
-import { PageHeader } from "../components/PageHeader.js"
+import { ConfirmModal } from "../components/ConfirmModal.js"
 import { AiChatPanel } from "../components/AiChatPanel.js"
-import { Modal } from "../components/Modal.js"
-import { EmptyState } from "../components/EmptyState.js"
-import { NAV_COLORS } from "../navColors.js"
 
 type DigestResult = { summaryId: string; bodyMd: string; messageCount: number; waMessageId?: string }
 type ViewMode = "active" | "trash"
@@ -41,12 +51,7 @@ export function Summaries() {
       const res = await api.summaries(
         limit,
         newOffset,
-        {
-          groupJid: groupFilter || undefined,
-          from: fromFilter || undefined,
-          to: toFilter || undefined,
-          keyword: keywordFilter || undefined,
-        },
+        { groupJid: groupFilter || undefined, from: fromFilter || undefined, to: toFilter || undefined, keyword: keywordFilter || undefined },
         viewMode === "trash",
       )
       setSummaries(res.summaries)
@@ -65,10 +70,7 @@ export function Summaries() {
   }, [viewMode])
 
   useEffect(() => {
-    api
-      .groups()
-      .then((res) => setGroups(res.groups))
-      .catch(() => {})
+    api.groups().then((res) => setGroups(res.groups)).catch(() => {})
   }, [])
 
   const applyFilters = (e: React.FormEvent) => {
@@ -145,292 +147,327 @@ export function Summaries() {
   const groupName = (jid: string) => groups.find((g) => g.waJid === jid)?.name || jid
 
   return (
-    <div>
-      <PageHeader
-        eyebrow="Ringkasan Harian"
-        color={NAV_COLORS.summaries}
-        title="Summaries"
-        subtitle={
-          <span className="d-inline-flex align-items-center gap-2">
-            Ringkasan aktivitas chat harian, otomatis dibuat.
-            <span className="info-tooltip-wrap">
-              <i className="bi bi-info-circle info-tooltip-icon" />
-              <span className="info-tooltip-bubble">
-                Catatan dominasi bicara (meeting-bias) di sini adalah <strong>signal</strong>, bukan
-                vonis — pakai sebagai bahan diskusi, bukan penilaian final.
-              </span>
+    <div className="space-y-6 pb-12">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+            <span>Summaries</span>
+            <span className="px-2.5 py-0.5 text-xs font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200 rounded-md">
+              AI Digest
             </span>
-          </span>
-        }
-      />
-      {error && <div className="alert alert-danger">{error}</div>}
-      {info && <div className="alert alert-success">{info}</div>}
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">Ringkasan harian chat WhatsApp yang dibuat otomatis oleh AI.</p>
+        </div>
+        <div className="p-1 bg-slate-100 border border-slate-200 rounded-xl flex items-center shrink-0">
+          <button
+            onClick={() => switchView("active")}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              viewMode === "active" ? "bg-blue-600 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            Ringkasan Aktif{viewMode === "active" ? ` (${total})` : ""}
+          </button>
+          <button
+            onClick={() => switchView("trash")}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              viewMode === "trash" ? "bg-rose-600 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            Riwayat{viewMode === "trash" ? ` (${total})` : ""}
+          </button>
+        </div>
+      </div>
 
-      <div className="layout-split">
-        <div className="layout-split-main" style={{ flex: "1 1 65%" }}>
-          <div className="mb-3">
-            <div className="segmented-tabs">
-              <button
-                type="button"
-                className={`segmented-tab${viewMode === "active" ? " active" : ""}`}
-                onClick={() => switchView("active")}
-              >
-                <i className="bi bi-journal-text" />
-                Ringkasan Aktif
-              </button>
-              <button
-                type="button"
-                className={`segmented-tab${viewMode === "trash" ? " active" : ""}`}
-                onClick={() => switchView("trash")}
-              >
-                <i className="bi bi-clock-history" />
-                Riwayat
-              </button>
-            </div>
-          </div>
+      {error && <div className="px-4 py-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm">{error}</div>}
+      {info && <div className="px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">{info}</div>}
 
-          <form onSubmit={applyFilters} className="card mb-4">
-            <div className="card-body row g-3 align-items-end">
-              <div className="col-sm-3">
-                <label htmlFor="groupFilter" className="form-label">
-                  Group
-                </label>
-                <select
-                  id="groupFilter"
-                  className="form-select"
-                  value={groupFilter}
-                  onChange={(e) => setGroupFilter(e.target.value)}
-                >
-                  <option value="">All groups</option>
-                  {groups.map((g) => (
-                    <option key={g._id} value={g.waJid}>
-                      {g.name || g.waJid}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-sm-2">
-                <label htmlFor="fromFilter" className="form-label">
-                  From
-                </label>
-                <input
-                  id="fromFilter"
-                  type="date"
-                  className="form-control"
-                  value={fromFilter}
-                  onChange={(e) => setFromFilter(e.target.value)}
-                />
-              </div>
-              <div className="col-sm-2">
-                <label htmlFor="toFilter" className="form-label">
-                  To
-                </label>
-                <input
-                  id="toFilter"
-                  type="date"
-                  className="form-control"
-                  value={toFilter}
-                  onChange={(e) => setToFilter(e.target.value)}
-                />
-              </div>
-              <div className="col-sm-3">
-                <label htmlFor="keywordFilter" className="form-label">
-                  Keyword
-                </label>
-                <input
-                  id="keywordFilter"
-                  className="form-control"
-                  placeholder="search body…"
-                  value={keywordFilter}
-                  onChange={(e) => setKeywordFilter(e.target.value)}
-                />
-              </div>
-              <div className="col-sm-2">
-                <button className="btn btn-primary w-100" disabled={loading}>
-                  Apply filters
-                </button>
-              </div>
-            </div>
-          </form>
-
-          {loading && <p className="text-muted">Loading summaries…</p>}
-          {!loading && summaries.length === 0 && (
-            <EmptyState
-              icon="bi-journal-text"
-              text={viewMode === "trash" ? "Riwayat kosong." : "No summaries yet."}
+      <form
+        onSubmit={applyFilters}
+        className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end"
+      >
+        <div>
+          <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Group</label>
+          <select
+            value={groupFilter}
+            onChange={(e) => setGroupFilter(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-900 font-medium cursor-pointer"
+          >
+            <option value="">Semua grup</option>
+            {groups.map((g) => (
+              <option key={g._id} value={g.waJid}>
+                {g.name || g.waJid}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Dari</label>
+          <input
+            type="date"
+            value={fromFilter}
+            onChange={(e) => setFromFilter(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-900 font-medium"
+          />
+        </div>
+        <div>
+          <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Sampai</label>
+          <input
+            type="date"
+            value={toFilter}
+            onChange={(e) => setToFilter(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-900 font-medium"
+          />
+        </div>
+        <div>
+          <label className="block text-[11px] font-bold text-slate-600 mb-1 uppercase tracking-wider">Kata kunci</label>
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              value={keywordFilter}
+              onChange={(e) => setKeywordFilter(e.target.value)}
+              placeholder="cari isi ringkasan…"
+              className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl text-xs text-slate-900 placeholder-slate-400 font-medium"
             />
-          )}
-          {summaries.map((s) => (
-            <div key={s._id} className="card mb-3">
-              <div className="card-body">
-                <div className="d-flex justify-content-between align-items-start gap-3 mb-3">
-                  <span className="summary-period-label">
-                    {new Date(s.periodStart).toLocaleDateString()} —{" "}
-                    {new Date(s.periodEnd).toLocaleDateString()}
-                  </span>
-                  <span className="badge badge-count flex-shrink-0">
-                    {s.sourceMessageIds.length} messages
-                  </span>
+          </div>
+        </div>
+        <button
+          disabled={loading}
+          className="h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-60"
+        >
+          Terapkan Filter
+        </button>
+      </form>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          {loading ? (
+            <p className="text-slate-400 text-sm">Memuat…</p>
+          ) : summaries.length === 0 ? (
+            <div className="p-12 text-center rounded-3xl bg-white border border-slate-200 shadow-sm text-slate-500 space-y-2">
+              <FileText className="w-10 h-10 mx-auto opacity-30 text-blue-600" />
+              <p className="font-bold text-slate-800">
+                {viewMode === "trash" ? "Riwayat kosong." : "Belum ada ringkasan."}
+              </p>
+              <p className="text-xs text-slate-500">Gunakan Run Digest di samping untuk membuat ringkasan on-demand.</p>
+            </div>
+          ) : (
+            summaries.map((s) => (
+              <div
+                key={s._id}
+                className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-md shadow-xs space-y-3 transition-all group"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                    <span className="font-bold text-slate-700">
+                      {new Date(s.periodStart).toLocaleDateString("id-ID")} — {new Date(s.periodEnd).toLocaleDateString("id-ID")}
+                    </span>
+                    <span className="text-slate-300">•</span>
+                    <span className="text-blue-600 font-mono font-bold">{s.sourceMessageIds.length} pesan sumber</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {viewMode === "active" && (
+                      <button
+                        onClick={() => toggle(s, "important")}
+                        className={`p-1.5 rounded-xl border transition-colors cursor-pointer ${
+                          s.important ? "bg-amber-50 border-amber-300 text-amber-600" : "bg-slate-50 border-slate-200 text-slate-400 hover:text-slate-700"
+                        }`}
+                        title={s.important ? "Ditandai penting" : "Tandai penting"}
+                      >
+                        <Star className={`w-3.5 h-3.5 ${s.important ? "fill-amber-500" : ""}`} />
+                      </button>
+                    )}
+                    <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-lg bg-blue-50 text-blue-700 border border-blue-200">
+                      {groupName(s.sourceGroupJid)}
+                    </span>
+                  </div>
                 </div>
-                <div className="summary-preview-clamp markdown-body text-secondary small mb-4">
+
+                <div className="text-xs text-slate-600 line-clamp-2 leading-relaxed font-medium markdown-preview">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{s.bodyMd}</ReactMarkdown>
                 </div>
-                <div className="d-flex gap-2 flex-wrap">
-                  <button
-                    className="btn btn-outline-secondary btn-sm"
-                    onClick={() => setViewingSummary(s)}
-                  >
-                    <i className="bi bi-eye me-1" />
-                    Lihat Detail
-                  </button>
-                  {viewMode === "active" ? (
-                    <>
+
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setViewingSummary(s)}
+                      className="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      Lihat Detail
+                    </button>
+                    <button
+                      onClick={() => exportDocx(s)}
+                      className="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Export .docx</span>
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {viewMode === "active" ? (
                       <button
-                        className={`btn btn-sm ${s.important ? "btn-primary" : "btn-outline-secondary"}`}
-                        onClick={() => toggle(s, "important")}
+                        onClick={() => toggle(s, "trash")}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                        title="Pindahkan ke Riwayat"
                       >
-                        <i className="bi bi-star me-1" />
-                        {s.important ? "Unmark important" : "Mark important"}
+                        <Trash2 className="w-4 h-4" />
                       </button>
-                      <button className="btn btn-outline-danger btn-sm" onClick={() => toggle(s, "trash")}>
-                        <i className="bi bi-trash me-1" />
-                        Hapus
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button className="btn btn-outline-success btn-sm" onClick={() => toggle(s, "trash")}>
-                        <i className="bi bi-arrow-counterclockwise me-1" />
-                        Pulihkan
-                      </button>
-                      <button
-                        className="btn btn-outline-danger btn-sm"
-                        onClick={() => setConfirmingDeleteId(s._id)}
-                        disabled={busyId === s._id}
-                      >
-                        <i className="bi bi-trash3 me-1" />
-                        Hapus Permanen
-                      </button>
-                    </>
-                  )}
-                  <button className="btn btn-outline-secondary btn-sm" onClick={() => exportDocx(s)}>
-                    <i className="bi bi-file-earmark-word me-1" />
-                    Export .docx
-                  </button>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => toggle(s, "trash")}
+                          className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                          title="Pulihkan"
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => setConfirmingDeleteId(s._id)}
+                          disabled={busyId === s._id}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer disabled:opacity-40"
+                          title="Hapus permanen"
+                        >
+                          <Trash2 className="w-4 h-4 text-rose-500" />
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
+
           {summaries.length > 0 && (
-            <div className="d-flex align-items-center gap-3 mt-3">
+            <div className="flex items-center justify-center gap-3 pt-2">
               <button
-                className="btn btn-outline-secondary btn-sm"
                 disabled={offset === 0 || loading}
                 onClick={() => load(Math.max(offset - limit, 0))}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold disabled:opacity-40 cursor-pointer"
               >
-                <i className="bi bi-chevron-left" /> Previous
+                Previous
               </button>
-              <span className="text-muted small">
-                {offset + 1}–{Math.min(offset + summaries.length, total)} of {total}
+              <span className="text-xs text-slate-500 font-mono">
+                {offset + 1}–{Math.min(offset + summaries.length, total)} dari {total}
               </span>
               <button
-                className="btn btn-outline-secondary btn-sm"
                 disabled={offset + summaries.length >= total || loading}
                 onClick={() => load(offset + limit)}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold disabled:opacity-40 cursor-pointer"
               >
-                Next <i className="bi bi-chevron-right" />
+                Next
               </button>
             </div>
           )}
         </div>
 
-        <div className="layout-split-side" style={{ flex: "1 1 35%", maxWidth: "440px" }}>
-          <AiChatPanel groups={groups} />
-
-          <div className="card">
-            <div className="card-body">
-              <h5 className="card-title d-flex align-items-center gap-2">
-                <i className="bi bi-envelope-paper" style={{ color: NAV_COLORS.digest }} />
-                Run Digest
-              </h5>
-              <p className="text-muted small">
-                Summarize yesterday's messages from <code>TEST_GROUP_JID</code> and send the result to{" "}
-                <code>REPORT_TO_JID</code>. The result is added to the list below.
-              </p>
-              {digestResult && (
-                <div className="alert alert-success">
-                  Digest created ({digestResult.messageCount} messages). WA message ID:{" "}
-                  {digestResult.waMessageId ?? "n/a"}
-                </div>
-              )}
-              <div className="d-flex gap-2 flex-wrap">
-                <button className="btn btn-primary" disabled={digestLoading} onClick={() => runDigest(false)}>
-                  <i className="bi bi-play-fill me-1" />
-                  {digestLoading ? "Running…" : "Run Yesterday"}
-                </button>
-                <button
-                  className="btn btn-outline-secondary"
-                  disabled={digestLoading}
-                  onClick={() => runDigest(true)}
-                >
-                  Run Last 24h
-                </button>
+        <div className="space-y-6 lg:sticky lg:top-[88px] lg:self-start lg:max-h-[calc(100vh-112px)] lg:overflow-y-auto lg:pb-1">
+          <div className="p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2.5 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">Run Digest On-Demand</h3>
+                <p className="text-[11px] text-slate-500">Hasil dikirim ke WhatsApp REPORT_TO_JID</p>
               </div>
             </div>
+            {digestResult && (
+              <div className="px-3.5 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs">
+                Digest dibuat ({digestResult.messageCount} pesan). WA message ID: {digestResult.waMessageId ?? "n/a"}
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                disabled={digestLoading}
+                onClick={() => runDigest(false)}
+                className="py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <Clock className="w-3.5 h-3.5" />
+                {digestLoading ? "Menjalankan…" : "Run Yesterday"}
+              </button>
+              <button
+                disabled={digestLoading}
+                onClick={() => runDigest(true)}
+                className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all disabled:opacity-50 cursor-pointer"
+              >
+                <Clock className="w-3.5 h-3.5 text-blue-600" />
+                Run Last 24h
+              </button>
+            </div>
           </div>
+
+          <AiChatPanel groups={groups} />
         </div>
       </div>
 
       {viewingSummary && (
-        <Modal title="Detail Ringkasan" onClose={() => setViewingSummary(null)} size="lg">
-          <dl className="row mb-3">
-            <dt className="col-3">Periode</dt>
-            <dd className="col-9">
-              {new Date(viewingSummary.periodStart).toLocaleString()} —{" "}
-              {new Date(viewingSummary.periodEnd).toLocaleString()}
-            </dd>
-            <dt className="col-3">Grup</dt>
-            <dd className="col-9">{groupName(viewingSummary.sourceGroupJid)}</dd>
-            <dt className="col-3">Jumlah pesan</dt>
-            <dd className="col-9">{viewingSummary.sourceMessageIds.length}</dd>
-            <dt className="col-3">Status</dt>
-            <dd className="col-9">
-              {viewingSummary.read && <span className="badge badge-soft-slate me-1">Read</span>}
-              {viewingSummary.important && <span className="badge badge-soft-navy me-1">Important</span>}
-              {!viewingSummary.read && !viewingSummary.important && <span className="text-muted">—</span>}
-            </dd>
-          </dl>
-          <div className="markdown-body bg-body-tertiary p-3 rounded">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{viewingSummary.bodyMd}</ReactMarkdown>
-          </div>
-        </Modal>
-      )}
-
-      {confirmingDeleteId && (
-        <Modal
-          title="Hapus permanen?"
-          onClose={() => setConfirmingDeleteId(null)}
-          footer={
-            <>
-              <button className="btn btn-outline-secondary" onClick={() => setConfirmingDeleteId(null)}>
-                Batal
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in"
+          onClick={() => setViewingSummary(null)}
+        >
+          <div
+            className="w-full max-w-2xl bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4 text-slate-900 relative max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setViewingSummary(null)}
+              className="absolute top-5 right-5 p-1.5 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="flex items-start gap-3 pb-3 border-b border-slate-100">
+              <div className="p-2.5 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 shrink-0">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md border border-blue-200">
+                    {groupName(viewingSummary.sourceGroupJid)}
+                  </span>
+                  <span className="text-xs text-slate-400 font-mono">{viewingSummary.sourceMessageIds.length} pesan dianalisis</span>
+                  {viewingSummary.read && <span className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-md">Read</span>}
+                  {viewingSummary.important && (
+                    <span className="px-2 py-0.5 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-md border border-amber-200">Important</span>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500 font-mono">
+                  {new Date(viewingSummary.periodStart).toLocaleString("id-ID")} — {new Date(viewingSummary.periodEnd).toLocaleString("id-ID")}
+                </p>
+              </div>
+            </div>
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs leading-relaxed markdown-preview">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{viewingSummary.bodyMd}</ReactMarkdown>
+            </div>
+            <div className="pt-2 flex items-center justify-between">
+              <button
+                onClick={() => exportDocx(viewingSummary)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Export .docx
               </button>
               <button
-                className="btn btn-danger"
-                onClick={() => handleDeletePermanent(confirmingDeleteId)}
-                disabled={busyId === confirmingDeleteId}
+                onClick={() => setViewingSummary(null)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold cursor-pointer"
               >
-                {busyId === confirmingDeleteId ? "Menghapus…" : "Ya, hapus permanen"}
+                Tutup
               </button>
-            </>
-          }
-        >
-          <p className="mb-0 text-danger">
-            <i className="bi bi-exclamation-triangle-fill me-2" />
-            Ringkasan ini akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.
-          </p>
-        </Modal>
+            </div>
+          </div>
+        </div>
       )}
+
+      <ConfirmModal
+        isOpen={confirmingDeleteId !== null}
+        onClose={() => setConfirmingDeleteId(null)}
+        onConfirm={() => confirmingDeleteId && handleDeletePermanent(confirmingDeleteId)}
+        busy={busyId === confirmingDeleteId}
+        title="Hapus permanen?"
+        description="Ringkasan ini akan dihapus permanen. Tindakan ini tidak bisa dibatalkan."
+        confirmText="Ya, hapus permanen"
+        type="danger"
+      />
     </div>
   )
 }

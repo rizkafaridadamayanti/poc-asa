@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Dropdown } from "bootstrap"
+import { Sparkles, Globe2, Users, ChevronDown, X, Send, Loader2 } from "lucide-react"
 import { api, type Group, type GroupScope } from "../api.js"
 import { NAV_COLORS } from "../navColors.js"
 import { EmptyState } from "./EmptyState.js"
@@ -25,12 +25,21 @@ export function AiChatPanel({ groups }: { groups: Group[] }) {
   const [question, setQuestion] = useState("")
   const [scopeGroupJid, setScopeGroupJid] = useState("")
   const [sending, setSending] = useState(false)
+  const [scopeMenuOpen, setScopeMenuOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const scopeToggleRef = useRef<HTMLButtonElement>(null)
+  const scopeMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const onClickOutside = (e: MouseEvent) => {
+      if (scopeMenuRef.current && !scopeMenuRef.current.contains(e.target as Node)) setScopeMenuOpen(false)
+    }
+    document.addEventListener("mousedown", onClickOutside)
+    return () => document.removeEventListener("mousedown", onClickOutside)
+  }, [])
 
   const pickScope = (jid: string) => {
     setScopeGroupJid(jid)
-    if (scopeToggleRef.current) Dropdown.getOrCreateInstance(scopeToggleRef.current).hide()
+    setScopeMenuOpen(false)
   }
 
   const groupsByScope = useMemo(() => {
@@ -80,152 +89,152 @@ export function AiChatPanel({ groups }: { groups: Group[] }) {
   }
 
   return (
-    <div className="card mb-4">
-      <div className="card-body">
-        <h5 className="card-title d-flex align-items-center gap-2 mb-1">
-          <i className="bi bi-stars" style={{ color: NAV_COLORS.qa }} />
-          Tanya AI
-        </h5>
-        <p className="text-muted small mb-3">
-          Tanya berdasarkan riwayat chat yang boleh diakses Pusat. Anggota juga bisa DM bot dengan{" "}
-          <code>/tanya &lt;pertanyaan&gt;</code>.
-        </p>
+    <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 mb-4">
+      <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-1">
+        <Sparkles className="w-4 h-4" style={{ color: NAV_COLORS.qa }} />
+        Tanya AI
+      </h3>
+      <p className="text-xs text-slate-500 mb-3">
+        Tanya berdasarkan riwayat chat yang boleh diakses Pusat. Anggota juga bisa DM bot dengan{" "}
+        <code className="text-[11px] bg-slate-100 px-1 py-0.5 rounded">/tanya &lt;pertanyaan&gt;</code>.
+      </p>
 
-        <div ref={scrollRef} className="ai-chat-scroll mb-3">
-          {conversation.length === 0 && (
-            <EmptyState icon="bi-chat-square-text" text="Belum ada percakapan. Coba tanya sesuatu di bawah." />
-          )}
-          {conversation.map((ex) => (
-            <div key={ex.id} className="mb-3">
-              <div className="d-flex justify-content-end mb-2">
-                <div className="ai-chat-bubble ai-chat-bubble-user">{ex.question}</div>
-              </div>
-              <div className="d-flex align-items-start gap-2">
-                <span className="ai-chat-avatar">
-                  <i className="bi bi-stars" />
-                </span>
-                <div className="flex-grow-1" style={{ minWidth: 0 }}>
-                  {ex.pending && (
-                    <div className="ai-chat-bubble ai-chat-bubble-ai text-muted">
-                      <span className="spinner-grow spinner-grow-sm me-2" role="status" aria-hidden="true" />
-                      Berpikir…
-                    </div>
-                  )}
-                  {ex.error && <div className="ai-chat-bubble ai-chat-bubble-ai text-danger">{ex.error}</div>}
-                  {ex.answer && (
-                    <>
-                      <div className="ai-chat-bubble ai-chat-bubble-ai" style={{ whiteSpace: "pre-wrap" }}>
-                        {ex.answer}
-                      </div>
-                      <div className="text-muted small mt-1">Berdasarkan {ex.sourceCount} pesan sumber.</div>
-                    </>
-                  )}
-                </div>
+      <div ref={scrollRef} className="max-h-72 overflow-y-auto mb-3 pr-1">
+        {conversation.length === 0 && (
+          <EmptyState icon={Sparkles} text="Belum ada percakapan. Coba tanya sesuatu di bawah." />
+        )}
+        {conversation.map((ex) => (
+          <div key={ex.id} className="mb-3">
+            <div className="flex justify-end mb-2">
+              <div className="max-w-[85%] rounded-2xl rounded-br-md bg-blue-600 text-white text-sm px-3.5 py-2">
+                {ex.question}
               </div>
             </div>
-          ))}
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="ai-chat-composer">
-            <div className={`dropup${scopeGroupJid ? " ai-chat-scope-chip" : ""}`}>
-              <button
-                ref={scopeToggleRef}
-                type="button"
-                className={scopeGroupJid ? "ai-chat-scope-chip-toggle" : "ai-chat-scope-btn"}
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-                title={scopeGroupJid ? "Ganti grup" : "Pilih grup"}
-              >
-                {scopeGroupJid ? (
-                  <>
-                    <i className="bi bi-people" />
-                    <span>{groups.find((g) => g.waJid === scopeGroupJid)?.name || scopeGroupJid}</span>
-                  </>
-                ) : (
-                  <i className="bi bi-plus-lg" />
+            <div className="flex items-start gap-2">
+              <span className="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <Sparkles className="w-3.5 h-3.5" />
+              </span>
+              <div className="flex-1 min-w-0">
+                {ex.pending && (
+                  <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-slate-100 text-slate-500 text-sm px-3.5 py-2 flex items-center gap-2">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Berpikir…
+                  </div>
                 )}
-              </button>
+                {ex.error && (
+                  <div className="max-w-[85%] rounded-2xl rounded-bl-md bg-rose-50 text-rose-700 text-sm px-3.5 py-2">
+                    {ex.error}
+                  </div>
+                )}
+                {ex.answer && (
+                  <>
+                    <div
+                      className="max-w-[85%] rounded-2xl rounded-bl-md bg-slate-100 text-slate-800 text-sm px-3.5 py-2"
+                      style={{ whiteSpace: "pre-wrap" }}
+                    >
+                      {ex.answer}
+                    </div>
+                    <div className="text-slate-400 text-xs mt-1">Berdasarkan {ex.sourceCount} pesan sumber.</div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <form onSubmit={handleSubmit}>
+        <div className="flex items-center gap-2">
+          <div className="relative" ref={scopeMenuRef}>
+            <button
+              type="button"
+              onClick={() => setScopeMenuOpen((v) => !v)}
+              className={`flex items-center gap-1.5 h-9 px-3 rounded-xl text-xs font-bold border transition-colors cursor-pointer whitespace-nowrap ${
+                scopeGroupJid
+                  ? "bg-blue-50 border-blue-200 text-blue-700"
+                  : "bg-slate-100 border-transparent text-slate-500 hover:text-slate-700"
+              }`}
+              title={scopeGroupJid ? "Ganti grup" : "Pilih grup"}
+            >
               {scopeGroupJid ? (
+                <>
+                  <Users className="w-3.5 h-3.5" />
+                  <span className="max-w-[90px] truncate">
+                    {groups.find((g) => g.waJid === scopeGroupJid)?.name || scopeGroupJid}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <Globe2 className="w-3.5 h-3.5" />
+                  Semua grup
+                </>
+              )}
+              <ChevronDown className="w-3 h-3 opacity-60" />
+            </button>
+            {scopeGroupJid && (
+              <button
+                type="button"
+                className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-slate-400 text-white flex items-center justify-center hover:bg-slate-500"
+                title="Hapus filter grup"
+                onClick={() => setScopeGroupJid("")}
+              >
+                <X className="w-2.5 h-2.5" />
+              </button>
+            )}
+            {scopeMenuOpen && (
+              <div className="absolute bottom-full mb-2 left-0 w-60 max-h-72 overflow-y-auto p-2 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 text-xs">
                 <button
                   type="button"
-                  className="ai-chat-scope-chip-clear"
-                  title="Hapus filter grup"
-                  onClick={() => setScopeGroupJid("")}
+                  className={`w-full text-left px-2.5 py-2 rounded-xl flex items-center gap-2 font-semibold cursor-pointer ${
+                    scopeGroupJid === "" ? "bg-blue-50 text-blue-700" : "text-slate-700 hover:bg-slate-50"
+                  }`}
+                  onClick={() => pickScope("")}
                 >
-                  <i className="bi bi-x-lg" />
+                  <Globe2 className="w-3.5 h-3.5" />
+                  Semua grup
                 </button>
-              ) : null}
-              <ul className="dropdown-menu ai-chat-scope-menu" style={{ maxHeight: "280px", overflowY: "auto" }}>
-                <li>
-                  <button
-                    type="button"
-                    className={`dropdown-item${scopeGroupJid === "" ? " active" : ""}`}
-                    onClick={() => pickScope("")}
-                  >
-                    <i className="bi bi-globe2" />
-                    Semua grup
-                  </button>
-                </li>
                 {SCOPE_ORDER.map((scope) => {
                   const list = groupsByScope.get(scope)
                   if (!list || list.length === 0) return null
                   return (
-                    <li key={scope}>
-                      <hr className="dropdown-divider" />
-                      <h6 className="dropdown-header">{SCOPE_LABEL[scope]}</h6>
-                      <ul className="list-unstyled mb-0">
-                        {list.map((g) => (
-                          <li key={g._id}>
-                            <button
-                              type="button"
-                              className={`dropdown-item${scopeGroupJid === g.waJid ? " active" : ""}`}
-                              onClick={() => pickScope(g.waJid)}
-                            >
-                              <i className="bi bi-people" />
-                              {g.name || g.waJid}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
+                    <div key={scope} className="mt-1 pt-1 border-t border-slate-100">
+                      <div className="px-2.5 py-1 text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                        {SCOPE_LABEL[scope]}
+                      </div>
+                      {list.map((g) => (
+                        <button
+                          key={g._id}
+                          type="button"
+                          className={`w-full text-left px-2.5 py-2 rounded-xl flex items-center gap-2 font-semibold cursor-pointer ${
+                            scopeGroupJid === g.waJid ? "bg-blue-50 text-blue-700" : "text-slate-700 hover:bg-slate-50"
+                          }`}
+                          onClick={() => pickScope(g.waJid)}
+                        >
+                          <Users className="w-3.5 h-3.5" />
+                          {g.name || g.waJid}
+                        </button>
+                      ))}
+                    </div>
                   )
                 })}
-                {groupsByScope.get("unset")?.length ? (
-                  <li>
-                    <hr className="dropdown-divider" />
-                    <h6 className="dropdown-header">Belum diatur</h6>
-                    <ul className="list-unstyled mb-0">
-                      {groupsByScope.get("unset")!.map((g) => (
-                        <li key={g._id}>
-                          <button
-                            type="button"
-                            className={`dropdown-item${scopeGroupJid === g.waJid ? " active" : ""}`}
-                            onClick={() => pickScope(g.waJid)}
-                          >
-                            <i className="bi bi-people" />
-                            {g.name || g.waJid}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ) : null}
-              </ul>
-            </div>
-            <input
-              className="form-control"
-              placeholder="Tanya sesuatu, misal: apa keputusan rapat kemarin soal dana kegiatan?"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              disabled={sending}
-            />
-            <button className="btn btn-primary rounded-circle flex-shrink-0" style={{ width: 36, height: 36, padding: 0 }} disabled={sending || !question.trim()}>
-              <i className="bi bi-send-fill" />
-            </button>
+              </div>
+            )}
           </div>
-        </form>
-      </div>
+          <input
+            className="flex-1 h-9 px-3 text-sm rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
+            placeholder="Tanya sesuatu, misal: apa keputusan rapat kemarin?"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            disabled={sending}
+          />
+          <button
+            className="w-9 h-9 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shrink-0 disabled:opacity-50 transition-colors cursor-pointer"
+            disabled={sending || !question.trim()}
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </div>
+      </form>
     </div>
   )
 }
