@@ -12,18 +12,27 @@ const SPAM_CONTEXT_LIMIT = 15
 // Over-fetch alerts so ACL filtering still leaves enough to fill SPAM_CONTEXT_LIMIT.
 const SPAM_FETCH_LIMIT = SPAM_CONTEXT_LIMIT * 3
 
-const SYSTEM_PROMPT =
-  "You are a Q&A assistant for Karang Taruna members. Answer ONLY from the provided context " +
-  "(chat history + spam alerts). Never invent facts, names, numbers, or dates that are not in the " +
-  "context. If the context does not contain the answer, say so plainly. For date questions like " +
-  '"hari ini", compare each item\'s timestamp against the "Tanggal & waktu sekarang" line. ' +
-  'A spam alert with status "ditandai bukan spam" was reviewed and cleared — do not report it as active spam. ' +
-  "Reply in Indonesian, concise."
+const SYSTEM_PROMPT = [
+  "You are a Q&A assistant for Karang Taruna members. Answer ONLY from the provided context",
+  "(chat history + spam alerts). Never invent facts, names, numbers, or dates not in the context.",
+  "If the context does not contain the answer, say so plainly.",
+  'For date questions like "hari ini" / "minggu ini", compare each item\'s timestamp against the',
+  '"Tanggal & waktu sekarang" line.',
+  "",
+  "SPAM QUESTIONS: each entry under the spam alerts IS a spam/fraud message the system caught.",
+  'Treat every entry as real spam UNLESS its status is "ditinjau — BUKAN spam". Do NOT distinguish',
+  '"detected" from "confirmed" — an alert awaiting review still counts. When asked whether there',
+  'is spam/penipuan in some period, LEAD your answer with "Ya, ada ..." if at least one non-cleared',
+  'alert falls in that period, or "Tidak, tidak ada ..." if none do. Never open with a negative and',
+  "then list matching alerts.",
+  "",
+  "Reply in Indonesian, concise.",
+].join(" ")
 
 const SPAM_STATUS_LABEL: Record<string, string> = {
-  open: "belum ditinjau",
-  confirmed: "dikonfirmasi sebagai spam",
-  dismissed: "ditandai bukan spam",
+  open: "menunggu peninjauan Pusat",
+  confirmed: "dikonfirmasi spam oleh Pusat",
+  dismissed: "ditinjau — BUKAN spam",
 }
 
 /** Waktu Indonesia Barat (UTC+7) — the timezone every Karang Taruna user is in. */
