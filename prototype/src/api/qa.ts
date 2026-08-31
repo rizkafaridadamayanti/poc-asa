@@ -19,12 +19,12 @@ export async function registerQaApi(app: FastifyInstance, deps: QaApiDeps) {
         return reply.code(400).send({ error: "question is required" })
       }
       try {
-        // Dashboard is pusat-only per the auth model — full ACL scope.
+        // Dashboard is pusat-only per the auth model — full ACL position.
         const result = await answerQuestion({
           question,
           llm,
-          requesterScope: "pusat",
-          scopeGroupJid: req.body?.scopeGroupJid,
+          requester: { tier: "pusat" },
+          onlyGroupJid: req.body?.scopeGroupJid,
         })
         return result
       } catch (err) {

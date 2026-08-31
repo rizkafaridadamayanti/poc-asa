@@ -1,8 +1,7 @@
 import { MessageModel } from "./models/message.js"
 import { SpamAlertModel } from "./models/spamAlert.js"
 import { SPAM_ALERT_THRESHOLD } from "./spam.js"
-import { getGroupScope, isVisibleTo, allowedGroupJids } from "./acl.js"
-import type { GroupScope } from "./models/group.js"
+import { allowedGroupJids, type Requester } from "./acl.js"
 import type { LlmClient } from "./llm.js"
 
 export type QaResult = { answer: string; sourceMessageIds: string[] }
@@ -51,30 +50,25 @@ function fmtWib(d: Date | string | number): string {
 /**
  * Recent spam/fraud alerts as context for "apakah ada spam?".
  *
- * Spam alerts are Pengurus-tier moderation data: returns null for an anggota
- * requester (they must not learn what the system flagged). For dusun/pusat the
- * list is still scope-gated the same way chat history is (a pusat-chat alert
- * never reaches dusun; a DM JID counts as the lowest tier). Verbatim spam text
- * and sender numbers are always left out — echoing them re-exposes the scam.
+ * Spam alerts are Pengurus-tier moderation data: returns null for an anggota or
+ * outsider requester (they must not learn what the system flagged). For dusun the
+ * list is limited to alerts from groups in the requester's own dusun(s); pusat
+ * sees all. Verbatim spam text and sender numbers are always left out — echoing
+ * them re-exposes the scam.
  */
-async function buildSpamContext(
-  requesterScope: GroupScope,
-): Promise<{ text: string; messageIds: string[] } | null> {
-  if (requesterScope === "anggota") return null
+async function buildSpamContext(requester: Requester): Promise<{ text: string; messageIds: string[] } | null> {
+  if (requester.tier === "anggota" || requester.tier === "none") return null
 
   const alerts = await SpamAlertModel.find({}).sort({ createdAt: -1 }).limit(SPAM_FETCH_LIMIT).lean()
+  const allowed = requester.tier === "pusat" ? null : new Set(await allowedGroupJids(requester))
 
-  const scopeByJid = new Map<string, GroupScope>()
   const lines: string[] = []
   const messageIds: string[] = []
   for (const a of alerts) {
     if (lines.length >= SPAM_CONTEXT_LIMIT) break
-    let scope = scopeByJid.get(a.chatJid)
-    if (!scope) {
-      scope = await getGroupScope(a.chatJid)
-      scopeByJid.set(a.chatJid, scope)
-    }
-    if (!isVisibleTo(scope, requesterScope)) continue
+    // dusun only sees alerts from its own groups; japri alerts (chatJid is not a
+    // known group) are pusat-only.
+    if (allowed && !allowed.has(a.chatJid)) continue
     const status = SPAM_STATUS_LABEL[a.status] ?? a.status
     const indikasi = a.reasons.length > 0 ? `, indikasi: ${a.reasons.join("; ")}` : ""
     lines.push(`[${fmtWib(a.createdAt)} WIB] skor ${a.spamScore}/100, ${status}${indikasi}`)
@@ -83,26 +77,19 @@ async function buildSpamContext(
   return { text: lines.join("\n"), messageIds }
 }
 
-/** Retrieval is scope-gated: a requester never sees pusat-scoped chat unless they are pusat themselves. */
+/** Retrieval is ACL-gated by the requester's tier + dusun (see acl.ts). */
 export async function answerQuestion(opts: {
   question: string
   llm: LlmClient
-  requesterScope: GroupScope
-  scopeGroupJid?: string
+  requester: Requester
+  /** Dashboard group-picker: limit retrieval to this one group (still ACL-checked). */
+  onlyGroupJid?: string
 }): Promise<QaResult> {
-  const { question, llm, requesterScope, scopeGroupJid } = opts
+  const { question, llm, requester, onlyGroupJid } = opts
   if (!question.trim()) throw new Error("question is required")
 
-  let chatJids: string[]
-  if (scopeGroupJid) {
-    const groupScope = await getGroupScope(scopeGroupJid)
-    if (!isVisibleTo(groupScope, requesterScope)) {
-      throw new Error("not allowed to query this group's history")
-    }
-    chatJids = [scopeGroupJid]
-  } else {
-    chatJids = await allowedGroupJids(requesterScope)
-  }
+  const allowed = await allowedGroupJids(requester)
+  const chatJids = onlyGroupJid ? allowed.filter((jid) => jid === onlyGroupJid) : allowed
 
   // Messages that tripped the spam filter are kept out of the Q&A context: their
   // verbatim text would otherwise let a bot reply echo the scam back out.
@@ -119,8 +106,7 @@ export async function answerQuestion(opts: {
   const ordered = msgs.slice().reverse()
   const context = ordered.map((m) => `[${fmtWib(m.timestamp * 1000)} WIB] ${m.fromJid}: ${m.text}`).join("\n")
 
-  const spam = await buildSpamContext(requesterScope)
-
+  const spam = await buildSpamContext(requester)
   const spamSection = spam
     ? `Peringatan spam/fraud yang sudah terdeteksi sistem (${spam.messageIds.length}):\n${spam.text || "(tidak ada peringatan spam)"}`
     : "Peringatan spam/fraud: DI LUAR WEWENANG. Penanya bukan Pengurus. Kalau pertanyaannya soal spam/penipuan/keamanan, jawab bahwa informasi itu hanya untuk Pengurus (Dusun/Pusat) dan sarankan menghubungi Pengurus — jangan konfirmasi maupun bantah ada/tidaknya spam."

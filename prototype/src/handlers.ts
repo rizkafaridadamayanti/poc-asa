@@ -4,7 +4,7 @@ import { GroupModel } from "./models/group.js"
 import { SpamAlertModel } from "./models/spamAlert.js"
 import { AnonymousIdeaModel } from "./models/anonymousIdea.js"
 import { checkSpam, SPAM_ALERT_THRESHOLD, type SpamCheckResult } from "./spam.js"
-import { getGroupScope } from "./acl.js"
+import { requesterFromGroup, resolveRequester, type Requester } from "./acl.js"
 import { answerQuestion } from "./qa.js"
 import { sendOutbound } from "./sender.js"
 import { getSettings } from "./settings.js"
@@ -129,29 +129,54 @@ async function handleAnonymousIdea(
   }
 }
 
+/**
+ * /tanya, in a group or via japri. The ACL position is resolved differently for
+ * each (group's own label vs the sender's group memberships, see acl.ts), then
+ * the answer is drawn from whatever that position is allowed to read.
+ */
 async function handleAskCommand(
   bridge: WaBridge,
-  groupJid: string,
+  msg: InboundMessage,
   question: string,
   llm: LlmClient,
   log: Logger,
 ): Promise<void> {
+  const replyToJid = msg.isGroup ? msg.chatJid : msg.fromJid
+
+  let requester: Requester
+  if (msg.isGroup) {
+    const group = await GroupModel.findOne({ waJid: msg.chatJid })
+      .select("scope dusunId")
+      .lean<{ scope?: string | null; dusunId?: string | null } | null>()
+    requester = requesterFromGroup(group?.scope ?? null, group?.dusunId ?? null)
+    if (requester.tier === "none") {
+      await sendOutbound(bridge, replyToJid, "Grup ini belum dikategorikan Pengurus, jadi /tanya belum aktif di sini.", "qa-reply")
+      return
+    }
+    if (requester.tier !== "pusat" && requester.dusunIds.length === 0) {
+      await sendOutbound(bridge, replyToJid, "Grup ini belum punya Dusun ID. Minta Pengurus mengaturnya dulu.", "qa-reply")
+      return
+    }
+  } else {
+    requester = await resolveRequester(msg.fromJid)
+    if (requester.tier === "none") {
+      await sendOutbound(
+        bridge,
+        replyToJid,
+        "Maaf, nomor kamu belum terdaftar sebagai anggota grup mana pun, jadi belum bisa diberi informasi. Kamu tetap bisa kirim ide lewat /ide.",
+        "qa-reply",
+      )
+      return
+    }
+  }
+
   try {
-    // /tanya is group-only. The answer is grounded in that group's own history
-    // and inherits its ACL scope: a pusat group can use pusat context, an
-    // anggota group cannot. Japri /tanya is refused before reaching here.
-    const requesterScope = await getGroupScope(groupJid)
-    const { answer } = await answerQuestion({ question, llm, requesterScope, scopeGroupJid: groupJid })
-    await sendOutbound(bridge, groupJid, answer, "qa-reply")
+    const { answer } = await answerQuestion({ question, llm, requester })
+    await sendOutbound(bridge, replyToJid, answer, "qa-reply")
   } catch (err) {
     log.error({ err }, "qa command failed")
     try {
-      await sendOutbound(
-        bridge,
-        groupJid,
-        "Maaf, lagi ada gangguan jawab pertanyaan. Coba lagi nanti ya.",
-        "qa-reply",
-      )
+      await sendOutbound(bridge, replyToJid, "Maaf, lagi ada gangguan jawab pertanyaan. Coba lagi nanti ya.", "qa-reply")
     } catch {
       /* ignore */
     }
@@ -211,19 +236,7 @@ export function createInboundHandler(log: Logger, bridge: WaBridge, llm: LlmClie
       const ideaMatch = IDEA_CMD_RE.exec(msg.text)
       const askMatch = ASK_CMD_RE.exec(msg.text)
       if (askMatch) {
-        if (msg.isGroup) {
-          // Answered inside the group, grounded in that group's history and ACL scope.
-          void handleAskCommand(bridge, msg.chatJid, askMatch[1], llm, log)
-        } else {
-          // Japri /tanya is not served — data is only ever exposed inside a group,
-          // where the group's scope defines what the answer may draw from.
-          void sendOutbound(
-            bridge,
-            msg.fromJid,
-            "Perintah /tanya hanya bisa dipakai di dalam grup.",
-            "qa-reply",
-          )
-        }
+        void handleAskCommand(bridge, msg, askMatch[1], llm, log)
       } else if (ideaMatch && !msg.isGroup) {
         // /ide stays DM-only: submitting it from a group would not be anonymous.
         void handleAnonymousIdea(bridge, msg.fromJid, ideaMatch[1], log)

@@ -13,6 +13,7 @@ import { startPurgeJob } from "./purge.js"
 import { startDigestCron } from "./digestCron.js"
 import { startSentimentCron } from "./sentimentCron.js"
 import { startWeeklyStatsCron } from "./weeklyStatsCron.js"
+import { startGroupSyncCron } from "./groupSync.js"
 
 async function main() {
   const cfg = loadConfig()
@@ -52,6 +53,7 @@ async function main() {
   startDigestCron({ schedule: cfg.digestCron, bridge, llm, log })
   startSentimentCron({ schedule: cfg.digestCron, bridge, llm, log })
   startWeeklyStatsCron({ schedule: cfg.weeklyStatsCron, bridge, log })
+  startGroupSyncCron(bridge, log)
   const app = await startHttp({ cfg, bridge, llm, log })
   const curatedInfoScheduler = startCuratedInfoScheduler(bridge, log)
   const agendaScheduler = startAgendaScheduler(bridge, log)
