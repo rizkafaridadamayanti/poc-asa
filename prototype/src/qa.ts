@@ -19,12 +19,13 @@ const SYSTEM_PROMPT = [
   'For date questions like "hari ini" / "minggu ini", compare each item\'s timestamp against the',
   '"Tanggal & waktu sekarang" line.',
   "",
-  "SPAM QUESTIONS: each entry under the spam alerts IS a spam/fraud message the system caught.",
-  'Treat every entry as real spam UNLESS its status is "ditinjau — BUKAN spam". Do NOT distinguish',
-  '"detected" from "confirmed" — an alert awaiting review still counts. When asked whether there',
-  'is spam/penipuan in some period, LEAD your answer with "Ya, ada ..." if at least one non-cleared',
-  'alert falls in that period, or "Tidak, tidak ada ..." if none do. Never open with a negative and',
-  "then list matching alerts.",
+  'SPAM QUESTIONS: if the spam section says "DI LUAR WEWENANG", follow that instruction exactly —',
+  "the asker is not a Pengurus and must not be told whether spam exists. Otherwise: each entry",
+  "under the spam alerts IS a spam/fraud message the system caught. Treat every entry as real spam",
+  'UNLESS its status is "ditinjau — BUKAN spam". Do NOT distinguish "detected" from "confirmed" —',
+  "an alert awaiting review still counts. When asked whether there is spam/penipuan in some period,",
+  'LEAD with "Ya, ada ..." if at least one non-cleared alert falls in that period, or',
+  '"Tidak, tidak ada ..." if none do. Never open with a negative and then list matching alerts.',
   "",
   "Reply in Indonesian, concise.",
 ].join(" ")
@@ -48,13 +49,19 @@ function fmtWib(d: Date | string | number): string {
 }
 
 /**
- * Recent spam/fraud alerts the requester may see, as context for "apakah ada spam?".
- * Unlike chat history these also cover japri, and are scope-gated the same way
- * (a pusat-chat alert never reaches a lower tier; a DM JID counts as lowest tier).
- * Verbatim spam text and sender numbers are left out on purpose — echoing them in
- * a bot reply re-exposes the scam — so only meta goes in.
+ * Recent spam/fraud alerts as context for "apakah ada spam?".
+ *
+ * Spam alerts are Pengurus-tier moderation data: returns null for an anggota
+ * requester (they must not learn what the system flagged). For dusun/pusat the
+ * list is still scope-gated the same way chat history is (a pusat-chat alert
+ * never reaches dusun; a DM JID counts as the lowest tier). Verbatim spam text
+ * and sender numbers are always left out — echoing them re-exposes the scam.
  */
-async function buildSpamContext(requesterScope: GroupScope): Promise<{ text: string; messageIds: string[] }> {
+async function buildSpamContext(
+  requesterScope: GroupScope,
+): Promise<{ text: string; messageIds: string[] } | null> {
+  if (requesterScope === "anggota") return null
+
   const alerts = await SpamAlertModel.find({}).sort({ createdAt: -1 }).limit(SPAM_FETCH_LIMIT).lean()
 
   const scopeByJid = new Map<string, GroupScope>()
@@ -114,6 +121,10 @@ export async function answerQuestion(opts: {
 
   const spam = await buildSpamContext(requesterScope)
 
+  const spamSection = spam
+    ? `Peringatan spam/fraud yang sudah terdeteksi sistem (${spam.messageIds.length}):\n${spam.text || "(tidak ada peringatan spam)"}`
+    : "Peringatan spam/fraud: DI LUAR WEWENANG. Penanya bukan Pengurus. Kalau pertanyaannya soal spam/penipuan/keamanan, jawab bahwa informasi itu hanya untuk Pengurus (Dusun/Pusat) dan sarankan menghubungi Pengurus — jangan konfirmasi maupun bantah ada/tidaknya spam."
+
   const prompt = `Tanggal & waktu sekarang: ${fmtWib(Date.now())} WIB
 
 Pertanyaan: "${question}"
@@ -121,11 +132,10 @@ Pertanyaan: "${question}"
 Konteks chat yang boleh diakses (${ordered.length} pesan terbaru):
 ${context || "(tidak ada riwayat chat yang relevan)"}
 
-Peringatan spam/fraud yang sudah terdeteksi sistem (${spam.messageIds.length}):
-${spam.text || "(tidak ada peringatan spam)"}
+${spamSection}
 
 Jawab pertanyaan hanya berdasarkan konteks di atas. Kalau tidak ada info relevan, bilang terus terang tidak tahu.`
 
   const answer = await llm.complete(prompt, SYSTEM_PROMPT)
-  return { answer, sourceMessageIds: [...ordered.map((m) => m.messageId), ...spam.messageIds] }
+  return { answer, sourceMessageIds: [...ordered.map((m) => m.messageId), ...(spam?.messageIds ?? [])] }
 }
