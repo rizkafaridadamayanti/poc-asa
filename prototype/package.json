@@ -25,14 +25,14 @@
     "mongoose": "^8.9.5",
     "node-cron": "^4.6.0",
     "openai": "^4.78.1",
-    "pino": "^9.6.0"
+    "pino": "^9.6.0",
+    "tsx": "^4.19.2"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.10.5",
     "@types/node-cron": "^3.0.11",
-    "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   }
 }

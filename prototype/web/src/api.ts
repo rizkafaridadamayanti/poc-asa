@@ -61,10 +61,10 @@ export async function login(username: string, password: string) {
   return data
 }
 
-export async function register(username: string, password: string) {
+export async function register(username: string, password: string, inviteCode: string) {
   const data = await fetchJson<{ token: string; user: { id: string; username: string } }>(
     "/api/auth/register",
-    { method: "POST", body: JSON.stringify({ username, password }) },
+    { method: "POST", body: JSON.stringify({ username, password, inviteCode }) },
   )
   setToken(data.token)
   setStoredUsername(data.user.username)

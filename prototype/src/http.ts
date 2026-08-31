@@ -36,7 +36,7 @@ export async function startHttp(deps: HttpDeps) {
   }))
 
   registerEventsApi(app, bridge)
-  registerAuthRoutes(app, { jwtSecret: cfg.jwtSecret, log })
+  registerAuthRoutes(app, { jwtSecret: cfg.jwtSecret, log, inviteCode: cfg.dashboardPassword })
 
   // Protected API routes
   await app.register(async (api) => {

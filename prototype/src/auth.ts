@@ -50,12 +50,15 @@ export function verifyToken(token: string, jwtSecret: string): { userId: string 
 export type AuthDeps = {
   jwtSecret: string
   log: Logger
+  /** DASHBOARD_PASSWORD — the "kode pengurus" required to register. Empty = registration
+   *  is only open until the first account exists, then it closes. */
+  inviteCode: string
 }
 
 export function registerAuthRoutes(app: FastifyInstance, deps: AuthDeps) {
-  const { jwtSecret, log } = deps
+  const { jwtSecret, log, inviteCode } = deps
 
-  app.post<{ Body: { username?: string; password?: string } }>(
+  app.post<{ Body: { username?: string; password?: string; inviteCode?: string } }>(
     "/api/auth/register",
     async (req, reply) => {
       const { username, password } = req.body || {}
@@ -64,6 +67,13 @@ export function registerAuthRoutes(app: FastifyInstance, deps: AuthDeps) {
       }
       if (password.length < 6) {
         return reply.code(400).send({ error: "password must be at least 6 characters" })
+      }
+      if (inviteCode) {
+        if ((req.body?.inviteCode || "").trim() !== inviteCode) {
+          return reply.code(403).send({ error: "Kode pengurus salah atau kosong." })
+        }
+      } else if ((await UserModel.estimatedDocumentCount()) > 0) {
+        return reply.code(403).send({ error: "Registrasi ditutup. Minta pengurus membuatkan akun." })
       }
       try {
         const result = await registerUser(username, password, jwtSecret)
